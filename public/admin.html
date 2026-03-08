@@ -1,21 +1,20 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
+<html lang="fr"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FREEHOME — Administration</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Cormorant+Garamond:wght@300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Cormorant+Garamond:wght@300;400&amp;display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root {
-  --gold:#C9A96E;--gold-bg:rgba(201,169,110,.09);--gold-border:rgba(201,169,110,.22);
-  --dark:#0F0F0E;--sidebar:#131312;--surface:#1A1A18;--surface-2:#212120;--surface-3:#2A2A27;
-  --border:rgba(255,255,255,.07);--text:#E8E6E0;--text-2:#8C8C7A;--text-3:#555550;
-  --green:#3D9970;--green-bg:rgba(61,153,112,.13);
-  --red:#E74C3C;--red-bg:rgba(231,76,60,.13);
-  --blue:#3498DB;--blue-bg:rgba(52,152,219,.13);
-  --orange:#E67E22;--orange-bg:rgba(230,126,34,.13);
+  --gold:#8a6d2f;--gold-bg:rgba(201,169,110,.1);--gold-border:rgba(201,169,110,.3);
+  --dark:#F8F7F4;--sidebar:#fff;--surface:#F2EFE8;--surface-2:#EDE9E0;--surface-3:#E4E0D8;
+  --border:rgba(0,0,0,.08);--text:#1A1A18;--text-2:#4A4A44;--text-3:#8A8A7E;
+  --forest:#1C453C;--forest-bg:rgba(28,69,60,.07);--forest-border:rgba(28,69,60,.18);
+  --green:#1C453C;--green-bg:rgba(28,69,60,.08);
+  --red:#C0392B;--red-bg:rgba(192,57,43,.08);
+  --blue:#2471A3;--blue-bg:rgba(36,113,163,.08);
+  --orange:#b8912a;--orange-bg:rgba(184,145,42,.1);
   --r:6px;--sw:238px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -49,11 +48,14 @@ body{font-family:'Inter',sans-serif;background:var(--dark);color:var(--text);fon
 /* ── BUTTONS ── */
 .btn{display:inline-flex;align-items:center;gap:.38rem;padding:.42rem .95rem;border-radius:var(--r);font-size:.73rem;font-weight:500;border:none;cursor:pointer;transition:all .18s;text-decoration:none;font-family:'Inter',sans-serif;white-space:nowrap}
 .btn svg{width:13px;height:13px}
-.btn-primary{background:var(--gold);color:var(--dark)}.btn-primary:hover{background:#d9b97e}
+.btn-primary{background:var(--gold);color:#fff;border:1px solid var(--gold-border)}.btn-primary:hover{background:#7a5f25}
 .btn-ghost{background:transparent;color:var(--text-2);border:1px solid var(--border)}.btn-ghost:hover{background:var(--surface-2);color:var(--text)}
-.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid rgba(231,76,60,.2)}.btn-danger:hover{background:rgba(231,76,60,.22)}
-.btn-success{background:var(--green-bg);color:var(--green);border:1px solid rgba(61,153,112,.2)}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid rgba(192,57,43,.2)}.btn-danger:hover{background:rgba(192,57,43,.15)}
+.btn-success{background:var(--green-bg);color:var(--green);border:1px solid var(--forest-border)}
 .btn-sm{padding:.28rem .65rem;font-size:.68rem}
+@keyframes dirty-pulse{0%,100%{box-shadow:0 0 0 0 rgba(231,76,60,.5)}50%{box-shadow:0 0 0 6px rgba(231,76,60,0)}}
+.btn-dirty{background:#e74c3c!important;color:#fff!important;animation:dirty-pulse 1.8s ease-in-out infinite}
+.btn-dirty::after{content:'●';margin-left:.3rem;font-size:.65rem}
 
 /* ── PAGES ── */
 .page{display:none}.page.active{display:block}
@@ -90,7 +92,7 @@ body{font-family:'Inter',sans-serif;background:var(--dark);color:var(--text);fon
 .tbl-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse}
 th{text-align:left;padding:.55rem .9rem;font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text-3);border-bottom:1px solid var(--border);white-space:nowrap}
-td{padding:.68rem .9rem;font-size:.76rem;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text-2);vertical-align:middle}
+td{padding:.68rem .9rem;font-size:.76rem;border-bottom:1px solid var(--border);color:var(--text-2);vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:var(--surface-2)}
 td strong{color:var(--text);font-weight:500}
@@ -133,7 +135,7 @@ select option{background:var(--surface-2)}
 .tab:hover{color:var(--text-2)}.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
 
 /* ── ACTIVITY ── */
-.act-item{display:flex;gap:.7rem;padding:.62rem 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.act-item{display:flex;gap:.7rem;padding:.62rem 0;border-bottom:1px solid var(--border)}
 .act-item:last-child{border-bottom:none}
 .act-dot{width:7px;height:7px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:5px}
 .act-dot.g{background:var(--green)}.act-dot.b{background:var(--blue)}.act-dot.r{background:var(--red)}
@@ -142,7 +144,7 @@ select option{background:var(--surface-2)}
 .act-time{font-size:.66rem;color:var(--text-3);margin-top:1px}
 
 /* ── PROG LIST ── */
-.pl-item{display:flex;align-items:center;gap:.9rem;padding:.72rem 1rem;border-bottom:1px solid rgba(255,255,255,.04);transition:background .18s}
+.pl-item{display:flex;align-items:center;gap:.9rem;padding:.72rem 1rem;border-bottom:1px solid var(--border);transition:background .18s}
 .pl-item:hover{background:var(--surface-2)}.pl-item:last-child{border-bottom:none}
 .pl-thumb{width:44px;height:44px;border-radius:4px;background:var(--surface-3);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
 .pl-info{flex:1;min-width:0}
@@ -202,8 +204,62 @@ select option{background:var(--surface-2)}
 #toast{position:fixed;bottom:1.4rem;right:1.4rem;background:var(--surface);border:1px solid var(--gold-border);padding:.65rem 1.1rem;border-radius:var(--r);font-size:.78rem;z-index:9999;color:var(--text);box-shadow:0 8px 24px rgba(0,0,0,.4);transform:translateY(8px);opacity:0;transition:all .25s;pointer-events:none}
 #toast.show{transform:translateY(0);opacity:1}
 </style>
-</head>
+<style id="claude-agent-animation-styles">
+      @keyframes claude-pulse {
+        0% {
+          box-shadow: 
+            inset 0 0 10px rgba(217, 119, 87, 0.5),
+            inset 0 0 20px rgba(217, 119, 87, 0.3),
+            inset 0 0 30px rgba(217, 119, 87, 0.1);
+        }
+        50% {
+          box-shadow: 
+            inset 0 0 15px rgba(217, 119, 87, 0.7),
+            inset 0 0 25px rgba(217, 119, 87, 0.5),
+            inset 0 0 35px rgba(217, 119, 87, 0.2);
+        }
+        100% {
+          box-shadow: 
+            inset 0 0 10px rgba(217, 119, 87, 0.5),
+            inset 0 0 20px rgba(217, 119, 87, 0.3),
+            inset 0 0 30px rgba(217, 119, 87, 0.1);
+        }
+      }
+    </style></head>
 <body>
+
+<!-- ═══ ÉCRAN DE LOGIN ═══ -->
+<div id="login-screen" style="display:none;position:fixed;inset:0;z-index:99999;background:#F2EFE8;font-family:'Inter',sans-serif;align-items:center;justify-content:center">
+  <div style="width:100%;max-width:380px;padding:0 1.5rem">
+    <div style="text-align:center;margin-bottom:2rem">
+      <div style="font-size:1.6rem;font-weight:700;letter-spacing:.12em;color:#1A1008">FREE HOME</div>
+      <div style="font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:#9A8A6A;margin-top:4px">Administration</div>
+      <div style="width:36px;height:2px;background:#C9A84C;margin:.8rem auto 0;border-radius:2px"></div>
+    </div>
+    <div style="background:#fff;border-radius:10px;padding:2rem;box-shadow:0 2px 16px rgba(0,0,0,.08);border:1px solid rgba(0,0,0,.06)">
+      <div style="margin-bottom:1.2rem">
+        <label style="font-size:.75rem;font-weight:600;color:#4A4030;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:.4rem">Email</label>
+        <input id="login-email" type="email" placeholder="votre@email.fr" autocomplete="email"
+          style="width:100%;box-sizing:border-box;padding:.65rem .8rem;border:1px solid #E4DFD5;border-radius:7px;font-size:.9rem;color:#1A1008;background:#FAF8F4;outline:none"
+          onfocus="this.style.borderColor='#C9A84C'" onblur="this.style.borderColor='#E4DFD5'"
+          onkeydown="if(event.key==='Enter')document.getElementById('login-pwd').focus()">
+      </div>
+      <div style="margin-bottom:1.4rem">
+        <label style="font-size:.75rem;font-weight:600;color:#4A4030;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:.4rem">Mot de passe</label>
+        <input id="login-pwd" type="password" placeholder="••••••••" autocomplete="current-password"
+          style="width:100%;box-sizing:border-box;padding:.65rem .8rem;border:1px solid #E4DFD5;border-radius:7px;font-size:.9rem;color:#1A1008;background:#FAF8F4;outline:none"
+          onfocus="this.style.borderColor='#C9A84C'" onblur="this.style.borderColor='#E4DFD5'"
+          onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div id="login-err" style="display:none;color:#C0392B;font-size:.8rem;margin-bottom:.9rem;padding:.5rem .8rem;background:rgba(192,57,43,.07);border-radius:5px"></div>
+      <button onclick="doLogin()" id="login-btn"
+        style="width:100%;background:#C9A84C;color:#1A1008;border:none;border-radius:7px;padding:.75rem;font-size:.88rem;font-weight:700;letter-spacing:.04em;cursor:pointer">
+        Connexion
+      </button>
+    </div>
+    <p style="text-align:center;font-size:.72rem;color:#B0A090;margin-top:1.2rem">FREEHOME · Administration sécurisée</p>
+  </div>
+</div>
 
 <!-- ═══ SIDEBAR ═══ -->
 <aside class="sidebar">
@@ -214,40 +270,47 @@ select option{background:var(--surface-2)}
 
   <div class="sb-sec">Vue d'ensemble</div>
   <button class="ni active" onclick="nav('dashboard')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Tableau de bord
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg>Tableau de bord
   </button>
 
   <div class="sb-sec">Immobilier</div>
   <button class="ni" onclick="nav('programmes')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Programmes
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>Programmes
     <span class="nb" id="nb-prog">5</span>
   </button>
   <button class="ni" onclick="nav('lots')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>Lots & disponibilités
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M3 9h18M3 15h18M9 3v18"></path></svg>Lots &amp; disponibilités
   </button>
   <button class="ni" onclick="nav('leads')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>Prospects & Leads
-    <span class="nb red">3</span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"></path></svg>Prospects &amp; Leads
+    <span class="nb red">12</span>
+  </button>
+  <button class="ni" onclick="nav('acquereurs')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Acquéreurs
+    <span class="nb" id="nb-acq">1</span>
   </button>
 
   <div class="sb-sec">Site web</div>
   <button class="ni" onclick="nav('import')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Import Excel
-    <span style="margin-left:auto;font-size:.58rem;background:var(--gold);color:var(--dark);padding:1px 5px;border-radius:3px;font-weight:700">NEW</span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>Import Excel
+  </button>
+  <button class="ni" onclick="nav('pdf')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>Base IA — PDF
+    <span style="margin-left:auto;font-size:.58rem;background:#3498db;color:#fff;padding:1px 5px;border-radius:3px;font-weight:700">RAG</span>
   </button>
   <button class="ni" onclick="nav('pages')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Pages vitrines
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>Pages vitrines
   </button>
   <button class="ni" onclick="nav('medias')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Médiathèque
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>Médiathèque
   </button>
 
   <div class="sb-sec">Système</div>
   <button class="ni" onclick="nav('users')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Utilisateurs
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"></path></svg>Utilisateurs
   </button>
   <button class="ni" onclick="nav('settings')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Paramètres
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"></path></svg>Paramètres
   </button>
 
   <div class="sb-foot">
@@ -269,16 +332,20 @@ select option{background:var(--surface-2)}
     </div>
     <div class="tb-actions">
       <button class="btn btn-ghost btn-sm" onclick="nav('import')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
         Import Excel
       </button>
       <button class="btn btn-sm" style="background:#27ae60;color:#fff;border:none" onclick="publishToSite()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
         Publier
       </button>
       <button class="btn btn-primary btn-sm" onclick="newProg()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
         Nouveau programme
+      </button>
+      <button class="btn btn-ghost btn-sm" onclick="doLogout()" title="Déconnexion" style="gap:.35rem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span id="tb-user-nom" style="font-size:.75rem;color:var(--text-3)"></span>
       </button>
     </div>
   </div>
@@ -296,8 +363,8 @@ select option{background:var(--surface-2)}
         </div>
         <div class="stat-card">
           <div class="stat-lbl">Lots disponibles</div>
-          <div class="stat-val" id="kpi-dispo">38</div>
-          <div class="stat-sub" id="kpi-dispo-sub">Sur 94 lots au total</div>
+          <div class="stat-val" id="kpi-dispo">48</div>
+          <div class="stat-sub" id="kpi-dispo-sub">Sur 55 lots au total</div>
           <div class="stat-ind down">↓ 12 vendus ce mois</div>
         </div>
         <div class="stat-card">
@@ -308,9 +375,9 @@ select option{background:var(--surface-2)}
         </div>
         <div class="stat-card">
           <div class="stat-lbl">Taux de commercialisation</div>
-          <div class="stat-val"><span id="kpi-taux">59</span><span style="font-size:.95rem;color:var(--text-2)">%</span></div>
-          <div class="stat-sub" id="kpi-taux-sub">56 lots vendus / réservés</div>
-          <div class="prog-bar"><div class="prog-fill g" id="kpi-bar" style="width:59%"></div></div>
+          <div class="stat-val"><span id="kpi-taux">13</span><span style="font-size:.95rem;color:var(--text-2)">%</span></div>
+          <div class="stat-sub" id="kpi-taux-sub">7 lots vendus / réservés</div>
+          <div class="prog-bar"><div class="prog-fill g" id="kpi-bar" style="width: 13%;"></div></div>
         </div>
       </div>
 
@@ -318,7 +385,47 @@ select option{background:var(--surface-2)}
         <div class="card">
           <div class="card-hdr"><span class="card-title">Programmes en cours</span>
             <button class="btn btn-ghost btn-sm" onclick="nav('programmes')">Voir tout</button></div>
-          <div id="dash-prog-list"></div>
+          <div id="dash-prog-list"><div class="pl-item">
+      <div class="pl-thumb">🏠</div>
+      <div class="pl-info">
+        <div class="pl-name">Rive Azure</div>
+        <div class="pl-loc">📍 Malroy · 0 lots disponibles / 5</div>
+        <div class="prog-bar"><div class="prog-fill" style="width:100%"></div></div>
+      </div>
+      <span class="badge bg-green">En commercialisation</span>
+    </div><div class="pl-item">
+      <div class="pl-thumb">🏠</div>
+      <div class="pl-info">
+        <div class="pl-name">Clos Prévert</div>
+        <div class="pl-loc">📍 Ay-sur-Moselle · 45 lots disponibles / 45</div>
+        <div class="prog-bar"><div class="prog-fill" style="width:0%"></div></div>
+      </div>
+      <span class="badge bg-green">En commercialisation</span>
+    </div><div class="pl-item">
+      <div class="pl-thumb">🏠</div>
+      <div class="pl-info">
+        <div class="pl-name">La Maison d'Augny</div>
+        <div class="pl-loc">📍 Augny · 0 lots disponibles / 1</div>
+        <div class="prog-bar"><div class="prog-fill" style="width:100%"></div></div>
+      </div>
+      <span class="badge bg-blue">Bientôt disponible</span>
+    </div><div class="pl-item">
+      <div class="pl-thumb">🏠</div>
+      <div class="pl-info">
+        <div class="pl-name">Le Socle</div>
+        <div class="pl-loc">📍 Mont-Saint-Martin · 2 lots disponibles / 2</div>
+        <div class="prog-bar"><div class="prog-fill" style="width:0%"></div></div>
+      </div>
+      <span class="badge bg-green">En commercialisation</span>
+    </div><div class="pl-item">
+      <div class="pl-thumb">🏠</div>
+      <div class="pl-info">
+        <div class="pl-name">Clos Sérénité</div>
+        <div class="pl-loc">📍 Kanfen · 1 lots disponibles / 3</div>
+        <div class="prog-bar"><div class="prog-fill" style="width:67%"></div></div>
+      </div>
+      <span class="badge bg-green">En commercialisation</span>
+    </div></div>
         </div>
         <div class="card">
           <div class="card-hdr"><span class="card-title">Activité récente</span></div>
@@ -354,40 +461,1181 @@ select option{background:var(--surface-2)}
     <!-- ══ LOTS ══ -->
     <div class="page" id="page-lots">
       <div class="page-hdr">
-        <div class="page-hdr-l"><h2>Lots & disponibilités</h2><p>Vue détaillée par programme</p></div>
-        <div class="page-hdr-r"><button class="btn btn-primary btn-sm" onclick="openModal('m-add-lot')">+ Ajouter un lot</button></div>
+        <div class="page-hdr-l"><h2>Lots &amp; disponibilités</h2><p>Vue détaillée par programme</p></div>
+        <div class="page-hdr-r"><button class="btn btn-primary btn-sm" onclick="newLot()">+ Ajouter un lot</button></div>
       </div>
       <div class="filter-row">
-        <select id="f-lot-prog" onchange="filterLots()"><option value="">Tous les programmes</option></select>
-        <select id="f-lot-stat" onchange="filterLots()"><option value="">Tous statuts</option><option>Disponible</option><option>Réservé</option><option>Vendu</option></select>
-        <select onchange="filterLots()" id="f-lot-typo"><option value="">Toutes typologies</option><option>Studio</option><option>T1</option><option>T2</option><option>T3</option><option>T4</option></select>
+        <select id="f-lot-prog" onchange="filterLots()"><option value="">Tous les programmes</option><option>Rive Azure</option><option>Clos Prévert</option><option>La Maison d'Augny</option><option>Le Socle</option><option>Clos Sérénité</option></select>
+        <select id="f-lot-stat" onchange="filterLots()"><option value="">Tous statuts</option><option>Disponible</option><option>Réservé</option><option>Vendu</option><option>À louer</option><option>Loué</option><option>Bloqué</option></select>
+        <select onchange="filterLots()" id="f-lot-typo"><option value="">Toutes typologies</option><optgroup label="Résidentiel"><option>Studio</option><option>T1</option><option>T2</option><option>T3</option><option>T4</option><option>T5</option></optgroup><optgroup label="Commercial / Activité"><option>Bureau</option><option>Plateau</option><option>Dépôt</option><option>Local d'activité</option></optgroup></select>
         <input type="search" id="f-lot-q" placeholder="N° lot…" oninput="filterLots()">
+        <input type="search" id="f-lot-acq" placeholder="Acquéreur…" oninput="filterLots()" style="max-width:180px">
+        <select id="f-lot-acq-mode" onchange="filterLots()">
+          <option value="">Tous les lots</option>
+          <option value="with">Avec acquéreur</option>
+          <option value="without">Sans acquéreur</option>
+        </select>
       </div>
       <div class="card"><div class="tbl-wrap"><table>
         <thead><tr><th>Lot</th><th>Programme</th><th>Ét.</th><th>Typo</th><th>Surf.</th><th>Prix TTC</th><th>Statut</th><th>Acquéreur</th><th>Plan 3D</th><th></th></tr></thead>
-        <tbody id="lots-tbody"></tbody>
+        <tbody id="lots-tbody"><tr>
+    <td><strong>LOT 101</strong></td>
+    <td style="font-size:.72rem">Rive Azure</td>
+    <td>RDC</td><td>T3</td>
+    <td>80.12 m²</td>
+    <td>329 000 €</td>
+    <td>
+      <select onchange="changeLotStat(1,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option>Disponible</option><option>Réservé</option><option selected="">Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(1)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(1)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>LOT 102</strong></td>
+    <td style="font-size:.72rem">Rive Azure</td>
+    <td>RDC</td><td>T1</td>
+    <td>19.59 m²</td>
+    <td>88 900 €</td>
+    <td>
+      <select onchange="changeLotStat(2,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option>Disponible</option><option selected="">Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">ZILE</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(2)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(2)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>LOT 103</strong></td>
+    <td style="font-size:.72rem">Rive Azure</td>
+    <td>RDC</td><td>T3</td>
+    <td>71.86 m²</td>
+    <td>295 000 €</td>
+    <td>
+      <select onchange="changeLotStat(3,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option>Disponible</option><option>Réservé</option><option selected="">Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(3)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(3)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>LOT 201</strong></td>
+    <td style="font-size:.72rem">Rive Azure</td>
+    <td>1er</td><td>T3</td>
+    <td>68.44 m²</td>
+    <td>282 000 €</td>
+    <td>
+      <select onchange="changeLotStat(4,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option>Disponible</option><option selected="">Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(4)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(4)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>LOT 202</strong></td>
+    <td style="font-size:.72rem">Rive Azure</td>
+    <td>1er</td><td>T2</td>
+    <td>56.21 m²</td>
+    <td>234 900 €</td>
+    <td>
+      <select onchange="changeLotStat(5,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option>Disponible</option><option>Réservé</option><option selected="">Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(5)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(5)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>A-01</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>RDC</td><td>T2</td>
+    <td>57.91 m²</td>
+    <td>234 900 €</td>
+    <td>
+      <select onchange="changeLotStat(6,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(6)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(6)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>A-02</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>RDC</td><td>T4</td>
+    <td>78.58 m²</td>
+    <td>299 900 €</td>
+    <td>
+      <select onchange="changeLotStat(7,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(7)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(7)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>A-03</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>RDC</td><td>T2</td>
+    <td>55.27 m²</td>
+    <td>229 000 €</td>
+    <td>
+      <select onchange="changeLotStat(8,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(8)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(8)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>A-04</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>RDC</td><td>T4</td>
+    <td>83.72 m²</td>
+    <td>319 900 €</td>
+    <td>
+      <select onchange="changeLotStat(9,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(9)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(9)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>A-05</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>RDC</td><td>T3</td>
+    <td>61.83 m²</td>
+    <td>254 000 €</td>
+    <td>
+      <select onchange="changeLotStat(10,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(10)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(10)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>A-06</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>RDC</td><td>T3</td>
+    <td>66.8 m²</td>
+    <td>269 900 €</td>
+    <td>
+      <select onchange="changeLotStat(11,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(11)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(11)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>A-11</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>R+1</td><td>T2</td>
+    <td>55.39 m²</td>
+    <td>203 900 €</td>
+    <td>
+      <select onchange="changeLotStat(12,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(12)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(12)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>A-12</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>R+1</td><td>T4</td>
+    <td>78.01 m²</td>
+    <td>279 900 €</td>
+    <td>
+      <select onchange="changeLotStat(13,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(13)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(13)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>A-13</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>R+1</td><td>T2</td>
+    <td>52.68 m²</td>
+    <td>194 900 €</td>
+    <td>
+      <select onchange="changeLotStat(14,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(14)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(14)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>A-14</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>R+1</td><td>T4</td>
+    <td>78.5 m²</td>
+    <td>279 900 €</td>
+    <td>
+      <select onchange="changeLotStat(15,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(15)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(15)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>A-15</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>R+1</td><td>T3</td>
+    <td>66.8 m²</td>
+    <td>244 900 €</td>
+    <td>
+      <select onchange="changeLotStat(16,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(16)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(16)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>A-16</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>R+1</td><td>T3</td>
+    <td>61.96 m²</td>
+    <td>229 000 €</td>
+    <td>
+      <select onchange="changeLotStat(17,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(17)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(17)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>A-21</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>R+2</td><td>T4</td>
+    <td>92.81 m²</td>
+    <td>379 000 €</td>
+    <td>
+      <select onchange="changeLotStat(18,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(18)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(18)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>A-22</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>R+2</td><td>T2</td>
+    <td>49.55 m²</td>
+    <td>235 900 €</td>
+    <td>
+      <select onchange="changeLotStat(19,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(19)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(19)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>A-23</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>R+2</td><td>T4</td>
+    <td>63.5 m²</td>
+    <td>289 900 €</td>
+    <td>
+      <select onchange="changeLotStat(20,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(20)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(20)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>B-01</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>RDC</td><td>T2</td>
+    <td>57.91 m²</td>
+    <td>234 900 €</td>
+    <td>
+      <select onchange="changeLotStat(21,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(21)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(21)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>B-02</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>RDC</td><td>T4</td>
+    <td>78.58 m²</td>
+    <td>299 900 €</td>
+    <td>
+      <select onchange="changeLotStat(22,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(22)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(22)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>B-03</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>RDC</td><td>T2</td>
+    <td>55.27 m²</td>
+    <td>229 000 €</td>
+    <td>
+      <select onchange="changeLotStat(23,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(23)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(23)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>B-04</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>RDC</td><td>T4</td>
+    <td>83.72 m²</td>
+    <td>319 900 €</td>
+    <td>
+      <select onchange="changeLotStat(24,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(24)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(24)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>B-05</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>RDC</td><td>T3</td>
+    <td>61.83 m²</td>
+    <td>254 000 €</td>
+    <td>
+      <select onchange="changeLotStat(25,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(25)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(25)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>B-06</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>RDC</td><td>T3</td>
+    <td>66.8 m²</td>
+    <td>269 900 €</td>
+    <td>
+      <select onchange="changeLotStat(26,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(26)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(26)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>B-11</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>R+1</td><td>T2</td>
+    <td>55.39 m²</td>
+    <td>203 900 €</td>
+    <td>
+      <select onchange="changeLotStat(27,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(27)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(27)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>B-12</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>R+1</td><td>T4</td>
+    <td>78.01 m²</td>
+    <td>279 900 €</td>
+    <td>
+      <select onchange="changeLotStat(28,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(28)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(28)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>B-13</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>R+1</td><td>T2</td>
+    <td>52.68 m²</td>
+    <td>194 900 €</td>
+    <td>
+      <select onchange="changeLotStat(29,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(29)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(29)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>B-14</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>R+1</td><td>T4</td>
+    <td>78.5 m²</td>
+    <td>279 900 €</td>
+    <td>
+      <select onchange="changeLotStat(30,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(30)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(30)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>B-15</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>R+1</td><td>T3</td>
+    <td>66.8 m²</td>
+    <td>244 900 €</td>
+    <td>
+      <select onchange="changeLotStat(31,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(31)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(31)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>B-16</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>R+1</td><td>T3</td>
+    <td>61.96 m²</td>
+    <td>229 000 €</td>
+    <td>
+      <select onchange="changeLotStat(32,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(32)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(32)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>B-21</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>R+2</td><td>T4</td>
+    <td>92.81 m²</td>
+    <td>379 000 €</td>
+    <td>
+      <select onchange="changeLotStat(33,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(33)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(33)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>B-22</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>R+2</td><td>T2</td>
+    <td>49.55 m²</td>
+    <td>235 900 €</td>
+    <td>
+      <select onchange="changeLotStat(34,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(34)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(34)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>B-23</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>R+2</td><td>T4</td>
+    <td>63.5 m²</td>
+    <td>289 900 €</td>
+    <td>
+      <select onchange="changeLotStat(35,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(35)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(35)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>C-01</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>RDC</td><td>T2</td>
+    <td>57.91 m²</td>
+    <td>234 900 €</td>
+    <td>
+      <select onchange="changeLotStat(36,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(36)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(36)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>C-02</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>RDC</td><td>T4</td>
+    <td>78.58 m²</td>
+    <td>299 900 €</td>
+    <td>
+      <select onchange="changeLotStat(37,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(37)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(37)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>C-03</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>RDC</td><td>T2</td>
+    <td>55.27 m²</td>
+    <td>229 000 €</td>
+    <td>
+      <select onchange="changeLotStat(38,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(38)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(38)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>C-04</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>RDC</td><td>T4</td>
+    <td>83.72 m²</td>
+    <td>319 900 €</td>
+    <td>
+      <select onchange="changeLotStat(39,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(39)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(39)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>C-05</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>RDC</td><td>T3</td>
+    <td>61.83 m²</td>
+    <td>254 000 €</td>
+    <td>
+      <select onchange="changeLotStat(40,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(40)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(40)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>C-06</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>RDC</td><td>T3</td>
+    <td>66.8 m²</td>
+    <td>269 900 €</td>
+    <td>
+      <select onchange="changeLotStat(41,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(41)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(41)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>C-11</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>R+1</td><td>T2</td>
+    <td>55.39 m²</td>
+    <td>203 900 €</td>
+    <td>
+      <select onchange="changeLotStat(42,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(42)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(42)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>C-12</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>R+1</td><td>T4</td>
+    <td>78.01 m²</td>
+    <td>279 900 €</td>
+    <td>
+      <select onchange="changeLotStat(43,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(43)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(43)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>C-13</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>R+1</td><td>T2</td>
+    <td>52.68 m²</td>
+    <td>194 900 €</td>
+    <td>
+      <select onchange="changeLotStat(44,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(44)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(44)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>C-14</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>R+1</td><td>T4</td>
+    <td>78.5 m²</td>
+    <td>279 900 €</td>
+    <td>
+      <select onchange="changeLotStat(45,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(45)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(45)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>C-15</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>R+1</td><td>T3</td>
+    <td>66.8 m²</td>
+    <td>244 900 €</td>
+    <td>
+      <select onchange="changeLotStat(46,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(46)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(46)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>C-16</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>R+1</td><td>T3</td>
+    <td>61.96 m²</td>
+    <td>229 000 €</td>
+    <td>
+      <select onchange="changeLotStat(47,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(47)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(47)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>C-21</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>R+2</td><td>T4</td>
+    <td>92.81 m²</td>
+    <td>379 000 €</td>
+    <td>
+      <select onchange="changeLotStat(48,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(48)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(48)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>C-22</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>R+2</td><td>T2</td>
+    <td>49.55 m²</td>
+    <td>235 900 €</td>
+    <td>
+      <select onchange="changeLotStat(49,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(49)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(49)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>C-23</strong></td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td>R+2</td><td>T4</td>
+    <td>63.5 m²</td>
+    <td>289 900 €</td>
+    <td>
+      <select onchange="changeLotStat(50,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(50)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(50)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>D-01</strong></td>
+    <td style="font-size:.72rem">Le Socle</td>
+    <td>RDC</td><td>T2</td>
+    <td>42 m²</td>
+    <td>178 000 €</td>
+    <td>
+      <select onchange="changeLotStat(51,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(51)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(51)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>D-02</strong></td>
+    <td style="font-size:.72rem">Le Socle</td>
+    <td>2</td><td>T4</td>
+    <td>88 m²</td>
+    <td>315 000 €</td>
+    <td>
+      <select onchange="changeLotStat(52,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(52)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(52)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>M-A</strong></td>
+    <td style="font-size:.72rem">Clos Sérénité</td>
+    <td>MAISON</td><td>T5</td>
+    <td>135 m²</td>
+    <td>465 000 €</td>
+    <td>
+      <select onchange="changeLotStat(53,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option>Disponible</option><option>Réservé</option><option selected="">Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(53)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(53)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>M-B</strong></td>
+    <td style="font-size:.72rem">Clos Sérénité</td>
+    <td>MAISON</td><td>T5</td>
+    <td>195 m²</td>
+    <td>495 000 €</td>
+    <td>
+      <select onchange="changeLotStat(54,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option selected="">Disponible</option><option>Réservé</option><option>Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(54)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(54)" title="Supprimer">✕</button>
+    </td>
+  </tr><tr>
+    <td><strong>M-C</strong></td>
+    <td style="font-size:.72rem">Clos Sérénité</td>
+    <td>MAISON</td><td>T5</td>
+    <td>135 m²</td>
+    <td>465 000 €</td>
+    <td>
+      <select onchange="changeLotStat(55,this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        <option>Disponible</option><option>Réservé</option><option selected="">Vendu</option><option>Bloqué</option>
+      </select>
+    </td>
+    <td style="font-size:.72rem">—</td>
+    <td>—</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(55)" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(55)" title="Supprimer">✕</button>
+    </td>
+  </tr></tbody>
       </table></div></div>
     </div>
 
     <!-- ══ LEADS ══ -->
     <div class="page" id="page-leads">
       <div class="page-hdr">
-        <div class="page-hdr-l"><h2>Prospects & Leads</h2><p>Suivi des demandes reçues</p></div>
+        <div class="page-hdr-l"><h2>Prospects &amp; Leads</h2><p>Suivi des demandes reçues</p></div>
         <div class="page-hdr-r">
-          <button class="btn btn-ghost btn-sm">Exporter CSV</button>
+          <button class="btn btn-ghost btn-sm" onclick="exportLeadsCSV()">Exporter CSV</button>
           <button class="btn btn-primary btn-sm" onclick="openModal('m-add-lead')">+ Ajouter</button>
         </div>
       </div>
       <div class="tabs">
-        <button class="tab active">Tous (21)</button>
-        <button class="tab">À traiter (3)</button>
-        <button class="tab">En cours (11)</button>
-        <button class="tab">Gagnés (5)</button>
-        <button class="tab">Perdus (2)</button>
+        <button class="tab active" onclick="filterLeads('')">Tous (<span id="tab-leads-all">16</span>)</button>
+        <button class="tab" onclick="filterLeads('traiter')">À traiter (<span id="tab-leads-traiter">14</span>)</button>
+        <button class="tab" onclick="filterLeads('cours')">En cours (<span id="tab-leads-cours">1</span>)</button>
+        <button class="tab" onclick="filterLeads('gagnes')">Gagnés (<span id="tab-leads-gagnes">1</span>)</button>
+        <button class="tab" onclick="filterLeads('perdus')">Perdus (<span id="tab-leads-perdus">0</span>)</button>
+        <button class="tab" onclick="filterLeads('archives')" style="color:var(--text-3)">Archivés (<span id="tab-leads-archives">0</span>)</button>
+        <button class="tab" onclick="filterLeads('tests')" style="color:var(--text-3)">Tests (<span id="tab-leads-tests">0</span>)</button>
+      </div>
+      <!-- Barre actions collectives -->
+      <div id="leads-bulk-bar" style="display:none;align-items:center;gap:.6rem;padding:.5rem .8rem;background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:var(--r);margin-bottom:.6rem;font-size:.78rem">
+        <span id="leads-bulk-count" style="font-weight:600;color:var(--gold)">0 sélectionné(s)</span>
+        <span style="color:var(--text-3)">→ Changer statut :</span>
+        <select id="leads-bulk-statut" style="font-size:.75rem;padding:.25rem .5rem;border:1px solid var(--border);border-radius:4px;background:var(--surface)">
+          <optgroup label="À traiter"><option>Nouveau</option><option>Premier contact</option><option>À rappeler</option><option>À traiter</option></optgroup>
+          <optgroup label="En cours"><option>En cours</option><option>En négociation</option><option>Visite programmée</option><option>Dossier en cours</option></optgroup>
+          <optgroup label="Gagné"><option>Réservation signée</option><option>Gagné</option></optgroup>
+          <optgroup label="Perdu"><option>Perdu</option><option>Abandonné</option><option>Hors budget</option></optgroup>
+          <optgroup label="Autre"><option>Archivé</option><option>Test</option></optgroup>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="applyBulkStatut()">Appliquer</button>
+        <button class="btn btn-ghost btn-sm" onclick="clearLeadSelection()">Annuler</button>
       </div>
       <div class="card"><div class="tbl-wrap"><table>
-        <thead><tr><th>Prio.</th><th>Nom</th><th>Programme</th><th>Typo</th><th>Budget</th><th>Statut</th><th>Source</th><th>Date</th><th></th></tr></thead>
-        <tbody id="leads-tbody"></tbody>
+        <thead><tr><th style="width:32px"><input type="checkbox" id="lead-check-all" onchange="toggleAllLeads(this.checked)" style="accent-color:var(--gold);cursor:pointer"></th><th>Prio.</th><th>Nom</th><th>Email</th><th>Téléphone</th><th>Programme</th><th>Statut</th><th>Source</th><th>Date</th><th></th></tr></thead>
+        <tbody id="leads-tbody"><tr>
+    <td><span class="ld h"></span>Haute</td>
+    <td><strong>Bahtiayar OZKAN</strong></td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">Le Socle — Mont-Saint-Martin</td>
+    <td><span class="badge bg-red">Nouveau</span></td>
+    <td style="font-size:.72rem">Site web</td>
+    <td style="font-size:.72rem">26/02/2026</td>
+    <td><button class="btn btn-primary btn-sm" onclick="traiterLead(163)">Traiter</button></td>
+  </tr><tr>
+    <td><span class="ld l"></span>Basse</td>
+    <td><strong>Claire Rousseau</strong></td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">Rive Azure</td>
+    <td><span class="badge bg-gray">Premier contact</span></td>
+    <td style="font-size:.72rem">Réseaux sociaux</td>
+    <td style="font-size:.72rem">26/02/2026</td>
+    <td><button class="btn btn-primary btn-sm" onclick="traiterLead(162)">Traiter</button></td>
+  </tr><tr>
+    <td><span class="ld m"></span>Normale</td>
+    <td><strong>Pierre Martin</strong></td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">Clos Prévert</td>
+    <td><span class="badge bg-green">Réservation signée</span></td>
+    <td style="font-size:.72rem">Recommandation</td>
+    <td style="font-size:.72rem">26/02/2026</td>
+    <td><button class="btn btn-primary btn-sm" onclick="traiterLead(161)">Traiter</button></td>
+  </tr><tr>
+    <td><span class="ld h"></span>Haute</td>
+    <td><strong>Sophie Lambert</strong></td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">Le Socle</td>
+    <td><span class="badge bg-blue">En négociation</span></td>
+    <td style="font-size:.72rem">Téléphone</td>
+    <td style="font-size:.72rem">26/02/2026</td>
+    <td><button class="btn btn-primary btn-sm" onclick="traiterLead(160)">Traiter</button></td>
+  </tr><tr>
+    <td><span class="ld h"></span>Haute</td>
+    <td><strong>Martin Dupont</strong></td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">Rive Azure</td>
+    <td><span class="badge bg-orange">À rappeler</span></td>
+    <td style="font-size:.72rem">Site web</td>
+    <td style="font-size:.72rem">26/02/2026</td>
+    <td><button class="btn btn-primary btn-sm" onclick="traiterLead(159)">Traiter</button></td>
+  </tr><tr>
+    <td><span class="ld h"></span>Haute</td>
+    <td><strong>Test Dupont</strong></td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">—</td>
+    <td><span class="badge bg-red">Nouveau</span></td>
+    <td style="font-size:.72rem">Site web</td>
+    <td style="font-size:.72rem">26/02/2026</td>
+    <td><button class="btn btn-primary btn-sm" onclick="traiterLead(158)">Traiter</button></td>
+  </tr><tr>
+    <td><span class="ld h"></span>Haute</td>
+    <td><strong>kel baba</strong></td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">Rive Azure — Malroy</td>
+    <td><span class="badge bg-red">Nouveau</span></td>
+    <td style="font-size:.72rem">Site web</td>
+    <td style="font-size:.72rem">26/02/2026</td>
+    <td><button class="btn btn-primary btn-sm" onclick="traiterLead(157)">Traiter</button></td>
+  </tr><tr>
+    <td><span class="ld h"></span>Haute</td>
+    <td><strong>kel baba</strong></td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">Rive Azure — Malroy</td>
+    <td><span class="badge bg-red">Nouveau</span></td>
+    <td style="font-size:.72rem">Site web</td>
+    <td style="font-size:.72rem">26/02/2026</td>
+    <td><button class="btn btn-primary btn-sm" onclick="traiterLead(156)">Traiter</button></td>
+  </tr><tr>
+    <td><span class="ld h"></span>Haute</td>
+    <td><strong>Debug Test</strong></td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">—</td>
+    <td><span class="badge bg-red">Nouveau</span></td>
+    <td style="font-size:.72rem">Site web</td>
+    <td style="font-size:.72rem">26/02/2026</td>
+    <td><button class="btn btn-primary btn-sm" onclick="traiterLead(155)">Traiter</button></td>
+  </tr><tr>
+    <td><span class="ld h"></span>Haute</td>
+    <td><strong>Debug Resend</strong></td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">—</td>
+    <td><span class="badge bg-red">Nouveau</span></td>
+    <td style="font-size:.72rem">Site web</td>
+    <td style="font-size:.72rem">26/02/2026</td>
+    <td><button class="btn btn-primary btn-sm" onclick="traiterLead(154)">Traiter</button></td>
+  </tr><tr>
+    <td><span class="ld h"></span>Haute</td>
+    <td><strong>Debug Resend</strong></td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">—</td>
+    <td><span class="badge bg-red">Nouveau</span></td>
+    <td style="font-size:.72rem">Site web</td>
+    <td style="font-size:.72rem">26/02/2026</td>
+    <td><button class="btn btn-primary btn-sm" onclick="traiterLead(153)">Traiter</button></td>
+  </tr><tr>
+    <td><span class="ld h"></span>Haute</td>
+    <td><strong>alex dujardin</strong></td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">Clos Prévert — Ay-sur-Moselle</td>
+    <td><span class="badge bg-red">Nouveau</span></td>
+    <td style="font-size:.72rem">Site web</td>
+    <td style="font-size:.72rem">26/02/2026</td>
+    <td><button class="btn btn-primary btn-sm" onclick="traiterLead(152)">Traiter</button></td>
+  </tr><tr>
+    <td><span class="ld h"></span>Haute</td>
+    <td><strong>Test Email</strong></td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">—</td>
+    <td><span class="badge bg-red">Nouveau</span></td>
+    <td style="font-size:.72rem">Site web</td>
+    <td style="font-size:.72rem">26/02/2026</td>
+    <td><button class="btn btn-primary btn-sm" onclick="traiterLead(151)">Traiter</button></td>
+  </tr><tr>
+    <td><span class="ld h"></span>Haute</td>
+    <td><strong>sci gestion</strong></td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">Clos Prévert — Ay-sur-Moselle</td>
+    <td><span class="badge bg-red">Nouveau</span></td>
+    <td style="font-size:.72rem">Site web</td>
+    <td style="font-size:.72rem">26/02/2026</td>
+    <td><button class="btn btn-primary btn-sm" onclick="traiterLead(150)">Traiter</button></td>
+  </tr><tr>
+    <td><span class="ld h"></span>Haute</td>
+    <td><strong>free home</strong></td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">Clos Prévert — Ay-sur-Moselle</td>
+    <td><span class="badge bg-red">Nouveau</span></td>
+    <td style="font-size:.72rem">Site web</td>
+    <td style="font-size:.72rem">26/02/2026</td>
+    <td><button class="btn btn-primary btn-sm" onclick="traiterLead(149)">Traiter</button></td>
+  </tr><tr>
+    <td><span class="ld h"></span>Haute</td>
+    <td><strong>Bahtiayar OZKAN</strong></td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">Clos Prévert — Ay-sur-Moselle</td>
+    <td><span class="badge bg-red">Nouveau</span></td>
+    <td style="font-size:.72rem">Site web</td>
+    <td style="font-size:.72rem">26/02/2026</td>
+    <td><button class="btn btn-primary btn-sm" onclick="traiterLead(148)">Traiter</button></td>
+  </tr></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- ══ ACQUÉREURS ══ -->
+    <div class="page" id="page-acquereurs">
+      <div class="page-hdr">
+        <div class="page-hdr-l"><h2>Acquéreurs</h2><p>Dossiers des acheteurs par programme</p></div>
+      </div>
+      <div class="filter-row">
+        <select id="f-acq-prog" onchange="renderAcquereurs()"><option value="">Tous les programmes</option><option>Rive Azure</option><option>Clos Prévert</option><option>La Maison d'Augny</option><option>Le Socle</option><option>Clos Sérénité</option></select>
+        <input type="search" id="f-acq-q" placeholder="Nom, email…" oninput="renderAcquereurs()" style="flex:1;max-width:280px">
+      </div>
+      <div class="card"><div class="tbl-wrap"><table>
+        <thead><tr><th>Nom</th><th>Programme</th><th>Lot</th><th>Email</th><th>Téléphone</th><th>Date réservation</th><th>Notes</th><th></th></tr></thead>
+        <tbody id="acq-tbody"><tr style="cursor:pointer" ondblclick="openFicheAcquereur(1)">
+    <td><strong>ZILE</strong></td>
+    <td style="font-size:.72rem">Rive Azure</td>
+    <td>LOT 102</td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem">—</td>
+    <td style="font-size:.72rem;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="">—</td>
+    <td><button class="btn btn-primary btn-sm" onclick="openFicheAcquereur(1)">Ouvrir fiche</button></td>
+  </tr></tbody>
       </table></div></div>
     </div>
 
@@ -400,17 +1648,17 @@ select option{background:var(--surface-2)}
         </div>
         <div class="page-hdr-r">
           <button onclick="publishToSite()" class="btn btn-primary btn-sm" style="background:#27ae60;color:#fff;border:none;margin-right:.5rem">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><polyline points="20 6 9 17 4 12"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><polyline points="20 6 9 17 4 12"></polyline></svg>
             Publier sur le site
           </button>
           <button onclick="exportSiteData()" class="btn btn-ghost btn-sm" style="margin-right:.5rem" title="Télécharger le JSON en local (backup)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             Export JSON
           </button>
-          <a href="#" onclick="downloadTemplate()" class="btn btn-ghost btn-sm">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Télécharger le template .xlsx
-          </a>
+          <button onclick="downloadTemplate()" class="btn btn-ghost btn-sm">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Télécharger le template CSV
+          </button>
         </div>
       </div>
 
@@ -437,14 +1685,13 @@ select option{background:var(--surface-2)}
       <div class="card">
         <div class="card-hdr"><span class="card-title">📂 Chargement du fichier</span></div>
         <div class="card-body">
-          <div class="import-zone" id="drop-zone"
-               ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
+          <div class="import-zone" id="drop-zone" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
             <input type="file" id="file-input" accept=".xlsx,.xls" onchange="handleFile(this.files[0])">
             <svg class="import-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-              <line x1="12" y1="18" x2="12" y2="12"/>
-              <polyline points="9 15 12 12 15 15"/>
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="12" y1="18" x2="12" y2="12"></line>
+              <polyline points="9 15 12 12 15 15"></polyline>
             </svg>
             <h3 id="drop-title">Glissez votre fichier Excel ici</h3>
             <p id="drop-sub">ou cliquez pour parcourir</p>
@@ -455,12 +1702,12 @@ select option{background:var(--surface-2)}
           <div class="preview-wrap" id="preview-wrap">
 
             <div class="banner success" id="import-ok-banner" style="display:none">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><polyline points="20 6 9 17 4 12"></polyline></svg>
               <div><strong id="import-ok-txt">Fichier lu avec succès</strong></div>
             </div>
 
             <div class="banner" id="import-warn-banner" style="display:none">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
               <div id="import-warn-txt"></div>
             </div>
 
@@ -526,6 +1773,85 @@ select option{background:var(--surface-2)}
       </div>
     </div>
 
+    <!-- ══ BASE IA — PDF RAG ══ -->
+    <div class="page" id="page-pdf">
+      <div class="page-hdr">
+        <div class="page-hdr-l">
+          <h2>Base documentaire IA</h2>
+          <p>Ingérez des PDFs (notices, référentiels, grilles) pour enrichir l'assistant IA avec des données précises</p>
+        </div>
+      </div>
+
+      <!-- Zone d'upload -->
+      <div class="card" style="margin-bottom:1.5rem">
+        <div class="card-hdr"><span class="card-title">📄 Ingérer un nouveau PDF</span></div>
+        <div class="card-body">
+          <div class="g2" style="gap:1rem;margin-bottom:1rem">
+            <div class="fg">
+              <label>Programme concerné</label>
+              <select id="pdf-programme">
+                <option value="">Chargement...</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label>Type de document</label>
+              <select id="pdf-doctype">
+                <option value="notice_descriptive">Notice descriptive légale</option>
+                <option value="notice_synthetique">Notice synthétique</option>
+                <option value="referentiel_equipements">Référentiel équipements</option>
+                <option value="grille_vente">Grille de vente</option>
+                <option value="plaquette_commerciale">Plaquette commerciale</option>
+                <option value="autre">Autre document</option>
+              </select>
+            </div>
+          </div>
+          <div id="pdf-drop-zone" style="border:2px dashed var(--surface-3);border-radius:8px;padding:2.5rem;text-align:center;cursor:pointer;transition:border-color .2s" onclick="document.getElementById('pdf-file-input').click()" ondragover="event.preventDefault();this.style.borderColor='var(--gold)'" ondragleave="this.style.borderColor='var(--surface-3)'" ondrop="handlePdfDrop(event)">
+            <div style="font-size:2rem;margin-bottom:.5rem">📁</div>
+            <div style="color:var(--text-2);font-size:.9rem">Glissez un PDF ici ou <span style="color:var(--gold);cursor:pointer">cliquez pour parcourir</span></div>
+            <div style="color:var(--text-3);font-size:.75rem;margin-top:.3rem">PDF uniquement — Max 10 Mo recommandé</div>
+          </div>
+          <input type="file" id="pdf-file-input" accept=".pdf" style="display:none" onchange="handlePdfFile(this.files[0])">
+          <div id="pdf-selected-file" style="display:none;margin-top:.75rem;padding:.6rem 1rem;background:var(--surface-2);border-radius:6px;font-size:.85rem">
+            <span id="pdf-selected-name" style="color:var(--gold)"></span>
+            <span id="pdf-selected-size" style="color:var(--text-3);margin-left:.5rem"></span>
+          </div>
+          <div id="pdf-progress" style="display:none;margin-top:1rem">
+            <div style="font-size:.85rem;color:var(--text-2);margin-bottom:.4rem" id="pdf-progress-msg">Extraction en cours...</div>
+            <div style="background:var(--surface-2);border-radius:4px;height:6px;overflow:hidden">
+              <div id="pdf-progress-bar" style="height:100%;background:var(--gold);width:0%;transition:width .4s;border-radius:4px"></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:.75rem;margin-top:1rem">
+            <button class="btn btn-primary btn-sm" onclick="ingestPdf()" id="pdf-ingest-btn" disabled="">
+              ⚡ Ingérer dans la base IA
+            </button>
+            <div id="pdf-result" style="font-size:.82rem;color:var(--green);display:none;align-items:center;gap:.4rem"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Liste des documents ingérés -->
+      <div class="card">
+        <div class="card-hdr">
+          <span class="card-title">📚 Documents ingérés</span>
+          <button class="btn btn-ghost btn-sm" onclick="loadPdfDocuments()" style="margin-left:auto">↻ Actualiser</button>
+        </div>
+        <div class="card-body" style="padding:0">
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead><tr>
+                <th>Fichier</th><th>Programme</th><th>Type</th>
+                <th>Chunks</th><th>Statut</th><th>Date</th><th>Actions</th>
+              </tr></thead>
+              <tbody id="pdf-docs-tbody">
+                <tr><td colspan="7" style="text-align:center;color:var(--text-3);padding:2rem">Chargement...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ══ PAGES ══ -->
     <div class="page" id="page-pages">
       <div class="page-hdr">
@@ -538,8 +1864,61 @@ select option{background:var(--surface-2)}
       <div class="card"><div class="tbl-wrap"><table>
         <thead><tr><th>Page</th><th>Slug</th><th>Statut</th><th>Modifié</th><th></th></tr></thead>
         <tbody id="pages-tbody">
-          <!-- Rendu dynamique par renderPages() -->
-        </tbody>
+    <tr style="background:rgba(244,149,22,.04)"><td colspan="5" style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);padding:.5rem 1rem">Pages statiques</td></tr>
+    
+    <tr>
+      <td><strong>Accueil</strong></td>
+      <td><code>/</code></td>
+      <td><span class="badge bg-green">Publiée</span></td>
+      <td style="color:var(--text-3);font-size:.8rem">Hier</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="editStaticPage('/')">Éditer</button></td>
+    </tr>
+    <tr>
+      <td><strong>Projets livrés</strong></td>
+      <td><code>/projets-livres</code></td>
+      <td><span class="badge bg-green">Publiée</span></td>
+      <td style="color:var(--text-3);font-size:.8rem">Il y a 1 mois</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="editStaticPage('/projets-livres')">Éditer</button></td>
+    </tr>
+    <tr>
+      <td><strong>Contact / FAQ</strong></td>
+      <td><code>/contact</code></td>
+      <td><span class="badge bg-green">Publiée</span></td>
+      <td style="color:var(--text-3);font-size:.8rem">Il y a 2 mois</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="editStaticPage('/contact')">Éditer</button></td>
+    </tr>
+    <tr style="background:rgba(244,149,22,.04)"><td colspan="5" style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);padding:.5rem 1rem">Pages programmes</td></tr>
+    <tr>
+      <td><strong>Rive Azure</strong></td>
+      <td><code>/malroy-rive-azure</code></td>
+      <td><span class="badge bg-green">Publiée</span></td>
+      <td style="color:var(--text-3);font-size:.8rem">—</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="editProg(1)">Éditer la fiche</button></td>
+    </tr><tr>
+      <td><strong>Clos Prévert</strong></td>
+      <td><code>/ay-sur-moselle-clos-pr-vert</code></td>
+      <td><span class="badge bg-green">Publiée</span></td>
+      <td style="color:var(--text-3);font-size:.8rem">—</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="editProg(2)">Éditer la fiche</button></td>
+    </tr><tr>
+      <td><strong>La Maison d'Augny</strong></td>
+      <td><code>/augny-la-maison-d-augny</code></td>
+      <td><span class="badge bg-orange">Brouillon</span></td>
+      <td style="color:var(--text-3);font-size:.8rem">—</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="editProg(3)">Éditer la fiche</button></td>
+    </tr><tr>
+      <td><strong>Le Socle</strong></td>
+      <td><code>/mont-saint-martin-le-socle</code></td>
+      <td><span class="badge bg-green">Publiée</span></td>
+      <td style="color:var(--text-3);font-size:.8rem">—</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="editProg(4)">Éditer la fiche</button></td>
+    </tr><tr>
+      <td><strong>Clos Sérénité</strong></td>
+      <td><code>/kanfen-clos-s-r-nit-</code></td>
+      <td><span class="badge bg-green">Publiée</span></td>
+      <td style="color:var(--text-3);font-size:.8rem">—</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="editProg(5)">Éditer la fiche</button></td>
+    </tr></tbody>
       </table></div></div>
     </div>
 
@@ -550,21 +1929,63 @@ select option{background:var(--surface-2)}
         <div class="page-hdr-r"><button class="btn btn-primary btn-sm">+ Importer</button></div>
       </div>
       <div style="text-align:center;padding:3rem;color:var(--text-3)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="width:40px;height:40px;opacity:.3;margin-bottom:1rem"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="width:40px;height:40px;opacity:.3;margin-bottom:1rem"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
         <p style="font-size:.82rem">Aucun média importé — cliquez sur Importer</p>
       </div>
     </div>
 
     <!-- ══ USERS ══ -->
     <div class="page" id="page-users">
-      <div class="page-hdr"><div class="page-hdr-l"><h2>Utilisateurs</h2><p>Accès et rôles</p></div><div class="page-hdr-r"><button class="btn btn-primary btn-sm">+ Inviter</button></div></div>
-      <div class="card"><div class="tbl-wrap"><table>
-        <thead><tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Dernière co.</th><th>Statut</th></tr></thead>
-        <tbody>
-          <tr><td><strong>Admin</strong></td><td><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="85e4e1e8ecebc5e8ede3f7e0e0edeae8e0abe6eae8">[email&#160;protected]</a></td><td><span class="badge bg-gold">Admin</span></td><td>Aujourd'hui</td><td><span class="badge bg-green">Actif</span></td></tr>
-          <tr><td><strong>Assistante</strong></td><td><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="fb9a888892888f9a958f9ebb96939d899e9e9394969ed5989496">[email&#160;protected]</a></td><td><span class="badge bg-blue">Éditeur</span></td><td>Hier</td><td><span class="badge bg-green">Actif</span></td></tr>
-        </tbody>
-      </table></div></div>
+      <div class="page-hdr">
+        <div class="page-hdr-l"><h2>Utilisateurs</h2><p>Accès et rôles</p></div>
+        <div class="page-hdr-r"><button class="btn btn-primary btn-sm" onclick="openUserModal()">+ Nouvel utilisateur</button></div>
+      </div>
+      <div class="card">
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Dernière connexion</th><th>Statut</th><th></th></tr></thead>
+            <tbody id="users-tbody"><tr><td colspan="6" style="text-align:center;color:var(--text-3);padding:2rem">Chargement…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal utilisateur -->
+    <div class="overlay" id="m-user">
+      <div class="modal" style="max-width:460px;width:100%">
+        <div class="modal-hdr">
+          <span class="modal-title" id="m-user-title">Nouvel utilisateur</span>
+          <button class="mc" onclick="closeModal('m-user')">×</button>
+        </div>
+        <div style="padding:1.2rem 1.4rem;display:flex;flex-direction:column;gap:.9rem">
+          <input type="hidden" id="u-id">
+          <div class="fg"><label>Nom complet *</label><input id="u-nom" placeholder="Ex : Marie Dupont"></div>
+          <div class="fg"><label>Email *</label><input id="u-email" type="email" placeholder="marie@mhfreehome.fr"></div>
+          <div class="fg">
+            <label>Rôle</label>
+            <select id="u-role">
+              <option value="admin">Admin — accès complet</option>
+              <option value="editeur" selected>Éditeur — gestion programmes &amp; lots</option>
+              <option value="lecteur">Lecteur — consultation uniquement</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label id="u-pwd-label">Mot de passe *</label>
+            <input id="u-pwd" type="password" placeholder="Minimum 8 caractères" autocomplete="new-password">
+            <p id="u-pwd-hint" style="font-size:.72rem;color:var(--text-3);margin:.3rem 0 0;display:none">Laissez vide pour ne pas modifier le mot de passe</p>
+          </div>
+          <div id="u-actif-wrap" style="display:none">
+            <label style="display:flex;align-items:center;gap:.6rem;cursor:pointer;font-size:.85rem">
+              <input type="checkbox" id="u-actif" checked style="width:16px;height:16px;accent-color:var(--gold)">
+              Compte actif
+            </label>
+          </div>
+        </div>
+        <div class="modal-hdr" style="border-top:1px solid var(--border);border-bottom:none;justify-content:flex-end;gap:.5rem">
+          <button class="btn btn-ghost btn-sm" onclick="closeModal('m-user')">Annuler</button>
+          <button class="btn btn-primary btn-sm" onclick="saveUser()">Enregistrer</button>
+        </div>
+      </div>
     </div>
 
     <!-- ══ SETTINGS ══ -->
@@ -574,19 +1995,78 @@ select option{background:var(--surface-2)}
         <div class="card">
           <div class="card-hdr"><span class="card-title">Société</span></div>
           <div class="card-body">
-            <div class="fg"><label>Raison sociale</label><input value="Maison & Habitat FREEHOME"></div>
+            <div class="fg"><label>Raison sociale</label><input value="Maison &amp; Habitat FREEHOME"></div>
             <div class="fg"><label>Téléphone</label><input value="+33 (0)3 87 XX XX XX"></div>
             <div class="fg"><label>Email</label><input value="contact@mhfreehome.com"></div>
             <button class="btn btn-primary btn-sm" style="margin-top:.3rem">Enregistrer</button>
           </div>
         </div>
+        <!-- Carte SEO -->
         <div class="card">
-          <div class="card-hdr"><span class="card-title">Intégrations</span></div>
+          <div class="card-hdr"><span class="card-title">🔍 Référencement (SEO)</span></div>
           <div class="card-body">
-            <div class="fg"><label>Supabase URL</label><input placeholder="https://xxx.supabase.co"></div>
-            <div class="fg"><label>Supabase Anon Key</label><input type="password" placeholder="eyJhbGci…"></div>
-            <div class="fg"><label>Clé API Anthropic</label><input type="password" placeholder="sk-ant-…"></div>
-            <button class="btn btn-primary btn-sm" style="margin-top:.3rem">Enregistrer</button>
+            <div style="font-size:.75rem;color:var(--text-3);margin-bottom:1rem;padding:.6rem .8rem;background:rgba(28,69,60,.06);border-radius:6px;border:1px solid rgba(28,69,60,.15)">
+              Ces informations apparaissent dans Google et lors du partage sur les réseaux sociaux.
+            </div>
+            <div class="fg">
+              <label>Titre du site <span style="font-weight:400;color:var(--text-3)">(affiché dans Google)</span></label>
+              <input id="seo-title" placeholder="FREEHOME — Programmes Immobiliers Neufs | Grand Est, Moselle" maxlength="70">
+              <div id="seo-title-count" style="font-size:.72rem;color:var(--text-3);margin-top:.2rem">0 / 60 caractères recommandés</div>
+            </div>
+            <div class="fg">
+              <label>Description <span style="font-weight:400;color:var(--text-3)">(résumé affiché sous le titre dans Google)</span></label>
+              <textarea id="seo-desc" rows="3" placeholder="Maison &amp; Habitat FREEHOME, promoteur immobilier dans le Grand Est…" maxlength="160" style="resize:vertical"></textarea>
+              <div id="seo-desc-count" style="font-size:.72rem;color:var(--text-3);margin-top:.2rem">0 / 155 caractères recommandés</div>
+            </div>
+            <div class="fg">
+              <label>Image de partage <span style="font-weight:400;color:var(--text-3)">(URL — visible sur Facebook, LinkedIn…)</span></label>
+              <input id="seo-image" type="url" placeholder="https://…/image.jpg (1200×630px recommandé)">
+            </div>
+            <div class="fg">
+              <label>Code Google Analytics <span style="font-weight:400;color:var(--text-3)">(pour suivre les visites)</span></label>
+              <input id="seo-ga" placeholder="G-XXXXXXXXXX">
+            </div>
+            <div class="fg">
+              <label>Code Google Search Console <span style="font-weight:400;color:var(--text-3)">(pour valider votre site dans Google)</span></label>
+              <input id="seo-gsc" placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+            </div>
+            <button class="btn btn-primary btn-sm" style="margin-top:.3rem" onclick="saveSEO()">Enregistrer</button>
+          </div>
+        </div>
+
+        <!-- Carte Réseaux sociaux -->
+        <div class="card">
+          <div class="card-hdr"><span class="card-title">🌐 Réseaux sociaux</span></div>
+          <div class="card-body">
+            <div style="font-size:.75rem;color:var(--text-3);margin-bottom:1rem;padding:.6rem .8rem;background:rgba(28,69,60,.06);border-radius:6px;border:1px solid rgba(28,69,60,.15)">
+              Les URLs saisies ici s'affichent automatiquement dans le footer du site. Laissez vide pour masquer l'icône.
+            </div>
+            <div class="fg">
+              <label>Facebook</label>
+              <input id="soc-facebook" placeholder="https://www.facebook.com/freehome…" type="url">
+            </div>
+            <div class="fg">
+              <label>Instagram</label>
+              <input id="soc-instagram" placeholder="https://www.instagram.com/freehome…" type="url">
+            </div>
+            <div class="fg">
+              <label>LinkedIn</label>
+              <input id="soc-linkedin" placeholder="https://www.linkedin.com/company/freehome…" type="url">
+            </div>
+            <div class="fg">
+              <label>YouTube</label>
+              <input id="soc-youtube" placeholder="https://www.youtube.com/@freehome…" type="url">
+            </div>
+            <button class="btn btn-primary btn-sm" style="margin-top:.3rem" onclick="saveSocials()">Enregistrer</button>
+          </div>
+        </div>
+
+        <!-- Carte Sécurité → redirige vers Utilisateurs -->
+        <div class="card" style="border-color:rgba(244,149,22,.2)">
+          <div class="card-hdr"><span class="card-title">🔐 Sécurité</span></div>
+          <div class="card-body">
+            <p style="font-size:.85rem;color:var(--text-2);margin:0 0 .8rem">La gestion des mots de passe et des accès se fait depuis la section <strong>Utilisateurs</strong>.</p>
+            <button class="btn btn-ghost btn-sm" onclick="nav('users')">Gérer les utilisateurs →</button>
           </div>
         </div>
       </div>
@@ -605,7 +2085,7 @@ select option{background:var(--surface-2)}
       <!-- Onglets du modal -->
       <div class="tabs" style="margin-bottom:1.4rem">
         <button class="tab active" onclick="switchProgTab('pt-base',this)">Infos générales</button>
-        <button class="tab" onclick="switchProgTab('pt-desc',this)">Description & Atouts</button>
+        <button class="tab" onclick="switchProgTab('pt-desc',this)">Description &amp; Atouts</button>
         <button class="tab" onclick="switchProgTab('pt-timeline',this)">Calendrier</button>
         <button class="tab" onclick="switchProgTab('pt-presta',this)">Prestations</button>
         <button class="tab" onclick="switchProgTab('pt-galerie',this)">Galerie photos</button>
@@ -621,7 +2101,7 @@ select option{background:var(--surface-2)}
           <div class="fg"><label>Statut *</label>
             <select id="np-statut"><option>En commercialisation</option><option>Bientôt disponible</option><option>Livraison prochaine</option><option>Livré</option></select>
           </div>
-          <div class="fg"><label>Réglementation</label><input id="np-reglementation" placeholder="RE2020" value="RE2020"></div>
+          <div class="fg"><label>Réglementation</label><input id="np-reglementation" placeholder="ex: RE2020 (laisser vide si non applicable)"></div>
           <div class="fg"><label>Nb de lots total</label><input type="number" id="np-lots" placeholder="24"></div>
           <div class="fg"><label>Pièces (ex: De 1 à 3)</label><input id="np-pieces" placeholder="De 1 à 3"></div>
           <div class="fg"><label>Surface min (m²)</label><input type="number" id="np-surf-min" placeholder="19.3"></div>
@@ -646,7 +2126,11 @@ select option{background:var(--surface-2)}
           <div class="fg full"><label>Description longue (onglet "Le programme")</label><textarea id="np-desc-long" placeholder="Rive Azure se présente comme une opportunité unique…" rows="5"></textarea></div>
           <div class="fg full">
             <label>Atouts emplacement <span style="font-weight:400;color:var(--text-3)">(1 par ligne : emoji|Titre|Détail)</span></label>
-            <textarea id="np-atouts" placeholder="🎬|Loisirs à portée de main|À 5 min de St Julien-lès-Metz (Kinépolis)&#10;🛍️|Shopping facilité|À 10 min des zones commerciales&#10;🎓|Éducation proche|École maternelle à quelques pas&#10;🚗|Mobilité simplifiée|Accès rapide autoroutes&#10;🌿|Nature préservée|Sentiers de randonnée à quelques minutes" rows="6"></textarea>
+            <textarea id="np-atouts" placeholder="🎬|Loisirs à portée de main|À 5 min de St Julien-lès-Metz (Kinépolis)
+🛍️|Shopping facilité|À 10 min des zones commerciales
+🎓|Éducation proche|École maternelle à quelques pas
+🚗|Mobilité simplifiée|Accès rapide autoroutes
+🌿|Nature préservée|Sentiers de randonnée à quelques minutes" rows="6"></textarea>
           </div>
         </div>
       </div>
@@ -661,11 +2145,18 @@ select option{background:var(--surface-2)}
 
       <!-- TAB : Prestations (bibliothèque + cases à cocher) -->
       <div id="pt-presta" class="prog-tab" style="display:none">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem">
           <span style="font-size:.78rem;color:var(--text-3)">Cochez les prestations incluses. Utilisez les champs libres pour les spécificités du programme.</span>
           <button class="btn btn-ghost btn-sm" onclick="resetPrestations()">Tout décocher</button>
         </div>
         <div id="np-presta-cats" style="display:flex;flex-direction:column;gap:1.2rem"></div>
+
+        <!-- Prestations libres (programme atypique sans catégorie) -->
+        <div style="margin-top:1.4rem;padding-top:1.2rem;border-top:1px solid var(--border)">
+          <label style="font-size:.78rem;font-weight:600;color:var(--text-2);display:block;margin-bottom:.4rem">Prestations libres <span style="font-weight:400;color:var(--text-3)">(pour les programmes sans catégorie standard — une par ligne)</span></label>
+          <textarea id="np-presta-libres" rows="5" placeholder="Ex : Parking privé couvert&#10;Local vélos sécurisé&#10;Système domotique intégré" style="width:100%;box-sizing:border-box;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:.6rem .8rem;font-size:.82rem;color:var(--text-1);resize:vertical;font-family:inherit;line-height:1.6"></textarea>
+          <p style="margin:.3rem 0 0;font-size:.72rem;color:var(--text-3)">Ces prestations s'afficheront dans une section "Prestations" sur la fiche programme, sans catégorie.</p>
+        </div>
       </div>
 
             <!-- TAB 4 : Galerie photos -->
@@ -674,7 +2165,9 @@ select option{background:var(--surface-2)}
         <div class="form-grid">
           <div class="fg full">
             <label>URLs des photos (une par ligne)</label>
-            <textarea id="np-photos" placeholder="https://www.mhfreehome.com/wp-content/uploads/rive-azure-1.jpg&#10;https://www.mhfreehome.com/wp-content/uploads/rive-azure-2.jpg&#10;https://www.mhfreehome.com/wp-content/uploads/rive-azure-3.jpg" rows="8"></textarea>
+            <textarea id="np-photos" placeholder="https://www.mhfreehome.com/wp-content/uploads/rive-azure-1.jpg
+https://www.mhfreehome.com/wp-content/uploads/rive-azure-2.jpg
+https://www.mhfreehome.com/wp-content/uploads/rive-azure-3.jpg" rows="8"></textarea>
           </div>
           <div class="fg full">
             <label>URL image principale (vignette carte)</label>
@@ -697,28 +2190,146 @@ select option{background:var(--surface-2)}
 <!-- Add Lot -->
 <div class="overlay" id="m-add-lot">
   <div class="modal">
-    <div class="modal-hdr"><span class="modal-title">Ajouter un lot</span><button class="mc" onclick="closeModal('m-add-lot')">×</button></div>
+    <div class="modal-hdr"><span class="modal-title" id="lot-modal-title">Ajouter un lot</span><button class="mc" onclick="closeModal('m-add-lot')">×</button></div>
     <div class="modal-body">
       <div class="form-grid">
-        <div class="fg"><label>Programme *</label><select id="nl-prog"><option>— Choisir —</option></select></div>
+        <div class="fg"><label>Programme *</label><select id="nl-prog"><option>— Choisir —</option><option>Rive Azure</option><option>Clos Prévert</option><option>La Maison d'Augny</option><option>Le Socle</option><option>Clos Sérénité</option></select></div>
         <div class="fg"><label>N° de lot *</label><input id="nl-num" placeholder="A-01"></div>
         <div class="fg"><label>Étage</label><input id="nl-etage" placeholder="RDC"></div>
         <div class="fg"><label>Bâtiment</label><input id="nl-bat" placeholder="A"></div>
         <div class="fg"><label>Typologie *</label>
-          <select id="nl-typo"><option>Studio</option><option>T1</option><option>T2</option><option>T3</option><option>T4</option><option>T5</option></select>
+          <select id="nl-typo"><optgroup label="Résidentiel"><option>Studio</option><option>T1</option><option>T2</option><option>T3</option><option>T4</option><option>T5</option></optgroup><optgroup label="Commercial / Activité"><option>Bureau</option><option>Plateau</option><option>Dépôt</option><option>Local d'activité</option></optgroup></select>
         </div>
         <div class="fg"><label>Surface habitable (m²)</label><input type="number" id="nl-surf" placeholder="68"></div>
         <div class="fg"><label>Prix TTC (€)</label><input type="number" id="nl-prix" placeholder="249000"></div>
         <div class="fg"><label>Statut *</label>
-          <select id="nl-stat"><option>Disponible</option><option>Réservé</option><option>Vendu</option></select>
+          <select id="nl-stat" onchange="toggleAcqFields(this.value)"><option>Disponible</option><option>Réservé</option><option>Vendu</option><option>À louer</option><option>Loué</option><option>Bloqué</option></select>
         </div>
-        <div class="fg"><label>Acquéreur</label><input id="nl-acq" placeholder="Nom acquéreur"></div>
         <div class="fg"><label>URL Plan lot</label><input id="nl-plan" placeholder="https://…"></div>
+        <div class="fg full"><label>Acquéreur — Nom</label><input id="nl-acq" placeholder="M. ou Mme Dupont"></div>
+      </div>
+      <!-- Champs étendus : visibles seulement si statut Réservé ou Vendu -->
+      <div id="acq-extended" style="display:none">
+        <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text-3);margin:.9rem 0 .5rem;padding-top:.75rem;border-top:1px solid var(--border)">Dossier acquéreur</div>
+        <div class="form-grid">
+          <div class="fg"><label>Email</label><input id="nl-acq-email" type="email" placeholder="dupont@email.fr"></div>
+          <div class="fg"><label>Téléphone</label><input id="nl-acq-tel" placeholder="06 XX XX XX XX"></div>
+          <div class="fg"><label>Date de réservation</label><input id="nl-acq-date" type="date"></div>
+          <div class="fg"></div>
+          <div class="fg full"><label>Notes internes</label><textarea id="nl-acq-notes" placeholder="Conditions particulières, remarques…" rows="2"></textarea></div>
+        </div>
       </div>
     </div>
     <div class="modal-foot">
-      <button class="btn btn-ghost" onclick="closeModal('m-add-lot')">Annuler</button>
-      <button class="btn btn-primary" onclick="saveLot()">Ajouter le lot</button>
+      <button class="btn btn-ghost" onclick="newLot();closeModal('m-add-lot')">Annuler</button>
+      <button class="btn btn-primary" id="lot-modal-btn" onclick="saveLot()">Ajouter le lot</button>
+    </div>
+  </div>
+</div>
+
+<!-- Traiter Lead -->
+<div class="overlay" id="m-traiter-lead">
+  <div class="modal">
+    <div class="modal-hdr">
+      <span class="modal-title">Traiter le prospect — <span id="tl-titre"></span></span>
+      <button class="mc" onclick="closeModal('m-traiter-lead')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="tl-id">
+      <div class="form-grid">
+        <div class="fg">
+          <label>Statut du lead *</label>
+          <select id="tl-statut">
+            <optgroup label="À traiter">
+              <option>Nouveau</option>
+              <option>Premier contact</option>
+              <option>À rappeler</option>
+              <option>À traiter</option>
+            </optgroup>
+            <optgroup label="En cours">
+              <option>En cours</option>
+              <option>En négociation</option>
+              <option>Visite programmée</option>
+              <option>Dossier en cours</option>
+            </optgroup>
+            <optgroup label="Gagné">
+              <option>Réservation signée</option>
+              <option>Gagné</option>
+            </optgroup>
+            <optgroup label="Perdu">
+              <option>Perdu</option>
+              <option>Abandonné</option>
+              <option>Hors budget</option>
+            </optgroup>
+            <optgroup label="Autre">
+              <option>Archivé</option>
+              <option>Test</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Priorité</label>
+          <select id="tl-prio">
+            <option value="h">Haute</option>
+            <option value="m">Normale</option>
+            <option value="l">Basse</option>
+          </select>
+        </div>
+        <div class="fg full">
+          <label>Lot proposé (programme du lead)</label>
+          <select id="tl-lot"></select>
+        </div>
+        <div class="fg">
+          <label>Date de relance</label>
+          <input type="date" id="tl-relance">
+        </div>
+        <div class="fg full">
+          <label>Note de suivi</label>
+          <textarea id="tl-note" rows="4" placeholder="Ex : Client intéressé par le T3 A-04, attend retour financement…"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('m-traiter-lead')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveTraiterLead()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Fiche Acquéreur -->
+<div class="overlay" id="m-fiche-acq">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-hdr">
+      <span class="modal-title">Fiche acquéreur — <span id="fa-titre"></span></span>
+      <button class="mc" onclick="closeModal('m-fiche-acq')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="fa-id">
+      <div style="font-size:.72rem;color:var(--text-3);margin-bottom:1rem;padding:.6rem .8rem;background:var(--surface-2);border-radius:4px">
+        <strong id="fa-lot-info"></strong>
+      </div>
+      <div class="form-grid">
+        <div class="fg"><label>Nom *</label><input id="fa-nom" placeholder="DUPONT"></div>
+        <div class="fg"><label>Prénom</label><input id="fa-prenom" placeholder="Jean"></div>
+        <div class="fg"><label>Email</label><input type="email" id="fa-email" placeholder="jean.dupont@email.com"></div>
+        <div class="fg"><label>Téléphone</label><input id="fa-tel" placeholder="06 XX XX XX XX"></div>
+        <div class="fg">
+          <label>Statut dossier</label>
+          <select id="fa-statut">
+            <option>Réservé</option>
+            <option>Acte signé</option>
+            <option>Livré</option>
+          </select>
+        </div>
+        <div class="fg"><label>Date de réservation</label><input type="date" id="fa-date-resa"></div>
+        <div class="fg"><label>Date acte prévue</label><input type="date" id="fa-date-acte"></div>
+        <div class="fg"><label>Date livraison prévue</label><input type="date" id="fa-date-livraison"></div>
+        <div class="fg full"><label>Notes</label><textarea id="fa-notes" rows="3" placeholder="Financement, remarques, suivi…"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('m-fiche-acq')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveFicheAcquereur()">Enregistrer</button>
     </div>
   </div>
 </div>
@@ -729,27 +2340,27 @@ select option{background:var(--surface-2)}
     <div class="modal-hdr"><span class="modal-title">Nouveau prospect</span><button class="mc" onclick="closeModal('m-add-lead')">×</button></div>
     <div class="modal-body">
       <div class="form-grid">
-        <div class="fg"><label>Prénom *</label><input placeholder="Sophie"></div>
-        <div class="fg"><label>Nom *</label><input placeholder="Lambert"></div>
-        <div class="fg"><label>Email</label><input type="email" placeholder="…"></div>
-        <div class="fg"><label>Téléphone</label><input placeholder="06 XX XX XX XX"></div>
+        <div class="fg"><label>Prénom *</label><input id="lead-prenom" placeholder="Sophie"></div>
+        <div class="fg"><label>Nom *</label><input id="lead-nom" placeholder="Lambert"></div>
+        <div class="fg"><label>Email *</label><input id="lead-email" type="email" placeholder="sophie@email.fr"></div>
+        <div class="fg"><label>Téléphone</label><input id="lead-tel" placeholder="06 XX XX XX XX"></div>
         <div class="fg"><label>Programme souhaité</label><select id="lead-prog"><option>— Choisir —</option></select></div>
-        <div class="fg"><label>Typologie</label><select><option>T1</option><option>T2</option><option>T3</option><option>T4+</option></select></div>
-        <div class="fg"><label>Budget max.</label><input placeholder="250 000 €"></div>
-        <div class="fg"><label>Source</label><select><option>Site web</option><option>Téléphone</option><option>Recommandation</option><option>Salon immobilier</option><option>Réseaux sociaux</option></select></div>
-        <div class="fg full"><label>Notes</label><textarea placeholder="Recherche un T3 avec parking…"></textarea></div>
+        <div class="fg"><label>Typologie</label><select id="lead-typo"><optgroup label="Résidentiel"><option>Studio</option><option>T1</option><option>T2</option><option>T3</option><option>T4+</option></optgroup><optgroup label="Commercial / Activité"><option>Bureau</option><option>Plateau</option><option>Dépôt</option><option>Local d'activité</option></optgroup></select></div>
+        <div class="fg"><label>Budget max.</label><input id="lead-budget" placeholder="250 000 €"></div>
+        <div class="fg"><label>Source</label><select id="lead-source"><option>Site web</option><option>Téléphone</option><option>Recommandation</option><option>Salon immobilier</option><option>Réseaux sociaux</option></select></div>
+        <div class="fg full"><label>Notes</label><textarea id="lead-notes" placeholder="Recherche un T3 avec parking…"></textarea></div>
       </div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('m-add-lead')">Annuler</button>
-      <button class="btn btn-primary" onclick="closeModal('m-add-lead');toast('Prospect enregistré')">Enregistrer</button>
+      <button class="btn btn-primary" onclick="saveLead()">Enregistrer</button>
     </div>
   </div>
 </div>
 
-<div id="toast"></div>
+<div id="toast" class="show" style="border-color: var(--gold-border);">✓ Données synchronisées depuis la base ✓</div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 // ══════════════════════════════════════════════════
 // DATA STORE
 // ══════════════════════════════════════════════════
@@ -789,7 +2400,7 @@ let importData = {programmes:[], lots:[], errors:[]};
 // ══════════════════════════════════════════════════
 const PAGE_TITLES = {
   dashboard:'Tableau de bord',programmes:'Programmes immobiliers',lots:'Lots & disponibilités',
-  leads:'Prospects & Leads',import:'Import Excel',pages:'Pages vitrines',
+  leads:'Prospects & Leads',acquereurs:'Acquéreurs',import:'Import Excel',pdf:'Base IA — Documents PDF',pages:'Pages vitrines',
   medias:'Médiathèque',users:'Utilisateurs',settings:'Paramètres'
 };
 function nav(id) {
@@ -808,6 +2419,100 @@ function renderPage(id) {
   else if(id==='programmes') renderProg();
   else if(id==='lots') renderLots();
   else if(id==='leads') renderLeads();
+  else if(id==='acquereurs') renderAcquereurs();
+  else if(id==='users') renderUsers();
+}
+
+// ══════════════════════════════════════════════════
+// USERS — CRUD complet
+// ══════════════════════════════════════════════════
+async function renderUsers() {
+  const tbody = document.getElementById('users-tbody');
+  if(!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-3);padding:2rem">Chargement…</td></tr>';
+  try {
+    const res = await fetch('/api/users');
+    const data = await res.json();
+    if(!data.success) throw new Error(data.error);
+    if(!data.users.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-3);padding:2rem">Aucun utilisateur</td></tr>';
+      return;
+    }
+    tbody.innerHTML = data.users.map(u => {
+      const roleBadge = u.role==='admin' ? 'bg-gold' : u.role==='editeur' ? 'bg-blue' : 'bg-gray';
+      const roleLabel = u.role==='admin' ? 'Admin' : u.role==='editeur' ? 'Éditeur' : 'Lecteur';
+      const lastLogin = u.last_login ? new Date(u.last_login).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+      return `<tr>
+        <td><strong>${u.nom}</strong></td>
+        <td style="color:var(--text-2)">${u.email}</td>
+        <td><span class="badge ${roleBadge}">${roleLabel}</span></td>
+        <td style="color:var(--text-3);font-size:.8rem">${lastLogin}</td>
+        <td><span class="badge ${u.actif ? 'bg-green' : 'bg-gray'}">${u.actif ? 'Actif' : 'Inactif'}</span></td>
+        <td style="text-align:right">
+          <button class="btn btn-ghost btn-sm" onclick="openUserModal(${JSON.stringify(u).replace(/"/g,'&quot;')})">Modifier</button>
+          ${u.role!=='admin' ? `<button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteUser(${u.id},'${u.nom}')">Suppr.</button>` : ''}
+        </td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--red);padding:2rem">Erreur : ${e.message}</td></tr>`;
+  }
+}
+
+function openUserModal(u) {
+  const editing = !!u;
+  document.getElementById('m-user-title').textContent = editing ? 'Modifier l\'utilisateur' : 'Nouvel utilisateur';
+  document.getElementById('u-id').value = editing ? u.id : '';
+  document.getElementById('u-nom').value = editing ? u.nom : '';
+  document.getElementById('u-email').value = editing ? u.email : '';
+  document.getElementById('u-role').value = editing ? u.role : 'editeur';
+  document.getElementById('u-pwd').value = '';
+  document.getElementById('u-pwd-label').textContent = editing ? 'Nouveau mot de passe' : 'Mot de passe *';
+  document.getElementById('u-pwd-hint').style.display = editing ? 'block' : 'none';
+  document.getElementById('u-actif-wrap').style.display = editing ? 'block' : 'none';
+  if(editing) document.getElementById('u-actif').checked = !!u.actif;
+  openModal('m-user');
+}
+
+async function saveUser() {
+  const id = document.getElementById('u-id').value;
+  const nom = document.getElementById('u-nom').value.trim();
+  const email = document.getElementById('u-email').value.trim();
+  const role = document.getElementById('u-role').value;
+  const password = document.getElementById('u-pwd').value;
+  const actif = document.getElementById('u-actif').checked;
+  if(!nom || !email) { toast('Nom et email obligatoires','err'); return; }
+  if(!id && !password) { toast('Mot de passe obligatoire pour un nouvel utilisateur','err'); return; }
+  if(password && password.length < 8) { toast('Mot de passe trop court (8 caractères min.)','err'); return; }
+  try {
+    const body = { nom, email, role, actif };
+    if(password) body.password = password;
+    const res = await fetch(id ? `/api/users/${id}` : '/api/users', {
+      method: id ? 'PUT' : 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if(!data.success) throw new Error(data.error);
+    closeModal('m-user');
+    toast(id ? 'Utilisateur modifié' : 'Utilisateur créé');
+    renderUsers();
+  } catch(e) {
+    toast(e.message, 'err');
+  }
+}
+
+async function deleteUser(id, nom) {
+  if(!confirm(`Supprimer l'utilisateur "${nom}" ? Cette action est irréversible.`)) return;
+  try {
+    const res = await fetch(`/api/users/${id}`, { method: 'DELETE' });
+    const data = await res.json();
+    if(!data.success) throw new Error(data.error);
+    toast('Utilisateur supprimé');
+    renderUsers();
+  } catch(e) {
+    toast(e.message, 'err');
+  }
 }
 
 // ══════════════════════════════════════════════════
@@ -816,8 +2521,9 @@ function renderPage(id) {
 const STATUT_CLS = {
   'En commercialisation':'bg-green','Bientôt disponible':'bg-blue',
   'Livraison prochaine':'bg-orange','Livré':'bg-gray','Archivé':'bg-gray',
-  'Disponible':'bg-green','Réservé':'bg-orange','Vendu':'bg-red','Bloqué':'bg-gray',
-  'À rappeler':'bg-orange','En négociation':'bg-blue','Réservation signée':'bg-green','Premier contact':'bg-gray'
+  'Disponible':'bg-green','Réservé':'bg-orange','Vendu':'bg-red','Bloqué':'bg-gray','À louer':'bg-blue','Loué':'bg-blue',
+  'À rappeler':'bg-orange','En négociation':'bg-blue','Réservation signée':'bg-green','Premier contact':'bg-gray',
+  'Nouveau':'bg-red','Archivé':'bg-gray','Test':'bg-gray'
 };
 
 function renderDashboard() {
@@ -833,6 +2539,12 @@ function renderDashboard() {
   document.getElementById('kpi-taux-sub').textContent = `${comm} lots vendus / réservés`;
   document.getElementById('kpi-bar').style.width = taux+'%';
   document.getElementById('nb-prog').textContent = DB.programmes.length;
+  const nbAcq = document.getElementById('nb-acq');
+  if (nbAcq) nbAcq.textContent = (DB.acquereurs||[]).length;
+  // Badge leads "Nouveau" dans la sidebar
+  const nbNew = DB.leads.filter(l => l.statut === 'Nouveau').length;
+  const nbLeadEl = document.querySelector('.ni[onclick*="leads"] .nb');
+  if (nbLeadEl) { nbLeadEl.textContent = nbNew || ''; nbLeadEl.style.display = nbNew ? '' : 'none'; }
 
   // Liste programmes
   document.getElementById('dash-prog-list').innerHTML = DB.programmes.map(p=>{
@@ -892,13 +2604,22 @@ function renderProg() {
 function filterProg(){renderProg()}
 
 function renderLots() {
-  const fp = (document.getElementById('f-lot-prog')||{value:''}).value;
-  const fs = (document.getElementById('f-lot-stat')||{value:''}).value;
-  const ft = (document.getElementById('f-lot-typo')||{value:''}).value;
-  const fq = (document.getElementById('f-lot-q')||{value:''}).value.toLowerCase();
-  const filtered = DB.lots.filter(l=>
-    (!fp||l.prog===fp)&&(!fs||l.statut===fs)&&(!ft||l.typo.includes(ft))&&(!fq||l.num.toLowerCase().includes(fq))
-  );
+  const fp  = (document.getElementById('f-lot-prog')||{value:''}).value;
+  const fs  = (document.getElementById('f-lot-stat')||{value:''}).value;
+  const ft  = (document.getElementById('f-lot-typo')||{value:''}).value;
+  const fq  = (document.getElementById('f-lot-q')||{value:''}).value.toLowerCase();
+  const fa  = (document.getElementById('f-lot-acq')||{value:''}).value.toLowerCase();
+  const fam = (document.getElementById('f-lot-acq-mode')||{value:''}).value;
+  const filtered = DB.lots.filter(l => {
+    if (fp  && l.prog !== fp) return false;
+    if (fs  && l.statut !== fs) return false;
+    if (ft  && !l.typo.includes(ft)) return false;
+    if (fq  && !l.num.toLowerCase().includes(fq)) return false;
+    if (fa  && !(l.acq||'').toLowerCase().includes(fa)) return false;
+    if (fam === 'with'    && !(l.acq||'').trim()) return false;
+    if (fam === 'without' &&  (l.acq||'').trim()) return false;
+    return true;
+  });
   document.getElementById('lots-tbody').innerHTML = filtered.map(l=>`<tr>
     <td><strong>${l.num}</strong></td>
     <td style="font-size:.72rem">${l.prog}</td>
@@ -911,22 +2632,304 @@ function renderLots() {
       </select>
     </td>
     <td style="font-size:.72rem">${l.acq||'—'}</td>
-    <td>${l.plan3d?`<a href="https://programmes.plan3d.immo/1206/floors/1882/7114" target="_blank" style="color:var(--gold);font-size:.72rem">Voir ↗</a>`:'—'}</td>
-    <td><button class="btn btn-danger btn-sm" onclick="deleteLot(${l.id})">✕</button></td>
+    <td>${l.plan3d?`<a href="${l.plan3d}" target="_blank" style="color:var(--gold);font-size:.72rem">Voir ↗</a>`:'—'}</td>
+    <td style="white-space:nowrap;display:flex;gap:.3rem">
+      <button class="btn btn-ghost btn-sm" onclick="editLot(${l.id})" title="Modifier">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLot(${l.id})" title="Supprimer">✕</button>
+    </td>
   </tr>`).join('');
 }
 function filterLots(){renderLots()}
 
+function renderAcquereurs() {
+  const fq  = (document.getElementById('f-acq-q')||{value:''}).value.toLowerCase();
+  const fp  = (document.getElementById('f-acq-prog')||{value:''}).value;
+  const list = (DB.acquereurs||[]).filter(a => {
+    if (fp && a.programme_nom !== fp) return false;
+    if (fq && !(a.nom||'').toLowerCase().includes(fq) && !(a.email||'').toLowerCase().includes(fq)) return false;
+    return true;
+  });
+  const tbody = document.getElementById('acq-tbody');
+  if (!tbody) return;
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-3);padding:2rem">Aucun acquéreur enregistré</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(a => `<tr style="cursor:pointer" ondblclick="openFicheAcquereur(${a.id})">
+    <td><strong>${a.nom||'—'}</strong>${a.prenom?` <span style="font-weight:400">${a.prenom}</span>`:''}</td>
+    <td style="font-size:.72rem">${a.programme_nom}</td>
+    <td>${a.lot_num}</td>
+    <td style="font-size:.72rem">${a.email||'—'}</td>
+    <td style="font-size:.72rem">${a.telephone||'—'}</td>
+    <td style="font-size:.72rem">${a.date_reservation ? new Date(a.date_reservation).toLocaleDateString('fr-FR') : '—'}</td>
+    <td style="font-size:.72rem;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${a.notes||''}">${a.notes||'—'}</td>
+    <td><button class="btn btn-primary btn-sm" onclick="openFicheAcquereur(${a.id})">Ouvrir fiche</button></td>
+  </tr>`).join('');
+  // Mettre à jour le select programme du filtre
+  const sel = document.getElementById('f-acq-prog');
+  if (sel && sel.options.length <= 1) {
+    const progs = [...new Set((DB.acquereurs||[]).map(a => a.programme_nom))];
+    progs.forEach(p => { const o = document.createElement('option'); o.value = o.text = p; sel.appendChild(o); });
+  }
+}
+
+function openFicheAcquereur(id) {
+  const a = (DB.acquereurs||[]).find(x => x.id === id);
+  if (!a) return;
+  document.getElementById('fa-id').value      = id;
+  document.getElementById('fa-titre').textContent = (a.nom||'') + (a.prenom ? ' ' + a.prenom : '');
+  document.getElementById('fa-lot-info').textContent = `${a.programme_nom} · Lot ${a.lot_num}`;
+  document.getElementById('fa-nom').value     = a.nom || '';
+  document.getElementById('fa-prenom').value  = a.prenom || '';
+  document.getElementById('fa-email').value   = a.email || '';
+  document.getElementById('fa-tel').value     = a.telephone || '';
+  document.getElementById('fa-statut').value  = a.statut || 'Réservé';
+  document.getElementById('fa-date-resa').value      = a.date_reservation || '';
+  document.getElementById('fa-date-acte').value      = a.date_acte || '';
+  document.getElementById('fa-date-livraison').value = a.date_livraison || '';
+  document.getElementById('fa-notes').value   = a.notes || '';
+  openModal('m-fiche-acq');
+}
+
+function saveFicheAcquereur() {
+  const id = parseInt(document.getElementById('fa-id').value);
+  const a  = (DB.acquereurs||[]).find(x => x.id === id);
+  if (!a) return;
+  a.nom              = document.getElementById('fa-nom').value;
+  a.prenom           = document.getElementById('fa-prenom').value;
+  a.email            = document.getElementById('fa-email').value;
+  a.telephone        = document.getElementById('fa-tel').value;
+  a.statut           = document.getElementById('fa-statut').value;
+  a.date_reservation = document.getElementById('fa-date-resa').value;
+  a.date_acte        = document.getElementById('fa-date-acte').value;
+  a.date_livraison   = document.getElementById('fa-date-livraison').value;
+  a.notes            = document.getElementById('fa-notes').value;
+  // Sync API
+  fetch('/api/acquereurs/' + id, {
+    method: 'PUT',
+    headers: {'Content-Type':'application/json', 'X-Admin-Token': AUTH_TOKEN},
+    body: JSON.stringify({
+      nom: a.nom, prenom: a.prenom, email: a.email, telephone: a.telephone,
+      statut: a.statut, date_reservation: a.date_reservation,
+      date_acte: a.date_acte, date_livraison: a.date_livraison, notes: a.notes
+    })
+  }).catch(()=>{});
+  closeModal('m-fiche-acq');
+  renderAcquereurs();
+  toast('Fiche acquéreur mise à jour ✓');
+}
+
+const LEAD_STATUTS_TRAITER  = ['Nouveau','À traiter','À rappeler','Premier contact'];
+const LEAD_STATUTS_COURS    = ['En cours','En négociation','Visite programmée','Dossier en cours'];
+const LEAD_STATUTS_GAGNES   = ['Réservation signée','Gagné'];
+const LEAD_STATUTS_PERDUS   = ['Perdu','Abandonné','Hors budget'];
+const LEAD_STATUTS_ARCHIVES = ['Archivé','Test'];
+let _leadFilter = '';
+
+function filterLeads(f) {
+  _leadFilter = f;
+  document.querySelectorAll('#page-leads .tabs .tab').forEach(t=>t.classList.remove('active'));
+  const idx = ['','traiter','cours','gagnes','perdus','archives','tests'].indexOf(f);
+  if(idx>=0) document.querySelectorAll('#page-leads .tabs .tab')[idx].classList.add('active');
+  clearLeadSelection();
+  renderLeads();
+}
+
+function exportLeadsCSV() {
+  const list = DB.leads;
+  if(!list || !list.length) { toast('Aucun lead à exporter', 'err'); return; }
+  const prio = p => p==='h'?'Haute':p==='m'?'Normale':'Basse';
+  const cols = ['Priorité','Prénom','Nom','Email','Téléphone','Programme','Typologie','Budget','Statut','Source','Notes','Date'];
+  const rows = list.map(l => [
+    prio(l.prio), l.prenom||'', l.nom||'', l.email||'', l.tel||'',
+    l.prog||'', l.typo||'', l.budget||'', l.statut||'', l.source||'',
+    (l.notes||'').replace(/"/g,'""'), l.created_at||''
+  ].map(v => `"${v}"`).join(';'));
+  const csv = '\uFEFF' + [cols.join(';'), ...rows].join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'leads-freehome-' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Export CSV téléchargé ✓');
+}
+
+function toggleAllLeads(checked) {
+  document.querySelectorAll('.lead-check').forEach(cb => { cb.checked = checked; });
+  updateBulkBar();
+}
+
+function updateBulkBar() {
+  const selected = document.querySelectorAll('.lead-check:checked');
+  const bar = document.getElementById('leads-bulk-bar');
+  const all = document.getElementById('lead-check-all');
+  const total = document.querySelectorAll('.lead-check').length;
+  document.getElementById('leads-bulk-count').textContent = selected.length + ' sélectionné(s)';
+  bar.style.display = selected.length > 0 ? 'flex' : 'none';
+  if(all) all.checked = selected.length === total && total > 0;
+}
+
+function clearLeadSelection() {
+  document.querySelectorAll('.lead-check').forEach(cb => { cb.checked = false; });
+  const bar = document.getElementById('leads-bulk-bar');
+  if(bar) bar.style.display = 'none';
+  const all = document.getElementById('lead-check-all');
+  if(all) all.checked = false;
+}
+
+function applyBulkStatut() {
+  const newStatut = document.getElementById('leads-bulk-statut').value;
+  const ids = Array.from(document.querySelectorAll('.lead-check:checked')).map(cb => parseInt(cb.dataset.id));
+  if(!ids.length) return;
+  ids.forEach(id => {
+    const l = DB.leads.find(x=>x.id===id);
+    if(l) {
+      l.statut = newStatut;
+      fetch('/api/leads/'+id+'/statut', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({statut: newStatut})
+      }).catch(()=>{});
+    }
+  });
+  toast(ids.length + ' lead(s) mis à jour → ' + newStatut);
+  clearLeadSelection();
+  renderLeads(); renderDashboard();
+}
+
+function archiverLead(id) {
+  const l = DB.leads.find(x=>x.id===id);
+  if(!l) return;
+  l.statut = 'Archivé';
+  fetch('/api/leads/'+id+'/statut', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({statut:'Archivé'})
+  }).catch(()=>{});
+  renderLeads(); renderDashboard();
+  toast('Lead archivé ✓');
+}
+
 function renderLeads() {
-  document.getElementById('leads-tbody').innerHTML = DB.leads.map(l=>`<tr>
+  let list = DB.leads;
+  const archives = ['Archivé'];
+  const tests    = ['Test'];
+  const hidden   = [...archives, ...tests];
+  if(_leadFilter==='traiter')  list = list.filter(l=>LEAD_STATUTS_TRAITER.includes(l.statut));
+  else if(_leadFilter==='cours')    list = list.filter(l=>LEAD_STATUTS_COURS.includes(l.statut));
+  else if(_leadFilter==='gagnes')   list = list.filter(l=>LEAD_STATUTS_GAGNES.includes(l.statut));
+  else if(_leadFilter==='perdus')   list = list.filter(l=>LEAD_STATUTS_PERDUS.includes(l.statut));
+  else if(_leadFilter==='archives') list = list.filter(l=>archives.includes(l.statut));
+  else if(_leadFilter==='tests')    list = list.filter(l=>tests.includes(l.statut));
+  else list = list.filter(l=>!hidden.includes(l.statut));
+  document.getElementById('leads-tbody').innerHTML = list.map(l=>`<tr>
+    <td><input type="checkbox" class="lead-check" data-id="${l.id}" onchange="updateBulkBar()" style="accent-color:var(--gold);cursor:pointer"></td>
     <td><span class="ld ${l.prio}"></span>${l.prio==='h'?'Haute':l.prio==='m'?'Normale':'Basse'}</td>
-    <td><strong>${l.prenom} ${l.nom}</strong></td>
-    <td>${l.prog}</td><td>${l.typo}</td><td>${l.budget}</td>
+    <td><strong>${l.prenom} ${l.nom}</strong>${l.notes?`<br><span style="font-size:.68rem;color:var(--text-3)">${l.notes.substring(0,60)}${l.notes.length>60?'…':''}</span>`:''}</td>
+    <td style="font-size:.72rem">${l.email||'—'}</td>
+    <td style="font-size:.72rem">${l.tel||'—'}</td>
+    <td style="font-size:.72rem">${l.prog||'—'}</td>
     <td><span class="badge ${STATUT_CLS[l.statut]||'bg-gray'}">${l.statut}</span></td>
     <td style="font-size:.72rem">${l.source}</td>
-    <td style="font-size:.72rem">${l.date}</td>
-    <td><button class="btn btn-ghost btn-sm">Traiter</button></td>
+    <td style="font-size:.72rem">${l.date}${l.relance?`<div style="font-size:.65rem;color:var(--gold)">↻ ${l.relance}</div>`:''}</td>
+    <td style="display:flex;gap:.3rem">
+      ${!hidden.includes(l.statut)?`<button class="btn btn-primary btn-sm" onclick="traiterLead(${l.id})">Traiter</button>`:''}
+      <button class="btn btn-ghost btn-sm" onclick="archiverLead(${l.id})" title="Archiver" style="color:var(--text-3)">↓</button>
+    </td>
   </tr>`).join('');
+  // Compteurs onglets
+  if(document.getElementById('tab-leads-all')) {
+    document.getElementById('tab-leads-all').textContent      = DB.leads.filter(l=>!hidden.includes(l.statut)).length;
+    document.getElementById('tab-leads-traiter').textContent  = DB.leads.filter(l=>LEAD_STATUTS_TRAITER.includes(l.statut)).length;
+    document.getElementById('tab-leads-cours').textContent    = DB.leads.filter(l=>LEAD_STATUTS_COURS.includes(l.statut)).length;
+    document.getElementById('tab-leads-gagnes').textContent   = DB.leads.filter(l=>LEAD_STATUTS_GAGNES.includes(l.statut)).length;
+    document.getElementById('tab-leads-perdus').textContent   = DB.leads.filter(l=>LEAD_STATUTS_PERDUS.includes(l.statut)).length;
+    document.getElementById('tab-leads-archives').textContent = DB.leads.filter(l=>archives.includes(l.statut)).length;
+    document.getElementById('tab-leads-tests').textContent    = DB.leads.filter(l=>tests.includes(l.statut)).length;
+  }
+}
+
+async function saveLead() {
+  const prenom = document.getElementById('lead-prenom').value.trim();
+  const nom    = document.getElementById('lead-nom').value.trim();
+  const email  = document.getElementById('lead-email').value.trim();
+  if (!nom || !email) { toast('Nom et email obligatoires', 'err'); return; }
+  const payload = {
+    prenom, nom, email,
+    telephone: document.getElementById('lead-tel').value.trim(),
+    programme: document.getElementById('lead-prog').value === '— Choisir —' ? '' : document.getElementById('lead-prog').value,
+    typo: document.getElementById('lead-typo').value,
+    budget: document.getElementById('lead-budget').value.trim(),
+    notes: '[' + document.getElementById('lead-source').value + '] ' + document.getElementById('lead-notes').value.trim()
+  };
+  try {
+    const resp = await fetch('/api/leads', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    const data = await resp.json();
+    if (data.success) {
+      closeModal('m-add-lead');
+      toast('Prospect enregistré ✓');
+      // Recharger les leads depuis D1
+      const respL = await fetch('/api/leads?t='+Date.now());
+      if (respL.ok) {
+        const dataL = await respL.json();
+        if (dataL.leads) {
+          DB.leads = dataL.leads.map((l, i) => ({
+            id: l.id||i+1, prenom: l.prenom||'', nom: l.nom||'', prog: l.programme||'',
+            typo: l.typo||'', budget: l.budget||'', statut: l.statut||'Nouveau',
+            source: l.source||'Site web', date: l.created_at ? new Date(l.created_at+'Z').toLocaleDateString('fr-FR') : '—',
+            prio: l.priorite||'h', email: l.email||'', tel: l.telephone||'', notes: l.notes||''
+          }));
+          renderLeads(); renderDashboard();
+        }
+      }
+    } else { toast('Erreur : ' + (data.error||'inconnue'), 'err'); }
+  } catch(e) { toast('Erreur réseau', 'err'); }
+}
+
+function traiterLead(id) {
+  const l = DB.leads.find(x => x.id === id);
+  if (!l) return;
+  document.getElementById('tl-id').value = id;
+  document.getElementById('tl-titre').textContent = `${l.prenom} ${l.nom} — ${l.prog||''}`;
+  document.getElementById('tl-statut').value = l.statut || 'Premier contact';
+  document.getElementById('tl-prio').value   = l.prio || 'h';
+  document.getElementById('tl-relance').value = l.relance || '';
+  document.getElementById('tl-note').value    = l.notes || '';
+  // Lots disponibles du programme du lead
+  // lead.prog peut être "Clos Prévert — Ay-sur-Moselle" et lot.prog "Clos Prévert" → on teste dans les deux sens
+  const lotsDispos = DB.lots.filter(lt => {
+    const match = lt.prog === l.prog || l.prog.includes(lt.prog) || lt.prog.includes(l.prog);
+    return match && (lt.statut === 'Disponible' || lt.id === l.lot_id);
+  });
+  const sel = document.getElementById('tl-lot');
+  sel.innerHTML = '<option value="">— Aucun lot associé —</option>' +
+    lotsDispos.map(lt => `<option value="${lt.id}" ${l.lot_id===lt.id?'selected':''}>${lt.num} · ${lt.typo} · ${lt.surface}m² · ${lt.prix.toLocaleString('fr-FR')}€</option>`).join('');
+  openModal('m-traiter-lead');
+}
+
+function saveTraiterLead() {
+  const id = parseInt(document.getElementById('tl-id').value);
+  const l  = DB.leads.find(x => x.id === id);
+  if (!l) return;
+  const oldStatut = l.statut;
+  l.statut  = document.getElementById('tl-statut').value;
+  l.prio    = document.getElementById('tl-prio').value;
+  l.relance = document.getElementById('tl-relance').value;
+  l.notes   = document.getElementById('tl-note').value;
+  const lotId = document.getElementById('tl-lot').value;
+  l.lot_id  = lotId ? parseInt(lotId) : null;
+  // Sync API si statut changé
+  if (oldStatut !== l.statut) {
+    fetch('/api/leads/' + id + '/statut', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ statut: l.statut })
+    }).catch(()=>{});
+  }
+  closeModal('m-traiter-lead');
+  renderLeads();
+  renderDashboard();
+  toast('Prospect mis à jour ✓');
 }
 
 // ══════════════════════════════════════════════════
@@ -1267,7 +3270,21 @@ function readProgForm(existingId) {
   }) : [];
 
   // Prestations depuis UI structurée
+  // Si l'onglet n'a jamais été ouvert, initialiser le DOM avant de lire
+  const _prestaContainer = document.getElementById('np-presta-cats');
+  if(_prestaContainer && _prestaContainer.children.length === 0) {
+    const _progForPresta = _editingProgId ? DB.programmes.find(x=>x.id===_editingProgId) : null;
+    loadPrestationsToUI(_progForPresta ? _progForPresta.prestations : []);
+  }
   const prestations = readPrestationsFromUI();
+  // Ajouter les prestations libres (textarea) dans une catégorie dédiée
+  const _prestaLibresRaw = (document.getElementById('np-presta-libres')||{}).value||'';
+  const _prestaLibres = _prestaLibresRaw.split('\n').map(s=>s.trim()).filter(Boolean);
+  if(_prestaLibres.length > 0) {
+    const existingFree = prestations.find(p => p.cat === 'Prestations');
+    if(existingFree) existingFree.items.push(..._prestaLibres);
+    else prestations.push({cat:'Prestations', items: _prestaLibres});
+  }
 
   // Photos
   const photos = document.getElementById('np-photos').value.split('\n').map(s=>s.trim()).filter(Boolean);
@@ -1285,7 +3302,7 @@ function readProgForm(existingId) {
     cp: document.getElementById('np-cp').value.trim(),
     adresse: document.getElementById('np-adresse').value.trim(),
     statut: document.getElementById('np-statut').value,
-    reglementation: document.getElementById('np-reglementation').value.trim()||'RE2020',
+    reglementation: document.getElementById('np-reglementation').value.trim(),
     livraison, livraison_detail: livraison,
     debut_travaux: debutTravaux,
     lots_total: parseInt(document.getElementById('np-lots').value)||0,
@@ -1311,50 +3328,7 @@ function fillProgForm(p) {
   document.getElementById('np-cp').value = p.cp||'';
   document.getElementById('np-adresse').value = p.adresse||'';
   document.getElementById('np-statut').value = p.statut||'En commercialisation';
-  document.getElementById('np-reglementation').value = p.reglementation||'RE2020';
-  document.getElementById('np-livraison').value = p.livraison_detail||p.livraison||'';
-  document.getElementById('np-debut-travaux').value = p.debut_travaux||'';
-  document.getElementById('np-lots').value = p.lots_total||'';
-  document.getElementById('np-pieces').value = p.pieces||'';
-  document.getElementById('np-surf-min').value = p.surface_min||'';
-  document.getElementById('np-surf-max').value = p.surface_max||'';
-  document.getElementById('np-prix-min').value = p.prix_min||'';
-  document.getElementById('np-prix-max').value = p.prix_max||'';
-  document.getElementById('np-eli').value = typeof p.eligibilites==='object' ? p.eligibilites.join(', ') : (p.eligibilites||'');
-  document.getElementById('np-plan3d').value = p.plan3d||'';
-  const ytEl = document.getElementById('np-youtube'); if(ytEl) ytEl.value = p.youtube||'';
-  document.getElementById('np-desc').value = p.desc||'';
-  document.getElementById('np-desc-long').value = p.desc_long||'';
-  document.getElementById('np-img-cover').value = p.img_cover||'';
-
-  // Atouts → texte
-  if(p.atouts && p.atouts.length) {
-    document.getElementById('np-atouts').value = p.atouts.map(a=>`${a.icon}|${a.titre}|${a.detail}`).join('\n');
-  } else {
-    document.getElementById('np-atouts').value = '';
-  }
-
-  // Photos → texte
-  document.getElementById('np-photos').value = (p.photos||[]).join('\n');
-
-  // Reset les conteneurs dynamiques → reconstruction lazy quand l'onglet sera cliqué
-  const tlC = document.getElementById('np-timeline-steps');
-  if(tlC) tlC.innerHTML = '';
-  const prC = document.getElementById('np-presta-cats');
-  if(prC) prC.innerHTML = '';
-
-  // Reset to first tab
-  switchProgTab('pt-base', document.querySelector('#m-add-prog .tab'));
-}
-
-
-function fillProgForm(p) {
-  document.getElementById('np-nom').value = p.nom||'';
-  document.getElementById('np-commune').value = p.commune||'';
-  document.getElementById('np-cp').value = p.cp||'';
-  document.getElementById('np-adresse').value = p.adresse||'';
-  document.getElementById('np-statut').value = p.statut||'En commercialisation';
-  document.getElementById('np-reglementation').value = p.reglementation||'RE2020';
+  document.getElementById('np-reglementation').value = p.reglementation||'';
   document.getElementById('np-livraison').value = p.livraison_detail||p.livraison||'';
   document.getElementById('np-debut-travaux').value = p.debut_travaux||'';
   document.getElementById('np-lots').value = p.lots_total||'';
@@ -1375,10 +3349,11 @@ function fillProgForm(p) {
   } else {
     document.getElementById('np-atouts').value = '';
   }
-  // Prestations → texte (fallback si le textarea existe)
-  const npPresta = document.getElementById('np-prestations');
-  if(npPresta) {
-    npPresta.value = (p.prestations && p.prestations.length) ? p.prestations.map(pr=>`${pr.cat}|${pr.items.join(';')}`).join('\n') : '';
+  // Prestations libres (catégorie "Prestations" sans bibliothèque) → textarea
+  const npPrestaLibres = document.getElementById('np-presta-libres');
+  if(npPrestaLibres) {
+    const freeCat = (p.prestations||[]).find(pr => pr.cat === 'Prestations');
+    npPrestaLibres.value = freeCat ? freeCat.items.join('\n') : '';
   }
   // Photos → texte
   document.getElementById('np-photos').value = (p.photos||[]).join('\n');
@@ -1396,10 +3371,10 @@ function newProg() {
   // Reset tous les champs
   ['np-nom','np-commune','np-cp','np-adresse','np-livraison','np-debut-travaux',
    'np-lots','np-pieces','np-surf-min','np-surf-max','np-prix-min','np-prix-max',
-   'np-eli','np-plan3d','np-desc','np-desc-long','np-img-cover','np-photos','np-atouts']
+   'np-eli','np-plan3d','np-desc','np-desc-long','np-img-cover','np-photos','np-atouts','np-presta-libres']
     .forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById('np-statut').value = 'En commercialisation';
-  document.getElementById('np-reglementation').value = 'RE2020';
+  document.getElementById('np-reglementation').value = '';
   // Vider les conteneurs dynamiques (lazy rebuild au clic du tab)
   const tlC = document.getElementById('np-timeline-steps');
   if(tlC) tlC.innerHTML = '';
@@ -1412,7 +3387,7 @@ function newProg() {
 
 let _editingProgId = null;
 
-function saveProg() {
+async function saveProg() {
   const data = readProgForm(_editingProgId);
   if(!data) return;
   if(_editingProgId) {
@@ -1425,7 +3400,39 @@ function saveProg() {
   closeModal('m-add-prog');
   renderDashboard();
   renderProg && renderProg();
-  toast('Programme "'+data.nom+'" enregistré');
+
+  // Sauvegarde immédiate en D1 (évite la perte de données si on ne clique pas Publier)
+  try {
+    const payload = {
+      nom: data.nom, commune: data.commune||'', cp: data.cp||'', adresse: data.adresse||'',
+      statut: data.statut, reglementation: data.reglementation||'',
+      livraison: data.livraison||'', livraison_detail: data.livraison_detail||data.livraison||'',
+      debut_travaux: data.debut_travaux||'', lots_total: data.lots_total||0,
+      pieces: data.pieces||'', surface_min: data.surface_min||0, surface_max: data.surface_max||0,
+      prix_min: data.prix_min||0, prix_max: data.prix_max||0,
+      eligibilites: data.eligibilites||'', plan3d: data.plan3d||'', youtube: data.youtube||'',
+      img_cover: data.img_cover||'',
+      photos: JSON.stringify(data.photos||[]),
+      desc_courte: data.desc||'', desc_longue: data.desc_long||data.desc||'',
+      atouts: JSON.stringify(data.atouts||[]),
+      prestations: JSON.stringify(data.prestations||[]),
+      timeline: JSON.stringify(data.timeline||[])
+    };
+    const res = await fetch('/api/programmes/'+encodeURIComponent(data.nom), {
+      method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+    });
+    const r = await res.json();
+    if(r.success) {
+      markClean();
+      toast('Programme "'+data.nom+'" enregistré et publié ✓');
+    } else {
+      markDirty();
+      toast('Enregistré en local — erreur D1 : '+r.error, 'err');
+    }
+  } catch(e) {
+    markDirty();
+    toast('Enregistré en local — pas de connexion D1', 'err');
+  }
 }
 
 function editProg(id){
@@ -1439,28 +3446,121 @@ function editProg(id){
 function deleteProg(id){
   if(!confirm('Supprimer ce programme ?')) return;
   DB.programmes = DB.programmes.filter(p=>p.id!==id);
+  markDirty();
   renderProg(); renderDashboard(); toast('Programme supprimé');
+}
+
+let _editingLotId = null;
+
+function newLot() {
+  _editingLotId = null;
+  document.getElementById('lot-modal-title').textContent = 'Ajouter un lot';
+  document.getElementById('lot-modal-btn').textContent = 'Ajouter le lot';
+  // Garantir que le select programme est peuplé
+  const nlProg = document.getElementById('nl-prog');
+  if (nlProg && nlProg.options.length <= 1) {
+    nlProg.innerHTML = '<option>— Choisir —</option>'+DB.programmes.map(p=>`<option>${p.nom}</option>`).join('');
+  }
+  // Réinitialiser les champs
+  ['nl-acq','nl-acq-email','nl-acq-tel','nl-acq-date','nl-acq-notes'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value = '';
+  });
+  toggleAcqFields('Disponible');
+  openModal('m-add-lot');
+}
+
+function toggleAcqFields(statut) {
+  const show = statut === 'Réservé' || statut === 'Vendu';
+  const el = document.getElementById('acq-extended');
+  if (el) el.style.display = show ? '' : 'none';
+}
+
+function editLot(id) {
+  const l = DB.lots.find(x => x.id === id);
+  if (!l) return;
+  _editingLotId = id;
+  // Remplir le modal avec les données du lot
+  const progSel = document.getElementById('nl-prog');
+  // Garantir que le select programme est peuplé avant de sélectionner
+  if (progSel.options.length <= 1) {
+    progSel.innerHTML = '<option>— Choisir —</option>'+DB.programmes.map(p=>`<option>${p.nom}</option>`).join('');
+  }
+  Array.from(progSel.options).forEach(o => { if(o.value === l.prog || o.text === l.prog) o.selected = true; });
+  document.getElementById('nl-num').value   = l.num;
+  document.getElementById('nl-etage').value = l.etage || '';
+  document.getElementById('nl-typo').value  = l.typo;
+  document.getElementById('nl-surf').value  = l.surface;
+  document.getElementById('nl-prix').value  = l.prix;
+  document.getElementById('nl-acq').value   = l.acq || '';
+  document.getElementById('nl-plan').value  = l.plan3d || '';
+  const statSel = document.getElementById('nl-stat');
+  Array.from(statSel.options).forEach(o => { o.selected = o.value === l.statut; });
+  // Charger les infos étendues depuis DB.acquereurs
+  const acqData = (DB.acquereurs||[]).find(a => a.programme_nom === l.prog && a.lot_num === l.num);
+  document.getElementById('nl-acq-email').value = acqData ? acqData.email||'' : '';
+  document.getElementById('nl-acq-tel').value   = acqData ? acqData.telephone||'' : '';
+  document.getElementById('nl-acq-date').value  = acqData ? acqData.date_reservation||'' : '';
+  document.getElementById('nl-acq-notes').value = acqData ? acqData.notes||'' : '';
+  toggleAcqFields(l.statut);
+  // Changer titre et bouton
+  document.getElementById('lot-modal-title').textContent = 'Modifier le lot ' + l.num;
+  document.getElementById('lot-modal-btn').textContent = 'Enregistrer';
+  openModal('m-add-lot');
 }
 
 function saveLot(){
   const num = document.getElementById('nl-num').value.trim();
   const prog = document.getElementById('nl-prog').value;
   if(!num||prog==='— Choisir —'){toast('Programme et N° lot obligatoires','err');return}
-  DB.lots.push({
-    id:Date.now(), prog, num, etage:document.getElementById('nl-etage').value,
-    typo:document.getElementById('nl-typo').value,
-    surface:parseFloat(document.getElementById('nl-surf').value)||0,
-    prix:parseFloat(document.getElementById('nl-prix').value)||0,
-    statut:document.getElementById('nl-stat').value,
-    acq:document.getElementById('nl-acq').value,
-    plan3d:!!document.getElementById('nl-plan').value
-  });
+  const data = {
+    prog, num,
+    etage:   document.getElementById('nl-etage').value,
+    typo:    document.getElementById('nl-typo').value,
+    surface: parseFloat(document.getElementById('nl-surf').value)||0,
+    prix:    parseFloat(document.getElementById('nl-prix').value)||0,
+    statut:  document.getElementById('nl-stat').value,
+    acq:     document.getElementById('nl-acq').value,
+    plan3d:  document.getElementById('nl-plan').value || ''
+  };
+  if (_editingLotId !== null) {
+    // Mode modification
+    const idx = DB.lots.findIndex(x => x.id === _editingLotId);
+    if (idx >= 0) DB.lots[idx] = { ...DB.lots[idx], ...data };
+    toast('Lot ' + num + ' modifié ✓');
+  } else {
+    // Mode ajout
+    DB.lots.push({ id: Date.now(), ...data });
+    toast('Lot ' + num + ' ajouté ✓');
+  }
+  // Persister les données acquéreur étendues si nom renseigné
+  const acqNom = document.getElementById('nl-acq').value.trim();
+  if (acqNom) {
+    const acqRecord = {
+      programme_nom: prog, lot_num: num, nom: acqNom,
+      email:            document.getElementById('nl-acq-email').value.trim(),
+      telephone:        document.getElementById('nl-acq-tel').value.trim(),
+      date_reservation: document.getElementById('nl-acq-date').value,
+      notes:            document.getElementById('nl-acq-notes').value.trim()
+    };
+    if (!DB.acquereurs) DB.acquereurs = [];
+    const idx2 = DB.acquereurs.findIndex(a => a.programme_nom === prog && a.lot_num === num);
+    if (idx2 >= 0) DB.acquereurs[idx2] = acqRecord;
+    else DB.acquereurs.push(acqRecord);
+    fetch('/api/acquereurs', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(acqRecord)
+    }).catch(e => console.warn('Acquéreur non persisté:', e));
+  }
+  _editingLotId = null;
+  markDirty();
+  document.getElementById('lot-modal-title').textContent = 'Ajouter un lot';
+  document.getElementById('lot-modal-btn').textContent = 'Ajouter le lot';
   closeModal('m-add-lot'); renderLots(); renderDashboard();
-  toast('Lot '+num+' ajouté');
 }
 
 function deleteLot(id){
   DB.lots = DB.lots.filter(l=>l.id!==id);
+  markDirty();
   renderLots(); renderDashboard(); toast('Lot supprimé');
 }
 
@@ -1680,12 +3780,52 @@ function resetImport() {
 }
 
 function downloadTemplate() {
-  toast('Téléchargez le fichier FREEHOME_Import_Template.xlsx fourni avec ce CMS');
+  const bom = '\uFEFF';
+  const headers = 'programme_nom;num;typo;surface;prix;statut;acquereur;etage';
+  const examples = [
+    'Mon Programme;A101;T2;48;189000;Disponible;;RDC',
+    'Mon Programme;A102;T3;65;245000;Réservé;DUPONT Martin;1er',
+    'Mon Programme;B201;Dépôt;176.85;212220;Bloqué;KRATZ;P4/P5/P6',
+    'Mon Programme;B202;Bureau;95;310000;Disponible;;2ème',
+  ].join('\n');
+  const csv = bom + headers + '\n' + examples;
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'FREEHOME_Import_Template.csv';
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+  toast('Template CSV téléchargé — ouvrez avec Excel');
 }
 
 // ══════════════════════════════════════════════════
 // PUBLISH → D1 via API (remplace l'export JSON)
 // ══════════════════════════════════════════════════
+// ── DIRTY STATE ─────────────────────────────────────────────────────────────
+let _isDirty = false;
+function markDirty() {
+  if(_isDirty) return;
+  _isDirty = true;
+  document.querySelectorAll('[onclick="publishToSite()"]').forEach(btn => {
+    btn.classList.add('btn-dirty');
+    btn.title = 'Modifications non publiées — cliquez pour synchroniser';
+  });
+}
+function markClean() {
+  _isDirty = false;
+  document.querySelectorAll('[onclick="publishToSite()"]').forEach(btn => {
+    btn.classList.remove('btn-dirty');
+    btn.title = '';
+  });
+}
+window.addEventListener('beforeunload', function(e) {
+  if(_isDirty) { e.preventDefault(); e.returnValue = 'Des modifications ne sont pas encore publiées. Quitter quand même ?'; return e.returnValue; }
+});
+// ────────────────────────────────────────────────────────────────────────────
+
 async function publishToSite() {
   const btn = document.querySelector('[onclick="publishToSite()"]');
   if(btn) { btn.disabled = true; btn.textContent = '⏳ Publication en cours…'; }
@@ -1701,7 +3841,7 @@ async function publishToSite() {
         cp: p.cp,
         adresse: p.adresse||'',
         statut: p.statut,
-        reglementation: p.reglementation||'RE2020',
+        reglementation: p.reglementation||'',
         livraison: p.livraison,
         livraison_detail: p.livraison_detail||p.livraison,
         debut_travaux: p.debut_travaux||'',
@@ -1724,7 +3864,7 @@ async function publishToSite() {
         lots: lots.map(l => ({
           num: l.num, etage: l.etage, typo: l.typo,
           surface: l.surface, prix: l.prix, statut: l.statut,
-          acquereur: l.acq||'', plan3d: l.plan3d?1:0
+          acquereur: l.acq||'', plan3d: l.plan3d||''
         }))
       };
     }),
@@ -1743,6 +3883,7 @@ async function publishToSite() {
     });
     const result = await resp.json();
     if(result.success) {
+      markClean();
       toast('Publié sur le site ! ' + (result.programmes||0) + ' programmes, ' + (result.lots||0) + ' lots synchronisés');
     } else {
       toast('Erreur: ' + (result.error||'inconnue'), 'err');
@@ -1768,7 +3909,7 @@ function exportSiteData() {
         cp: p.cp,
         adresse: p.adresse||'',
         statut: p.statut,
-        reglementation: p.reglementation||'RE2020',
+        reglementation: p.reglementation||'',
         livraison: p.livraison,
         livraison_detail: p.livraison_detail||p.livraison,
         debut_travaux: p.debut_travaux||'',
@@ -1839,7 +3980,7 @@ function toast(msg,type) {
 // ══════════════════════════════════════════════════
 const STATIC_PAGES = [
   {slug:'/', label:'Accueil', statut:'Publiée', modified:'Hier', editable:true, type:'static',
-   content:{titre:'FREEHOME — Promoteur immobilier Grand Est', accroche:'Des logements neufs de qualité en Moselle', texte:'Bienvenue sur le site FREEHOME. Découvrez nos programmes immobiliers neufs en Moselle et dans le Grand Est.'}},
+   content:{titre:'FREEHOME — Promoteur immobilier Grand Est', accroche:'Des logements neufs de qualité en Moselle', texte:'Bienvenue sur le site FREEHOME. Découvrez nos programmes immobiliers neufs en Moselle et dans le Grand Est.', hero_tagline:'en Liberté'}},
   {slug:'/projets-livres', label:'Projets livrés', statut:'Publiée', modified:'Il y a 1 mois', editable:true, type:'static',
    content:{titre:'Nos projets livrés', accroche:'', texte:'Retrouvez ici les programmes immobiliers livrés par FREEHOME.'}},
   {slug:'/contact', label:'Contact / FAQ', statut:'Publiée', modified:'Il y a 2 mois', editable:true, type:'static',
@@ -1890,19 +4031,112 @@ function editStaticPage(slug) {
   document.getElementById('ep-titre').value = page.content.titre||'';
   document.getElementById('ep-accroche').value = page.content.accroche||'';
   document.getElementById('ep-texte').value = page.content.texte||'';
+  // Champ hero_tagline : visible seulement pour la page Accueil
+  const heroRow = document.getElementById('ep-hero-tagline-row');
+  if(heroRow) heroRow.style.display = slug === '/' ? '' : 'none';
+  if(slug === '/') {
+    // hero_tagline chargé depuis D1 dans loadFromD1()
+    document.getElementById('ep-hero-tagline').value = page.content.hero_tagline || 'en Liberté';
+  }
   openModal('m-edit-page');
 }
 
-function saveStaticPage() {
+function updateSEOCount(inputId, countId, recommended) {
+  const el = document.getElementById(inputId);
+  const ct = document.getElementById(countId);
+  if(!el || !ct) return;
+  const len = el.value.length;
+  const color = len > recommended ? '#e05' : len > recommended * 0.8 ? '#f49516' : 'var(--text-3)';
+  ct.textContent = `${len} / ${recommended} caractères recommandés`;
+  ct.style.color = color;
+}
+// Compteurs en temps réel
+document.addEventListener('DOMContentLoaded', () => {
+  const t = document.getElementById('seo-title');
+  const d = document.getElementById('seo-desc');
+  if(t) t.addEventListener('input', () => updateSEOCount('seo-title','seo-title-count',60));
+  if(d) d.addEventListener('input', () => updateSEOCount('seo-desc','seo-desc-count',155));
+});
+
+async function saveSEO() {
+  const payload = {
+    seo_title: document.getElementById('seo-title')?.value.trim() || '',
+    seo_desc:  document.getElementById('seo-desc')?.value.trim()  || '',
+    seo_image: document.getElementById('seo-image')?.value.trim() || '',
+    seo_ga:    document.getElementById('seo-ga')?.value.trim()    || '',
+    seo_gsc:   document.getElementById('seo-gsc')?.value.trim()   || '',
+  };
+  try {
+    const resp = await fetch('/api/settings', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)
+    });
+    const result = await resp.json();
+    if(!result.success) throw new Error(result.error);
+    toast('✓ SEO sauvegardé — modifications actives immédiatement');
+  } catch(e) {
+    toast('Erreur sauvegarde SEO : ' + e.message, 'err');
+  }
+}
+
+async function saveSocials() {
+  const payload = {
+    soc_facebook:  document.getElementById('soc-facebook')?.value.trim()  || '',
+    soc_instagram: document.getElementById('soc-instagram')?.value.trim() || '',
+    soc_linkedin:  document.getElementById('soc-linkedin')?.value.trim()  || '',
+    soc_youtube:   document.getElementById('soc-youtube')?.value.trim()   || '',
+  };
+  try {
+    const resp = await fetch('/api/settings', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const result = await resp.json();
+    if(!result.success) throw new Error(result.error);
+    toast('✓ Réseaux sociaux sauvegardés — footer mis à jour');
+  } catch(e) {
+    toast('Erreur sauvegarde réseaux sociaux : ' + e.message, 'err');
+  }
+}
+
+async function saveStaticPage() {
   const page = STATIC_PAGES.find(p => p.slug === _editingPageSlug);
   if(!page) return;
-  page.content.titre = document.getElementById('ep-titre').value;
+  page.content.titre    = document.getElementById('ep-titre').value;
   page.content.accroche = document.getElementById('ep-accroche').value;
-  page.content.texte = document.getElementById('ep-texte').value;
-  page.modified = "À l'instant";
-  closeModal('m-edit-page');
-  renderPages();
-  toast('Page "' + page.label + '" sauvegardée');
+  page.content.texte    = document.getElementById('ep-texte').value;
+
+  // Construire le payload pour /api/settings
+  const slugKey = _editingPageSlug === '/' ? 'accueil' : _editingPageSlug.replace(/^\//,'').replace(/[^a-z0-9]/g,'_');
+  const payload = {
+    ['page_'+slugKey+'_titre']:    page.content.titre,
+    ['page_'+slugKey+'_accroche']: page.content.accroche,
+    ['page_'+slugKey+'_texte']:    page.content.texte,
+  };
+
+  // Hero tagline spécifique à la page Accueil
+  if(_editingPageSlug === '/') {
+    const tagline = document.getElementById('ep-hero-tagline').value.trim() || 'en Liberté';
+    page.content.hero_tagline = tagline;
+    payload['hero_tagline'] = tagline;
+  }
+
+  // Sauvegarder en D1
+  try {
+    const resp = await fetch('/api/settings', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const result = await resp.json();
+    if(!result.success) throw new Error(result.error);
+    page.modified = "À l\'instant";
+    closeModal('m-edit-page');
+    renderPages();
+    toast('✓ Page "' + page.label + '" sauvegardée en base');
+  } catch(e) {
+    toast('Erreur sauvegarde : ' + e.message, 'err');
+  }
 }
 
 // ══════════════════════════════════════════════════
@@ -1931,7 +4165,7 @@ async function loadFromD1() {
         const prog = {
           id: nextId++,
           nom: p.nom, commune: p.commune, cp: p.cp||'', adresse: p.adresse||'',
-          statut: p.statut, reglementation: p.reglementation||'RE2020',
+          statut: p.statut, reglementation: p.reglementation||'',
           livraison: p.livraison||'', livraison_detail: p.livraison_detail||p.livraison||'',
           debut_travaux: p.debut_travaux||'', lots_total: p.lots_total||0,
           pieces: p.pieces||'', surface_min: p.surface_min||0, surface_max: p.surface_max||0,
@@ -1947,7 +4181,7 @@ async function loadFromD1() {
             DB.lots.push({
               id: nextLotId++, prog: p.nom, num: l.num, etage: l.etage||'',
               typo: l.typo||'', surface: l.surface||0, prix: l.prix||0,
-              statut: l.statut||'Disponible', acq: l.acquereur||'', plan3d: !!l.plan3d
+              statut: l.statut||'Disponible', acq: l.acquereur||'', plan3d: l.plan3d||''
             });
           });
         }
@@ -1961,16 +4195,70 @@ async function loadFromD1() {
       console.log('[CMS] D1 chargé:', DB.programmes.length, 'programmes,', DB.lots.length, 'lots');
     }
 
-    // Charger leads
+    // Charger settings CMS (pages statiques)
+    const respS = await fetch('/api/settings?t='+Date.now());
+    if(respS.ok) {
+      const dataS = await respS.json();
+      if(dataS.settings) {
+        const s = dataS.settings;
+        // Appliquer aux STATIC_PAGES
+        const pageAccueil = STATIC_PAGES.find(p => p.slug === '/');
+        if(pageAccueil) {
+          if(s.page_accueil_titre)    pageAccueil.content.titre    = s.page_accueil_titre;
+          if(s.page_accueil_accroche) pageAccueil.content.accroche = s.page_accueil_accroche;
+          if(s.page_accueil_texte)    pageAccueil.content.texte    = s.page_accueil_texte;
+          if(s.hero_tagline)          pageAccueil.content.hero_tagline = s.hero_tagline;
+        }
+        const pageProjets = STATIC_PAGES.find(p => p.slug === '/projets-livres');
+        if(pageProjets) {
+          if(s.page_projets_livres_titre)    pageProjets.content.titre    = s.page_projets_livres_titre;
+          if(s.page_projets_livres_accroche) pageProjets.content.accroche = s.page_projets_livres_accroche;
+          if(s.page_projets_livres_texte)    pageProjets.content.texte    = s.page_projets_livres_texte;
+        }
+        const pageContact = STATIC_PAGES.find(p => p.slug === '/contact');
+        if(pageContact) {
+          if(s.page_contact_titre)    pageContact.content.titre    = s.page_contact_titre;
+          if(s.page_contact_accroche) pageContact.content.accroche = s.page_contact_accroche;
+          if(s.page_contact_texte)    pageContact.content.texte    = s.page_contact_texte;
+        }
+        // Charger SEO
+        if(s.seo_title !== undefined) { const el=document.getElementById('seo-title'); if(el){ el.value=s.seo_title||''; updateSEOCount('seo-title','seo-title-count',60); } }
+        if(s.seo_desc  !== undefined) { const el=document.getElementById('seo-desc');  if(el){ el.value=s.seo_desc||'';  updateSEOCount('seo-desc','seo-desc-count',155); } }
+        if(s.seo_image !== undefined) { const el=document.getElementById('seo-image'); if(el) el.value=s.seo_image||''; }
+        if(s.seo_ga    !== undefined) { const el=document.getElementById('seo-ga');    if(el) el.value=s.seo_ga||''; }
+        if(s.seo_gsc   !== undefined) { const el=document.getElementById('seo-gsc');   if(el) el.value=s.seo_gsc||''; }
+        // Charger réseaux sociaux
+        if(s.soc_facebook !== undefined)  { const el=document.getElementById('soc-facebook');  if(el) el.value=s.soc_facebook||''; }
+        if(s.soc_instagram !== undefined) { const el=document.getElementById('soc-instagram'); if(el) el.value=s.soc_instagram||''; }
+        if(s.soc_linkedin !== undefined)  { const el=document.getElementById('soc-linkedin');  if(el) el.value=s.soc_linkedin||''; }
+        if(s.soc_youtube !== undefined)   { const el=document.getElementById('soc-youtube');   if(el) el.value=s.soc_youtube||''; }
+        console.log('[CMS] Settings chargés depuis D1');
+      }
+    }
+
+  // Charger acquéreurs
+    try {
+      const respAcq = await fetch('/api/acquereurs?t='+Date.now());
+      if (respAcq.ok) {
+        const dataAcq = await respAcq.json();
+        if (dataAcq.success) {
+          DB.acquereurs = dataAcq.acquereurs || [];
+          console.log('[CMS] Acquéreurs chargés:', DB.acquereurs.length);
+        }
+      }
+    } catch(e) { console.warn('[CMS] Acquéreurs non chargés', e); }
+
+  // Charger leads
     const respL = await fetch('/api/leads?t='+Date.now());
     if(respL.ok) {
       const dataL = await respL.json();
       if(dataL.leads && dataL.leads.length) {
         DB.leads = dataL.leads.map((l, i) => ({
-          id: i+1, prenom: l.prenom||'', nom: l.nom||'', prog: l.programme||'',
+          id: l.id||i+1, prenom: l.prenom||'', nom: l.nom||'', prog: l.programme||'',
           typo: l.typo||'', budget: l.budget||'', statut: l.statut||'Premier contact',
           source: l.source||'', date: l.created_at ? new Date(l.created_at+'Z').toLocaleDateString('fr-FR') : '—',
-          prio: l.priorite||'l'
+          prio: l.priorite||'l',
+          email: l.email||'', tel: l.telephone||'', notes: l.notes||''
         }));
         console.log('[CMS] Leads chargés:', DB.leads.length);
       }
@@ -1983,16 +4271,206 @@ async function loadFromD1() {
   renderDashboard();
   renderLots();
   renderLeads();
+  renderAcquereurs();
   renderPages();
   setTimeout(()=>{
+    const opts = DB.programmes.map(p=>`<option>${p.nom}</option>`).join('');
     const fProg = document.getElementById('f-lot-prog');
-    if(fProg) fProg.innerHTML = '<option value="">Tous les programmes</option>'+DB.programmes.map(p=>`<option>${p.nom}</option>`).join('');
+    if(fProg) fProg.innerHTML = '<option value="">Tous les programmes</option>'+opts;
+    const nlProg = document.getElementById('nl-prog');
+    if(nlProg) nlProg.innerHTML = '<option>— Choisir —</option>'+opts;
+    const fAcqProg = document.getElementById('f-acq-prog');
+    if(fAcqProg) fAcqProg.innerHTML = '<option value="">Tous les programmes</option>'+opts;
   },100);
   toast('Données synchronisées depuis la base ✓');
 }
 
 // Lancer le chargement D1
 loadFromD1();
+
+// ══════════════════════════════════════════════════════════════════════════
+// BASE IA — GESTION PDF RAG
+// ══════════════════════════════════════════════════════════════════════════
+
+let pdfSelectedFile = null;
+let pdfSelectedBase64 = null;
+
+// Populer le select des programmes
+function populatePdfProgrammeSelect() {
+  const sel = document.getElementById('pdf-programme');
+  if (!sel) return;
+  fetch('/api/programmes').then(r=>r.json()).then(d=>{
+    if (d.success) {
+      sel.innerHTML = d.programmes.map(p =>
+        `<option value="${p.id}" data-nom="${p.nom}">${p.nom}</option>`
+      ).join('');
+    }
+  }).catch(()=>{ sel.innerHTML = '<option value="">Erreur chargement</option>'; });
+}
+
+// Drag & drop
+function handlePdfDrop(e) {
+  e.preventDefault();
+  document.getElementById('pdf-drop-zone').style.borderColor = 'var(--surface-3)';
+  const file = e.dataTransfer.files[0];
+  if (file) handlePdfFile(file);
+}
+
+// Sélection fichier
+function handlePdfFile(file) {
+  if (!file || file.type !== 'application/pdf') {
+    toast('Veuillez sélectionner un fichier PDF', 'err'); return;
+  }
+  const sizeMb = file.size / (1024 * 1024);
+  if (sizeMb > 15) {
+    toast(`Fichier trop lourd (${sizeMb.toFixed(1)} Mo). Limite : 15 Mo. Compressez le PDF avant d'ingérer.`, 'err'); return;
+  }
+  if (sizeMb > 4) {
+    toast(`⚠️ Fichier volumineux (${sizeMb.toFixed(1)} Mo) — l'ingestion peut être lente ou incomplète. Préférez un PDF < 4 Mo.`, 'warn');
+  }
+  pdfSelectedFile = file;
+  document.getElementById('pdf-selected-name').textContent = file.name;
+  document.getElementById('pdf-selected-size').textContent = `(${(file.size/1024).toFixed(0)} Ko)`;
+  document.getElementById('pdf-selected-file').style.display = 'flex';
+  document.getElementById('pdf-ingest-btn').disabled = false;
+  document.getElementById('pdf-result').style.display = 'none';
+
+  // Lecture base64
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    // Retirer le préfixe data:application/pdf;base64,
+    pdfSelectedBase64 = e.target.result.split(',')[1];
+  };
+  reader.readAsDataURL(file);
+}
+
+// Ingestion PDF
+async function ingestPdf() {
+  if (!pdfSelectedFile || !pdfSelectedBase64) { toast('Veuillez sélectionner un fichier PDF', 'err'); return; }
+
+  const progSel = document.getElementById('pdf-programme');
+  const progOpt = progSel.options[progSel.selectedIndex];
+  const programmeId = progSel.value;
+  const programmeNom = progOpt.dataset.nom || progOpt.text;
+  const docType = document.getElementById('pdf-doctype').value;
+
+  // UI : progression
+  const btn = document.getElementById('pdf-ingest-btn');
+  btn.disabled = true;
+  const progress = document.getElementById('pdf-progress');
+  const progressBar = document.getElementById('pdf-progress-bar');
+  const progressMsg = document.getElementById('pdf-progress-msg');
+  progress.style.display = 'block';
+  progressMsg.textContent = '1/3 — Envoi du PDF et extraction Claude...';
+  progressBar.style.width = '25%';
+
+  try {
+    const resp = await fetch('/api/ingest-pdf', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        pdf_base64: pdfSelectedBase64,
+        filename: pdfSelectedFile.name,
+        doc_type: docType,
+        programme_id: programmeId || null,
+        programme_nom: programmeNom
+      })
+    });
+
+    progressMsg.textContent = '2/3 — Embedding et indexation Vectorize...';
+    progressBar.style.width = '70%';
+
+    const data = await resp.json();
+    progressBar.style.width = '100%';
+
+    if (data.success) {
+      progressMsg.textContent = `✅ ${data.message}`;
+      const resultEl = document.getElementById('pdf-result');
+      resultEl.style.display = 'flex';
+      resultEl.innerHTML = `✅ <strong>${data.chunks} chunks</strong> créés — PDF intégré dans la base IA`;
+      toast(`PDF ingéré : ${data.chunks} chunks créés`, 'success');
+      // Reset
+      pdfSelectedFile = null; pdfSelectedBase64 = null;
+      document.getElementById('pdf-selected-file').style.display = 'none';
+      document.getElementById('pdf-file-input').value = '';
+      // Rafraîchir la liste
+      loadPdfDocuments();
+    } else {
+      progressMsg.textContent = `❌ Erreur : ${data.error}`;
+      toast('Veuillez sélectionner un fichier PDF', 'err');
+    }
+  } catch(e) {
+    progressMsg.textContent = `❌ Erreur réseau : ${e.message}`;
+    toast('Veuillez sélectionner un fichier PDF', 'err');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// Charger la liste des documents ingérés
+async function loadPdfDocuments() {
+  const tbody = document.getElementById('pdf-docs-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-3);padding:1.5rem">Chargement...</td></tr>';
+  try {
+    const resp = await fetch('/api/pdf-documents');
+    const data = await resp.json();
+    if (!data.success || !data.documents.length) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-3);padding:2rem">Aucun document ingéré — uploadez vos premiers PDFs ci-dessus</td></tr>';
+      return;
+    }
+    const TYPE_LABELS = {
+      notice_descriptive:'Notice descriptive', notice_synthetique:'Notice synthétique',
+      referentiel_equipements:'Référentiel équipements', grille_vente:'Grille de vente',
+      plaquette_commerciale:'Plaquette commerciale', autre:'Autre'
+    };
+    const STATUS_BADGE = {
+      done:`<span class="badge bg-green">✓ Indexé</span>`,
+      processing:`<span class="badge bg-orange">⟳ En cours</span>`,
+      pending:`<span class="badge bg-gray">En attente</span>`,
+      error:`<span class="badge bg-red">Erreur</span>`
+    };
+    tbody.innerHTML = data.documents.map(doc => `
+      <tr>
+        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${doc.filename}">${doc.filename}</td>
+        <td>${doc.programme_nom || '—'}</td>
+        <td><span style="font-size:.75rem;color:var(--text-2)">${TYPE_LABELS[doc.doc_type]||doc.doc_type}</span></td>
+        <td style="text-align:center"><strong>${doc.chunk_count}</strong></td>
+        <td>${STATUS_BADGE[doc.status]||doc.status}</td>
+        <td style="color:var(--text-3);font-size:.78rem">${doc.ingested_at ? doc.ingested_at.substring(0,10) : '—'}</td>
+        <td>
+          <button class="btn btn-danger btn-sm" onclick="deletePdfDoc(${doc.id}, '${doc.filename.replace(/'/g,"\\'")}')">Supprimer</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--red)">Erreur : ${e.message}</td></tr>`;
+  }
+}
+
+// Supprimer un document
+async function deletePdfDoc(id, filename) {
+  if (!confirm(`Supprimer "${filename}" et tous ses vecteurs de la base IA ?`)) return;
+  try {
+    const resp = await fetch(`/api/pdf-documents/${id}`, { method: 'DELETE' });
+    const data = await resp.json();
+    if (data.success) {
+      toast(`Document supprimé (${data.deleted_vectors} vecteurs retirés)`, 'success');
+      loadPdfDocuments();
+    } else toast('Veuillez sélectionner un fichier PDF', 'err');
+  } catch(e) { toast('Veuillez sélectionner un fichier PDF', 'err'); }
+}
+
+// Charger au nav vers la page PDF
+// On patche nav() après sa déclaration sans la redéclarer
+const _navPdf = nav;
+window.nav = function(id) {
+  _navPdf(id);
+  if (id === 'pdf') {
+    populatePdfProgrammeSelect();
+    loadPdfDocuments();
+  }
+};
 </script>
 <!-- Modal Édition page statique -->
 <div class="overlay" id="m-edit-page">
@@ -2003,7 +4481,296 @@ loadFromD1();
         <div class="fg full"><label>Titre de la page</label><input id="ep-titre" placeholder="Titre principal"></div>
         <div class="fg full"><label>Accroche (sous-titre)</label><input id="ep-accroche" placeholder="Phrase d'accroche courte"></div>
         <div class="fg full"><label>Texte principal</label><textarea id="ep-texte" rows="6" placeholder="Contenu de la page…"></textarea></div>
+        <!-- Champ hero tagline — visible uniquement pour la page Accueil -->
+        <div class="fg full" id="ep-hero-tagline-row" style="display:none">
+          <label>Accroche Hero <span style="font-weight:400;color:var(--text-3)">— texte coloré après "Construisez votre avenir"</span></label>
+          <input id="ep-hero-tagline" placeholder="en Liberté" value="en Liberté">
+          <div style="font-size:.72rem;color:var(--text-3);margin-top:.3rem">S'affiche sur le site public : <em>"Construisez votre avenir <strong>en Liberté</strong>"</em>. Modifiez selon les campagnes.</div>
+        </div>
       </div>
       <div style="margin-top:1rem;padding:.75rem;background:rgba(244,149,22,.06);border-radius:8px;border:1px solid rgba(244,149,22,.2)">
         <div style="font-size:.72rem;color:var(--gold);font-weight:600;margin-bottom:.3rem">ℹ️ Pour modifier une page programme</div>
-        <div style="font-size:.78rem;color:var(--text-3)">Cliquez sur "Éditer la fiche" dans le tableau — cela ouvre la fiche
+        <div style="font-size:.78rem;color:var(--text-3)">Cliquez sur "Éditer la fiche" dans le tableau — cela ouvre la fiche complète avec tous les onglets.</div>
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('m-edit-page')">Annuler</button>
+      <button class="btn btn-primary btn-sm" onclick="saveStaticPage()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ÉCRAN DE LOGIN ADMIN ═══ -->
+<style>
+#admin-login-screen{
+  position:fixed;inset:0;z-index:99999;
+  background:linear-gradient(160deg,#F8F7F4 0%,#F2EFE8 60%,#EDE9E0 100%);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Inter',sans-serif;
+}
+#admin-login-screen.hidden{
+  opacity:0;pointer-events:none;transition:opacity .4s ease;
+}
+.login-box{
+  width:min(400px,90vw);
+  background:#fff;
+  border:1px solid rgba(201,169,110,.35);
+  border-radius:16px;
+  padding:2.5rem 2rem;
+  box-shadow:0 4px 40px rgba(201,169,110,.15), 0 20px 60px rgba(0,0,0,.08);
+  text-align:center;
+}
+.login-logo{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.6rem;font-weight:300;letter-spacing:.18em;
+  color:#1C453C;margin-bottom:.25rem;
+}
+.login-logo small{
+  display:block;font-size:.58rem;letter-spacing:.28em;
+  text-transform:uppercase;color:#8a6d2f;margin-top:2px;
+}
+.login-sep{
+  width:40px;height:1px;background:rgba(201,169,110,.4);
+  margin:1.2rem auto 1.5rem;
+}
+.login-title{
+  font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;
+  color:#8A8A7E;margin-bottom:1.8rem;
+}
+.login-field{
+  position:relative;margin-bottom:1rem;
+}
+.login-field input{
+  width:100%;padding:.75rem 1rem .75rem 2.6rem;
+  background:#F8F7F4;
+  border:1px solid rgba(201,169,110,.3);
+  border-radius:10px;
+  color:#1A1A18;font-size:.9rem;outline:none;
+  box-sizing:border-box;
+  font-family:'Inter',sans-serif;
+  transition:border-color .2s, box-shadow .2s;
+}
+.login-field input::placeholder{color:#8A8A7E}
+.login-field input:focus{
+  border-color:rgba(201,169,110,.6);
+  box-shadow:0 0 0 3px rgba(201,169,110,.1);
+}
+.login-field-icon{
+  position:absolute;left:.85rem;top:50%;transform:translateY(-50%);
+  color:#8a6d2f;font-size:1rem;pointer-events:none;
+}
+.login-btn{
+  width:100%;padding:.8rem;margin-top:.25rem;
+  background:linear-gradient(135deg,#1C453C 0%,#2A6355 100%);
+  border:none;border-radius:10px;
+  color:#fff;font-size:.9rem;font-weight:700;
+  cursor:pointer;transition:all .25s;
+  letter-spacing:.04em;
+  box-shadow:0 2px 16px rgba(28,69,60,.2);
+}
+.login-btn:hover{
+  background:linear-gradient(135deg,#153429 0%,#1C453C 100%);
+  box-shadow:0 4px 24px rgba(28,69,60,.3);
+  transform:translateY(-1px);
+}
+.login-error{
+  color:#C0392B;font-size:.78rem;margin-top:.6rem;
+  min-height:1.2rem;transition:opacity .2s;
+}
+.login-error.hidden{opacity:0}
+.login-back{
+  display:block;margin-top:1.5rem;
+  font-size:.72rem;color:#8A8A7E;
+  text-decoration:none;transition:color .2s;
+  letter-spacing:.04em;
+}
+.login-back:hover{color:#4A4A44}
+</style>
+
+<div id="admin-login-screen" style="display: none;">
+  <div class="login-box">
+    <div class="login-logo">
+      FREEHOME
+      <small>Administration</small>
+    </div>
+    <div class="login-sep"></div>
+    <div class="login-title">Accès réservé — Espace de gestion</div>
+    <div class="login-field">
+      <span class="login-field-icon">🔑</span>
+      <input type="password" id="login-pwd" placeholder="Mot de passe…" autocomplete="current-password" onkeydown="if(event.key==='Enter') doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Accéder au CMS →</button>
+    <div class="login-error hidden" id="login-error">Mot de passe incorrect</div>
+    <a href="/" class="login-back">← Retour au site</a>
+  </div>
+</div>
+
+<script>
+(function(){
+  var DEFAULT_PWD = 'freehome2025';
+  var SESSION_KEY = 'fh_admin_auth';
+  var _activePwd = DEFAULT_PWD; // sera éventuellement remplacé par la valeur D1
+
+  // Charger le mot de passe depuis D1 (async, non bloquant)
+  fetch('/api/settings?t=' + Date.now())
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(data.success && data.settings && data.settings.admin_password){
+        _activePwd = data.settings.admin_password;
+      }
+    })
+    .catch(function(){ /* D1 indisponible → mot de passe par défaut */ });
+
+  // Si déjà authentifié dans cette session, on cache l'écran directement
+  if(sessionStorage.getItem(SESSION_KEY) === '1'){
+    var screen = document.getElementById('admin-login-screen');
+    if(screen) screen.style.display = 'none';
+  }
+
+  window.doLogin = function(){
+    var pwd = document.getElementById('login-pwd').value;
+    var errEl = document.getElementById('login-error');
+    if(pwd === _activePwd){
+      sessionStorage.setItem(SESSION_KEY,'1');
+      var screen = document.getElementById('admin-login-screen');
+      screen.classList.add('hidden');
+      setTimeout(function(){ screen.style.display = 'none'; }, 420);
+    } else {
+      errEl.classList.remove('hidden');
+      errEl.textContent = 'Mot de passe incorrect';
+      document.getElementById('login-pwd').value = '';
+      document.getElementById('login-pwd').focus();
+      setTimeout(function(){ errEl.classList.add('hidden'); }, 3000);
+    }
+  };
+
+  // ── Changement de mot de passe depuis la page Paramètres ──
+  window.changePassword = async function(){
+    var current  = document.getElementById('pwd-current').value;
+    var newPwd   = document.getElementById('pwd-new').value;
+    var confirm  = document.getElementById('pwd-confirm').value;
+    var msgEl    = document.getElementById('pwd-msg');
+
+    function showMsg(txt, color){
+      msgEl.textContent = txt;
+      msgEl.style.color = color;
+      msgEl.style.display = 'block';
+      setTimeout(function(){ msgEl.style.display = 'none'; }, 4000);
+    }
+
+    if(current !== _activePwd){
+      return showMsg('❌ Mot de passe actuel incorrect.', 'var(--red)');
+    }
+    if(newPwd.length < 8){
+      return showMsg('❌ Le nouveau mot de passe doit faire au moins 8 caractères.', 'var(--red)');
+    }
+    if(newPwd !== confirm){
+      return showMsg('❌ Les deux mots de passe ne correspondent pas.', 'var(--red)');
+    }
+    try {
+      var resp = await fetch('/api/settings', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ admin_password: newPwd })
+      });
+      var result = await resp.json();
+      if(result.success){
+        _activePwd = newPwd; // mise à jour en mémoire immédiate
+        sessionStorage.setItem(SESSION_KEY,'1'); // session toujours valide
+        document.getElementById('pwd-current').value = '';
+        document.getElementById('pwd-new').value = '';
+        document.getElementById('pwd-confirm').value = '';
+        showMsg('✅ Mot de passe mis à jour avec succès.', 'var(--green)');
+      } else {
+        showMsg('❌ Erreur : ' + (result.error||'inconnue'), 'var(--red)');
+      }
+    } catch(e){
+      showMsg('❌ Erreur réseau. Réessayez.', 'var(--red)');
+    }
+  };
+})();
+</script>
+
+<script>
+// ══════════════════════════════════════════════════
+// AUTHENTIFICATION — Login screen
+// ══════════════════════════════════════════════════
+(function initAuth() {
+  const TOKEN_KEY = 'fh_admin_token';
+  const USER_KEY  = 'fh_admin_user';
+  const loginScreen = document.getElementById('login-screen');
+  const appRoot = document.querySelector('.sidebar');
+
+  function showLogin() {
+    loginScreen.style.display = 'flex';
+    if(appRoot) appRoot.closest('body').querySelector('.main'  ) && (document.querySelector('.main').style.display='none');
+    document.querySelector('aside.sidebar') && (document.querySelector('aside.sidebar').style.display='none');
+    document.querySelector('.topbar') && (document.querySelector('.topbar').style.display='none');
+  }
+  function hideLogin() {
+    loginScreen.style.display = 'none';
+    document.querySelector('aside.sidebar') && (document.querySelector('aside.sidebar').style.display='');
+    document.querySelector('.topbar') && (document.querySelector('.topbar').style.display='');
+    document.querySelector('.main') && (document.querySelector('.main').style.display='');
+  }
+
+  // Vérifier token existant
+  const token = sessionStorage.getItem(TOKEN_KEY);
+  const savedUser = sessionStorage.getItem(USER_KEY);
+  if(token && savedUser) {
+    try {
+      const u = JSON.parse(savedUser);
+      // Afficher le nom dans la topbar si possible
+      const nomEl = document.getElementById('tb-user-nom');
+      if(nomEl) nomEl.textContent = u.nom;
+      hideLogin();
+    } catch(e) { showLogin(); }
+  } else {
+    showLogin();
+  }
+
+  // Exposer doLogin globalement
+  window.doLogin = async function() {
+    const email = document.getElementById('login-email').value.trim();
+    const pwd   = document.getElementById('login-pwd').value;
+    const errEl = document.getElementById('login-err');
+    const btn   = document.getElementById('login-btn');
+    errEl.style.display = 'none';
+    if(!email || !pwd) { errEl.textContent = 'Email et mot de passe requis'; errEl.style.display='block'; return; }
+    btn.textContent = 'Connexion…'; btn.disabled = true;
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({email, password: pwd})
+      });
+      const data = await res.json();
+      if(!data.success) throw new Error(data.error || 'Identifiants incorrects');
+      sessionStorage.setItem(TOKEN_KEY, data.token);
+      sessionStorage.setItem(USER_KEY, JSON.stringify(data.user));
+      const nomEl = document.getElementById('tb-user-nom');
+      if(nomEl) nomEl.textContent = data.user.nom;
+      hideLogin();
+      renderDashboard();
+    } catch(e) {
+      errEl.textContent = e.message;
+      errEl.style.display = 'block';
+    } finally {
+      btn.textContent = 'Connexion'; btn.disabled = false;
+    }
+  };
+
+  // Déconnexion
+  window.doLogout = function() {
+    fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
+    sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(USER_KEY);
+    showLogin();
+    document.getElementById('login-email').value = '';
+    document.getElementById('login-pwd').value = '';
+  };
+})();
+</script>
+
+
+<div id="claude-agent-glow-border" style="position: fixed; inset: 0px; pointer-events: none; z-index: 2147483646; opacity: 1; transition: opacity 0.3s ease-in-out; animation: 2s ease-in-out 0s infinite normal none running claude-pulse; box-shadow: rgba(217, 119, 87, 0.5) 0px 0px 10px inset, rgba(217, 119, 87, 0.3) 0px 0px 20px inset, rgba(217, 119, 87, 0.1) 0px 0px 30px inset;"></div></body></html>
