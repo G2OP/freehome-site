@@ -1,0 +1,2009 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FREEHOME — Administration</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Cormorant+Garamond:wght@300;400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root {
+  --gold:#C9A96E;--gold-bg:rgba(201,169,110,.09);--gold-border:rgba(201,169,110,.22);
+  --dark:#0F0F0E;--sidebar:#131312;--surface:#1A1A18;--surface-2:#212120;--surface-3:#2A2A27;
+  --border:rgba(255,255,255,.07);--text:#E8E6E0;--text-2:#8C8C7A;--text-3:#555550;
+  --green:#3D9970;--green-bg:rgba(61,153,112,.13);
+  --red:#E74C3C;--red-bg:rgba(231,76,60,.13);
+  --blue:#3498DB;--blue-bg:rgba(52,152,219,.13);
+  --orange:#E67E22;--orange-bg:rgba(230,126,34,.13);
+  --r:6px;--sw:238px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Inter',sans-serif;background:var(--dark);color:var(--text);font-size:13px;display:flex}
+
+/* ── SIDEBAR ── */
+.sidebar{width:var(--sw);background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;height:100vh;overflow-y:auto}
+.sb-logo{padding:1.4rem 1.2rem .9rem;border-bottom:1px solid var(--border)}
+.sb-logo h1{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:300;letter-spacing:.16em}
+.sb-logo small{font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);display:block;margin-top:2px}
+.sb-sec{padding:.75rem 1.2rem .2rem;font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--text-3)}
+.ni{display:flex;align-items:center;gap:.65rem;padding:.5rem 1.2rem;color:var(--text-2);background:none;border:none;width:100%;text-align:left;font-size:.78rem;cursor:pointer;transition:all .18s;position:relative;font-family:'Inter',sans-serif}
+.ni:hover{background:var(--surface);color:var(--text)}
+.ni.active{background:var(--gold-bg);color:var(--gold);border-right:2px solid var(--gold)}
+.ni svg{width:14px;height:14px;flex-shrink:0;opacity:.65}
+.ni.active svg{opacity:1}
+.nb{margin-left:auto;background:var(--gold);color:var(--dark);font-size:.58rem;font-weight:700;padding:1px 5px;border-radius:8px}
+.nb.red{background:var(--red);color:#fff}
+.sb-foot{margin-top:auto;padding:.9rem 1.2rem;border-top:1px solid var(--border)}
+.u-pill{display:flex;align-items:center;gap:.55rem}
+.u-av{width:27px;height:27px;background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.68rem;color:var(--gold);font-weight:600;flex-shrink:0}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.topbar{height:50px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 1.4rem;gap:.8rem;flex-shrink:0}
+.tb-title{font-size:.88rem;font-weight:500}
+.tb-actions{margin-left:auto;display:flex;gap:.45rem}
+.content{flex:1;overflow-y:auto;padding:1.4rem}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:.38rem;padding:.42rem .95rem;border-radius:var(--r);font-size:.73rem;font-weight:500;border:none;cursor:pointer;transition:all .18s;text-decoration:none;font-family:'Inter',sans-serif;white-space:nowrap}
+.btn svg{width:13px;height:13px}
+.btn-primary{background:var(--gold);color:var(--dark)}.btn-primary:hover{background:#d9b97e}
+.btn-ghost{background:transparent;color:var(--text-2);border:1px solid var(--border)}.btn-ghost:hover{background:var(--surface-2);color:var(--text)}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid rgba(231,76,60,.2)}.btn-danger:hover{background:rgba(231,76,60,.22)}
+.btn-success{background:var(--green-bg);color:var(--green);border:1px solid rgba(61,153,112,.2)}
+.btn-sm{padding:.28rem .65rem;font-size:.68rem}
+
+/* ── PAGES ── */
+.page{display:none}.page.active{display:block}
+
+/* ── LAYOUT HELPERS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.9rem;margin-bottom:1.3rem}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;margin-bottom:.9rem}
+.g3{display:grid;grid-template-columns:2fr 1fr;gap:.9rem;margin-bottom:.9rem}
+.page-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.3rem;gap:1rem}
+.page-hdr-l h2{font-size:1.05rem;font-weight:600;margin-bottom:.18rem}
+.page-hdr-l p{font-size:.75rem;color:var(--text-3)}
+.page-hdr-r{display:flex;gap:.4rem;flex-shrink:0}
+.filter-row{display:flex;gap:.4rem;margin-bottom:.9rem;flex-wrap:wrap;align-items:center}
+.filter-row select{width:auto;min-width:130px}
+.filter-row input{flex:1;min-width:170px;max-width:260px}
+
+/* ── CARDS ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:.9rem}
+.card-hdr{padding:.9rem 1.1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:.8rem;font-weight:600}
+.card-body{padding:1.1rem}
+
+/* ── STAT CARDS ── */
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.1rem}
+.stat-lbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text-3);margin-bottom:.45rem}
+.stat-val{font-size:1.75rem;font-weight:600;line-height:1;margin-bottom:.25rem}
+.stat-sub{font-size:.7rem;color:var(--text-2)}
+.stat-ind{display:inline-flex;align-items:center;gap:.28rem;font-size:.68rem;padding:2px 5px;border-radius:3px;margin-top:.35rem}
+.stat-ind.up{background:var(--green-bg);color:var(--green)}.stat-ind.down{background:var(--red-bg);color:var(--red)}
+.prog-bar{height:4px;background:var(--surface-3);border-radius:2px;overflow:hidden;margin-top:.35rem}
+.prog-fill{height:100%;background:var(--gold);border-radius:2px}.prog-fill.g{background:var(--green)}
+
+/* ── TABLE ── */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:.55rem .9rem;font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text-3);border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:.68rem .9rem;font-size:.76rem;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text-2);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface-2)}
+td strong{color:var(--text);font-weight:500}
+td code{font-size:.68rem;color:var(--text-3)}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:4px;font-size:.66rem;font-weight:500;white-space:nowrap}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+.bg-green{background:var(--green-bg);color:var(--green)}
+.bg-red{background:var(--red-bg);color:var(--red)}
+.bg-orange{background:var(--orange-bg);color:var(--orange)}
+.bg-blue{background:var(--blue-bg);color:var(--blue)}
+.bg-gray{background:var(--surface-3);color:var(--text-2)}
+.bg-gold{background:var(--gold-bg);color:var(--gold)}
+
+/* ── MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(5px);z-index:500;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .22s}
+.overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:10px;width:660px;max-width:96vw;max-height:90vh;overflow-y:auto;transform:translateY(10px);transition:transform .22s}
+.overlay.open .modal{transform:translateY(0)}
+.modal-hdr{padding:1.1rem 1.4rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:.88rem;font-weight:600}
+.mc{background:none;border:none;color:var(--text-3);cursor:pointer;font-size:1.1rem;line-height:1;transition:color .2s}.mc:hover{color:var(--text)}
+.modal-body{padding:1.4rem}
+.modal-foot{padding:.9rem 1.4rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:.4rem}
+
+/* ── FORM ── */
+.fg{display:flex;flex-direction:column;gap:.35rem;margin-bottom:.75rem}
+.fg.full{grid-column:1/-1}
+.fg label{font-size:.7rem;color:var(--text-2);font-weight:500}
+input,select,textarea{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:'Inter',sans-serif;font-size:.78rem;padding:.5rem .75rem;transition:border-color .2s;outline:none;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--gold-border);box-shadow:0 0 0 2px rgba(201,169,110,.07)}
+textarea{resize:vertical;min-height:72px}
+select option{background:var(--surface-2)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+
+/* ── TABS ── */
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:1.2rem}
+.tab{padding:.55rem 1.1rem;font-size:.76rem;color:var(--text-3);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .18s;font-family:'Inter',sans-serif}
+.tab:hover{color:var(--text-2)}.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+
+/* ── ACTIVITY ── */
+.act-item{display:flex;gap:.7rem;padding:.62rem 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.act-item:last-child{border-bottom:none}
+.act-dot{width:7px;height:7px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:5px}
+.act-dot.g{background:var(--green)}.act-dot.b{background:var(--blue)}.act-dot.r{background:var(--red)}
+.act-txt{font-size:.75rem;color:var(--text-2);line-height:1.5}
+.act-txt strong{color:var(--text)}
+.act-time{font-size:.66rem;color:var(--text-3);margin-top:1px}
+
+/* ── PROG LIST ── */
+.pl-item{display:flex;align-items:center;gap:.9rem;padding:.72rem 1rem;border-bottom:1px solid rgba(255,255,255,.04);transition:background .18s}
+.pl-item:hover{background:var(--surface-2)}.pl-item:last-child{border-bottom:none}
+.pl-thumb{width:44px;height:44px;border-radius:4px;background:var(--surface-3);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.pl-info{flex:1;min-width:0}
+.pl-name{font-size:.82rem;font-weight:500;color:var(--text)}
+.pl-loc{font-size:.7rem;color:var(--text-3);margin-top:1px}
+
+/* ── LEAD DOT ── */
+.ld{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:3px}
+.ld.h{background:var(--red)}.ld.m{background:var(--orange)}.ld.l{background:var(--green)}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:2px}
+
+/* ── BANNER ── */
+.banner{background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:var(--r);padding:.65rem .95rem;display:flex;align-items:flex-start;gap:.75rem;margin-bottom:1.1rem;font-size:.76rem}
+.banner svg{color:var(--gold);flex-shrink:0;margin-top:1px}
+.banner strong{color:var(--gold)}
+.banner.info{background:var(--blue-bg);border-color:rgba(52,152,219,.25)}.banner.info svg{color:var(--blue)}.banner.info strong{color:var(--blue)}
+.banner.success{background:var(--green-bg);border-color:rgba(61,153,112,.25)}.banner.success svg{color:var(--green)}.banner.success strong{color:var(--green)}
+
+/* ══════════════════════════════════════════════
+   IMPORT ZONE — design central
+══════════════════════════════════════════════ */
+.import-zone{
+  border:2px dashed var(--border);border-radius:10px;
+  padding:2.5rem 1.5rem;text-align:center;
+  transition:all .25s;cursor:pointer;
+  background:var(--surface-2);
+  position:relative;
+}
+.import-zone:hover,.import-zone.drag{border-color:var(--gold);background:var(--gold-bg)}
+.import-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.import-icon{width:40px;height:40px;margin:0 auto .9rem;color:var(--text-3)}
+.import-zone:hover .import-icon,.import-zone.drag .import-icon{color:var(--gold)}
+.import-zone h3{font-size:.9rem;font-weight:600;margin-bottom:.35rem}
+.import-zone p{font-size:.76rem;color:var(--text-3)}
+.import-zone .hint{margin-top:.6rem;font-size:.7rem;color:var(--text-3)}
+
+/* Preview table après import */
+.preview-wrap{margin-top:1.2rem;display:none}
+.preview-wrap.show{display:block}
+.preview-table-outer{max-height:280px;overflow:auto;border:1px solid var(--border);border-radius:var(--r)}
+.preview-table-outer table th{background:var(--surface-2)}
+.import-summary{display:flex;gap:.7rem;margin-bottom:.9rem;flex-wrap:wrap}
+.imp-stat{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r);padding:.5rem .9rem;font-size:.76rem}
+.imp-stat strong{display:block;font-size:1.1rem;font-weight:600;color:var(--text)}
+.imp-stat span{color:var(--text-3);font-size:.68rem}
+
+/* Steps indicator */
+.steps{display:flex;align-items:center;gap:0;margin-bottom:1.5rem}
+.step{display:flex;align-items:center;gap:.5rem;padding:.5rem .9rem;font-size:.76rem;color:var(--text-3);position:relative}
+.step.done{color:var(--green)}.step.active{color:var(--gold);font-weight:500}
+.step-num{width:22px;height:22px;border-radius:50%;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;flex-shrink:0}
+.step-arr{color:var(--text-3);font-size:.8rem;padding:0 .2rem}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:1.4rem;right:1.4rem;background:var(--surface);border:1px solid var(--gold-border);padding:.65rem 1.1rem;border-radius:var(--r);font-size:.78rem;z-index:9999;color:var(--text);box-shadow:0 8px 24px rgba(0,0,0,.4);transform:translateY(8px);opacity:0;transition:all .25s;pointer-events:none}
+#toast.show{transform:translateY(0);opacity:1}
+</style>
+</head>
+<body>
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <h1>FREEHOME</h1>
+    <small>Administration</small>
+  </div>
+
+  <div class="sb-sec">Vue d'ensemble</div>
+  <button class="ni active" onclick="nav('dashboard')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Tableau de bord
+  </button>
+
+  <div class="sb-sec">Immobilier</div>
+  <button class="ni" onclick="nav('programmes')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Programmes
+    <span class="nb" id="nb-prog">5</span>
+  </button>
+  <button class="ni" onclick="nav('lots')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>Lots & disponibilités
+  </button>
+  <button class="ni" onclick="nav('leads')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>Prospects & Leads
+    <span class="nb red">3</span>
+  </button>
+
+  <div class="sb-sec">Site web</div>
+  <button class="ni" onclick="nav('import')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Import Excel
+    <span style="margin-left:auto;font-size:.58rem;background:var(--gold);color:var(--dark);padding:1px 5px;border-radius:3px;font-weight:700">NEW</span>
+  </button>
+  <button class="ni" onclick="nav('pages')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Pages vitrines
+  </button>
+  <button class="ni" onclick="nav('medias')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Médiathèque
+  </button>
+
+  <div class="sb-sec">Système</div>
+  <button class="ni" onclick="nav('users')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Utilisateurs
+  </button>
+  <button class="ni" onclick="nav('settings')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Paramètres
+  </button>
+
+  <div class="sb-foot">
+    <div class="u-pill">
+      <div class="u-av">FH</div>
+      <div>
+        <div style="font-size:.75rem">Admin FREEHOME</div>
+        <div style="font-size:.63rem;color:var(--text-3)">Administrateur</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ═══ MAIN ═══ -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="tb-title" id="tb-title">Tableau de bord</div>
+    </div>
+    <div class="tb-actions">
+      <button class="btn btn-ghost btn-sm" onclick="nav('import')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Import Excel
+      </button>
+      <button class="btn btn-sm" style="background:#27ae60;color:#fff;border:none" onclick="publishToSite()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        Publier
+      </button>
+      <button class="btn btn-primary btn-sm" onclick="newProg()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nouveau programme
+      </button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ══ DASHBOARD ══ -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-lbl">Programmes actifs</div>
+          <div class="stat-val" id="kpi-prog">5</div>
+          <div class="stat-sub">Grand Est — Moselle</div>
+          <div class="stat-ind up">↑ +1 ce trimestre</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-lbl">Lots disponibles</div>
+          <div class="stat-val" id="kpi-dispo">38</div>
+          <div class="stat-sub" id="kpi-dispo-sub">Sur 94 lots au total</div>
+          <div class="stat-ind down">↓ 12 vendus ce mois</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-lbl">Prospects en cours</div>
+          <div class="stat-val">21</div>
+          <div class="stat-sub">3 nouveaux aujourd'hui</div>
+          <div class="stat-ind up">↑ Actifs</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-lbl">Taux de commercialisation</div>
+          <div class="stat-val"><span id="kpi-taux">59</span><span style="font-size:.95rem;color:var(--text-2)">%</span></div>
+          <div class="stat-sub" id="kpi-taux-sub">56 lots vendus / réservés</div>
+          <div class="prog-bar"><div class="prog-fill g" id="kpi-bar" style="width:59%"></div></div>
+        </div>
+      </div>
+
+      <div class="g3">
+        <div class="card">
+          <div class="card-hdr"><span class="card-title">Programmes en cours</span>
+            <button class="btn btn-ghost btn-sm" onclick="nav('programmes')">Voir tout</button></div>
+          <div id="dash-prog-list"></div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><span class="card-title">Activité récente</span></div>
+          <div class="card-body" id="dash-activity">
+            <div class="act-item"><div class="act-dot g"></div><div><div class="act-txt"><strong>Nouveau lead</strong> — Martin D. s'intéresse à Rive Azure T3</div><div class="act-time">Il y a 12 min</div></div></div>
+            <div class="act-item"><div class="act-dot b"></div><div><div class="act-txt"><strong>Lot vendu</strong> — Clos Prévert, lot B-01 (T2 — 45m²)</div><div class="act-time">Il y a 2h</div></div></div>
+            <div class="act-item"><div class="act-dot"></div><div><div class="act-txt"><strong>Import Excel</strong> — 5 programmes, 10 lots chargés</div><div class="act-time">Hier 16h30</div></div></div>
+            <div class="act-item"><div class="act-dot g"></div><div><div class="act-txt"><strong>Nouveau lead</strong> — Sophie L. demande infos Le Socle</div><div class="act-time">Hier 14h12</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PROGRAMMES ══ -->
+    <div class="page" id="page-programmes">
+      <div class="page-hdr">
+        <div class="page-hdr-l"><h2>Programmes immobiliers</h2><p>Gérez vos opérations, lots et disponibilités</p></div>
+        <div class="page-hdr-r">
+          <button class="btn btn-ghost btn-sm" onclick="nav('import')">↑ Import Excel</button>
+          <button class="btn btn-primary btn-sm" onclick="newProg()">+ Nouveau programme</button>
+        </div>
+      </div>
+      <div class="filter-row">
+        <select id="f-prog-statut" onchange="filterProg()"><option value="">Tous les statuts</option><option>En commercialisation</option><option>Bientôt disponible</option><option>Livré</option></select>
+        <input type="search" id="f-prog-q" placeholder="Rechercher…" oninput="filterProg()">
+      </div>
+      <div class="card"><div class="tbl-wrap"><table>
+        <thead><tr><th>Programme</th><th>Commune</th><th>Statut</th><th>Livraison</th><th>Lots dispo.</th><th>Commerc.</th><th>Éligibilités</th><th>Plan 3D</th><th></th></tr></thead>
+        <tbody id="prog-tbody"></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- ══ LOTS ══ -->
+    <div class="page" id="page-lots">
+      <div class="page-hdr">
+        <div class="page-hdr-l"><h2>Lots & disponibilités</h2><p>Vue détaillée par programme</p></div>
+        <div class="page-hdr-r"><button class="btn btn-primary btn-sm" onclick="openModal('m-add-lot')">+ Ajouter un lot</button></div>
+      </div>
+      <div class="filter-row">
+        <select id="f-lot-prog" onchange="filterLots()"><option value="">Tous les programmes</option></select>
+        <select id="f-lot-stat" onchange="filterLots()"><option value="">Tous statuts</option><option>Disponible</option><option>Réservé</option><option>Vendu</option></select>
+        <select onchange="filterLots()" id="f-lot-typo"><option value="">Toutes typologies</option><option>Studio</option><option>T1</option><option>T2</option><option>T3</option><option>T4</option></select>
+        <input type="search" id="f-lot-q" placeholder="N° lot…" oninput="filterLots()">
+      </div>
+      <div class="card"><div class="tbl-wrap"><table>
+        <thead><tr><th>Lot</th><th>Programme</th><th>Ét.</th><th>Typo</th><th>Surf.</th><th>Prix TTC</th><th>Statut</th><th>Acquéreur</th><th>Plan 3D</th><th></th></tr></thead>
+        <tbody id="lots-tbody"></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- ══ LEADS ══ -->
+    <div class="page" id="page-leads">
+      <div class="page-hdr">
+        <div class="page-hdr-l"><h2>Prospects & Leads</h2><p>Suivi des demandes reçues</p></div>
+        <div class="page-hdr-r">
+          <button class="btn btn-ghost btn-sm">Exporter CSV</button>
+          <button class="btn btn-primary btn-sm" onclick="openModal('m-add-lead')">+ Ajouter</button>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab active">Tous (21)</button>
+        <button class="tab">À traiter (3)</button>
+        <button class="tab">En cours (11)</button>
+        <button class="tab">Gagnés (5)</button>
+        <button class="tab">Perdus (2)</button>
+      </div>
+      <div class="card"><div class="tbl-wrap"><table>
+        <thead><tr><th>Prio.</th><th>Nom</th><th>Programme</th><th>Typo</th><th>Budget</th><th>Statut</th><th>Source</th><th>Date</th><th></th></tr></thead>
+        <tbody id="leads-tbody"></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- ══ IMPORT EXCEL ══ (page principale) -->
+    <div class="page" id="page-import">
+      <div class="page-hdr">
+        <div class="page-hdr-l">
+          <h2>Import Excel</h2>
+          <p>Chargez vos programmes et lots depuis le template FREEHOME</p>
+        </div>
+        <div class="page-hdr-r">
+          <button onclick="publishToSite()" class="btn btn-primary btn-sm" style="background:#27ae60;color:#fff;border:none;margin-right:.5rem">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><polyline points="20 6 9 17 4 12"/></svg>
+            Publier sur le site
+          </button>
+          <button onclick="exportSiteData()" class="btn btn-ghost btn-sm" style="margin-right:.5rem" title="Télécharger le JSON en local (backup)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export JSON
+          </button>
+          <a href="#" onclick="downloadTemplate()" class="btn btn-ghost btn-sm">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Télécharger le template .xlsx
+          </a>
+        </div>
+      </div>
+
+      <!-- Étapes -->
+      <div class="steps">
+        <div class="step done" id="step-1">
+          <div class="step-num">1</div><span>Télécharger le template</span>
+        </div>
+        <div class="step-arr">›</div>
+        <div class="step done" id="step-2">
+          <div class="step-num">2</div><span>Remplir programmes &amp; lots</span>
+        </div>
+        <div class="step-arr">›</div>
+        <div class="step active" id="step-3">
+          <div class="step-num">3</div><span>Importer ici</span>
+        </div>
+        <div class="step-arr">›</div>
+        <div class="step" id="step-4">
+          <div class="step-num">4</div><span>Vérifier &amp; confirmer</span>
+        </div>
+      </div>
+
+      <!-- Zone de drop -->
+      <div class="card">
+        <div class="card-hdr"><span class="card-title">📂 Chargement du fichier</span></div>
+        <div class="card-body">
+          <div class="import-zone" id="drop-zone"
+               ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
+            <input type="file" id="file-input" accept=".xlsx,.xls" onchange="handleFile(this.files[0])">
+            <svg class="import-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="12" y1="18" x2="12" y2="12"/>
+              <polyline points="9 15 12 12 15 15"/>
+            </svg>
+            <h3 id="drop-title">Glissez votre fichier Excel ici</h3>
+            <p id="drop-sub">ou cliquez pour parcourir</p>
+            <div class="hint">Format accepté : .xlsx — Template FREEHOME_Import_Template.xlsx</div>
+          </div>
+
+          <!-- Résultat preview -->
+          <div class="preview-wrap" id="preview-wrap">
+
+            <div class="banner success" id="import-ok-banner" style="display:none">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><polyline points="20 6 9 17 4 12"/></svg>
+              <div><strong id="import-ok-txt">Fichier lu avec succès</strong></div>
+            </div>
+
+            <div class="banner" id="import-warn-banner" style="display:none">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <div id="import-warn-txt"></div>
+            </div>
+
+            <!-- Stats résumé -->
+            <div class="import-summary" id="import-summary"></div>
+
+            <!-- Onglets preview -->
+            <div class="tabs">
+              <button class="tab active" onclick="showPreviewTab('prev-prog',this)">Programmes (<span id="cnt-prog">0</span>)</button>
+              <button class="tab" onclick="showPreviewTab('prev-lots',this)">Lots (<span id="cnt-lots">0</span>)</button>
+              <button class="tab" onclick="showPreviewTab('prev-errors',this)">Erreurs (<span id="cnt-err">0</span>)</button>
+            </div>
+
+            <div id="prev-prog" class="preview-table-outer">
+              <table><thead id="prev-prog-hdr"></thead><tbody id="prev-prog-body"></tbody></table>
+            </div>
+            <div id="prev-lots" class="preview-table-outer" style="display:none">
+              <table><thead id="prev-lots-hdr"></thead><tbody id="prev-lots-body"></tbody></table>
+            </div>
+            <div id="prev-errors" style="display:none;padding:.8rem">
+              <div id="errors-list"></div>
+            </div>
+
+            <div style="display:flex;justify-content:flex-end;gap:.5rem;margin-top:1rem">
+              <button class="btn btn-ghost" onclick="resetImport()">✕ Annuler</button>
+              <button class="btn btn-primary" id="btn-confirm-import" onclick="confirmImport()">
+                ✓ Confirmer l'import
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Instructions -->
+      <div class="g2">
+        <div class="card">
+          <div class="card-hdr"><span class="card-title">📋 Structure du template</span></div>
+          <div class="card-body">
+            <p style="font-size:.76rem;color:var(--text-2);margin-bottom:.8rem">Le fichier Excel contient 4 feuilles :</p>
+            <table>
+              <thead><tr><th>Feuille</th><th>Contenu</th><th>Obligatoire</th></tr></thead>
+              <tbody>
+                <tr><td><strong>📋 Guide</strong></td><td style="font-size:.72rem">Instructions et légendes</td><td>—</td></tr>
+                <tr><td><strong>🏠 PROGRAMMES</strong></td><td style="font-size:.72rem">1 ligne = 1 programme</td><td><span class="badge bg-green">Oui</span></td></tr>
+                <tr><td><strong>🏢 LOTS</strong></td><td style="font-size:.72rem">1 ligne = 1 lot</td><td><span class="badge bg-orange">Optionnel</span></td></tr>
+                <tr><td><strong>📊 Récapitulatif</strong></td><td style="font-size:.72rem">Formules auto (lecture seule)</td><td>—</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><span class="card-title">⚠️ Règles importantes</span></div>
+          <div class="card-body">
+            <div style="display:flex;flex-direction:column;gap:.6rem;font-size:.76rem;color:var(--text-2)">
+              <div>✓ <strong style="color:var(--text)">NOM_PROGRAMME</strong> dans LOTS doit correspondre exactement à celui de PROGRAMMES</div>
+              <div>✓ <strong style="color:var(--text)">STATUT valides</strong> : Disponible, Réservé, Vendu, Bloqué</div>
+              <div>✓ <strong style="color:var(--text)">Prix</strong> : chiffre seul, sans €, sans espace (ex : 249000)</div>
+              <div>✓ <strong style="color:var(--text)">URL Plan 3D</strong> : lien complet https://programmes.plan3d.immo/…</div>
+              <div>✓ <strong style="color:var(--text)">L'import ajoute ou met à jour</strong> — il ne supprime pas les données existantes</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PAGES ══ -->
+    <div class="page" id="page-pages">
+      <div class="page-hdr">
+        <div class="page-hdr-l"><h2>Pages vitrines</h2><p>Gestion du contenu éditorial</p></div>
+        <div class="page-hdr-r">
+          <a href="https://freehome-site.mhfreehome.workers.dev" target="_blank" class="btn btn-ghost btn-sm">Voir le site ↗</a>
+          <button class="btn btn-primary btn-sm">+ Nouvelle page</button>
+        </div>
+      </div>
+      <div class="card"><div class="tbl-wrap"><table>
+        <thead><tr><th>Page</th><th>Slug</th><th>Statut</th><th>Modifié</th><th></th></tr></thead>
+        <tbody id="pages-tbody">
+          <!-- Rendu dynamique par renderPages() -->
+        </tbody>
+      </table></div></div>
+    </div>
+
+    <!-- ══ MEDIAS ══ -->
+    <div class="page" id="page-medias">
+      <div class="page-hdr">
+        <div class="page-hdr-l"><h2>Médiathèque</h2><p>Photos, plans, brochures</p></div>
+        <div class="page-hdr-r"><button class="btn btn-primary btn-sm">+ Importer</button></div>
+      </div>
+      <div style="text-align:center;padding:3rem;color:var(--text-3)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="width:40px;height:40px;opacity:.3;margin-bottom:1rem"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <p style="font-size:.82rem">Aucun média importé — cliquez sur Importer</p>
+      </div>
+    </div>
+
+    <!-- ══ USERS ══ -->
+    <div class="page" id="page-users">
+      <div class="page-hdr"><div class="page-hdr-l"><h2>Utilisateurs</h2><p>Accès et rôles</p></div><div class="page-hdr-r"><button class="btn btn-primary btn-sm">+ Inviter</button></div></div>
+      <div class="card"><div class="tbl-wrap"><table>
+        <thead><tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Dernière co.</th><th>Statut</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Admin</strong></td><td><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="85e4e1e8ecebc5e8ede3f7e0e0edeae8e0abe6eae8">[email&#160;protected]</a></td><td><span class="badge bg-gold">Admin</span></td><td>Aujourd'hui</td><td><span class="badge bg-green">Actif</span></td></tr>
+          <tr><td><strong>Assistante</strong></td><td><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="fb9a888892888f9a958f9ebb96939d899e9e9394969ed5989496">[email&#160;protected]</a></td><td><span class="badge bg-blue">Éditeur</span></td><td>Hier</td><td><span class="badge bg-green">Actif</span></td></tr>
+        </tbody>
+      </table></div></div>
+    </div>
+
+    <!-- ══ SETTINGS ══ -->
+    <div class="page" id="page-settings">
+      <div class="page-hdr"><div class="page-hdr-l"><h2>Paramètres</h2></div></div>
+      <div class="g2">
+        <div class="card">
+          <div class="card-hdr"><span class="card-title">Société</span></div>
+          <div class="card-body">
+            <div class="fg"><label>Raison sociale</label><input value="Maison & Habitat FREEHOME"></div>
+            <div class="fg"><label>Téléphone</label><input value="+33 (0)3 87 XX XX XX"></div>
+            <div class="fg"><label>Email</label><input value="contact@mhfreehome.com"></div>
+            <button class="btn btn-primary btn-sm" style="margin-top:.3rem">Enregistrer</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><span class="card-title">Intégrations</span></div>
+          <div class="card-body">
+            <div class="fg"><label>Supabase URL</label><input placeholder="https://xxx.supabase.co"></div>
+            <div class="fg"><label>Supabase Anon Key</label><input type="password" placeholder="eyJhbGci…"></div>
+            <div class="fg"><label>Clé API Anthropic</label><input type="password" placeholder="sk-ant-…"></div>
+            <button class="btn btn-primary btn-sm" style="margin-top:.3rem">Enregistrer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end .content -->
+</div><!-- end .main -->
+
+<!-- ═══ MODALS ═══ -->
+<!-- Add Programme -->
+<div class="overlay" id="m-add-prog" style="align-items:flex-start;padding:1rem;overflow-y:auto">
+  <div class="modal" style="max-width:820px;width:100%;margin:auto">
+    <div class="modal-hdr"><span class="modal-title">Programme immobilier — fiche complète</span><button class="mc" onclick="closeModal('m-add-prog')">×</button></div>
+    <div class="modal-body">
+
+      <!-- Onglets du modal -->
+      <div class="tabs" style="margin-bottom:1.4rem">
+        <button class="tab active" onclick="switchProgTab('pt-base',this)">Infos générales</button>
+        <button class="tab" onclick="switchProgTab('pt-desc',this)">Description & Atouts</button>
+        <button class="tab" onclick="switchProgTab('pt-timeline',this)">Calendrier</button>
+        <button class="tab" onclick="switchProgTab('pt-presta',this)">Prestations</button>
+        <button class="tab" onclick="switchProgTab('pt-galerie',this)">Galerie photos</button>
+      </div>
+
+      <!-- TAB 1 : Infos générales -->
+      <div id="pt-base" class="prog-tab active">
+        <div class="form-grid">
+          <div class="fg full"><label>Nom du programme *</label><input id="np-nom" placeholder="Ex : Rive Azure"></div>
+          <div class="fg"><label>Commune *</label><input id="np-commune" placeholder="Malroy"></div>
+          <div class="fg"><label>Code postal</label><input id="np-cp" placeholder="57640"></div>
+          <div class="fg full"><label>Adresse complète</label><input id="np-adresse" placeholder="44 rue Principale, 57640 Malroy"></div>
+          <div class="fg"><label>Statut *</label>
+            <select id="np-statut"><option>En commercialisation</option><option>Bientôt disponible</option><option>Livraison prochaine</option><option>Livré</option></select>
+          </div>
+          <div class="fg"><label>Réglementation</label><input id="np-reglementation" placeholder="RE2020" value="RE2020"></div>
+          <div class="fg"><label>Nb de lots total</label><input type="number" id="np-lots" placeholder="24"></div>
+          <div class="fg"><label>Pièces (ex: De 1 à 3)</label><input id="np-pieces" placeholder="De 1 à 3"></div>
+          <div class="fg"><label>Surface min (m²)</label><input type="number" id="np-surf-min" placeholder="19.3"></div>
+          <div class="fg"><label>Surface max (m²)</label><input type="number" id="np-surf-max" placeholder="83.7"></div>
+          <div class="fg"><label>Prix min (€)</label><input type="number" id="np-prix-min" placeholder="89000"></div>
+          <div class="fg"><label>Prix max (€)</label><input type="number" id="np-prix-max" placeholder="329636"></div>
+          <div class="fg"><label>Début travaux</label><input id="np-debut-travaux" placeholder="T2 2024"></div>
+          <div class="fg"><label>Livraison prévue</label><input id="np-livraison" placeholder="T4 2025"></div>
+          <div class="fg"><label>Éligibilités</label><input id="np-eli" placeholder="Pinel, PTZ"></div>
+          <div class="fg"><label>URL Plan 3D</label><input id="np-plan3d" placeholder="https://programmes.plan3d.immo/…"></div>
+          <div class="fg full"><label>URL Vidéo YouTube <span style="font-weight:400;color:var(--text-3)">(lien court ou complet)</span></label>
+            <input id="np-youtube" placeholder="https://www.youtube.com/watch?v=XXXXXXX ou https://youtu.be/XXXXXXX">
+            <div style="font-size:.72rem;color:var(--text-3);margin-top:.3rem">Accepte tous les formats YouTube : watch?v=, youtu.be/, /embed/ — la conversion en iframe est automatique.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2 : Description & Atouts -->
+      <div id="pt-desc" class="prog-tab" style="display:none">
+        <div class="form-grid">
+          <div class="fg full"><label>Description courte (carte programme)</label><textarea id="np-desc" placeholder="Sur les rives de la Moselle…" rows="3"></textarea></div>
+          <div class="fg full"><label>Description longue (onglet "Le programme")</label><textarea id="np-desc-long" placeholder="Rive Azure se présente comme une opportunité unique…" rows="5"></textarea></div>
+          <div class="fg full">
+            <label>Atouts emplacement <span style="font-weight:400;color:var(--text-3)">(1 par ligne : emoji|Titre|Détail)</span></label>
+            <textarea id="np-atouts" placeholder="🎬|Loisirs à portée de main|À 5 min de St Julien-lès-Metz (Kinépolis)&#10;🛍️|Shopping facilité|À 10 min des zones commerciales&#10;🎓|Éducation proche|École maternelle à quelques pas&#10;🚗|Mobilité simplifiée|Accès rapide autoroutes&#10;🌿|Nature préservée|Sentiers de randonnée à quelques minutes" rows="6"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3 : Prestations (structured) MARKER -->
+      <!-- TAB : Calendrier / Timeline -->
+      <div id="pt-timeline" class="prog-tab" style="display:none">
+        <div style="font-size:.78rem;color:var(--text-3);margin-bottom:1rem">Définissez les étapes du calendrier. Cochez les étapes réalisées et renseignez les dates.</div>
+        <div id="np-timeline-steps" style="display:flex;flex-direction:column;gap:.6rem"></div>
+        <button class="btn btn-ghost btn-sm" onclick="addTimelineStep()" style="margin-top:.75rem">+ Ajouter une étape</button>
+      </div>
+
+      <!-- TAB : Prestations (bibliothèque + cases à cocher) -->
+      <div id="pt-presta" class="prog-tab" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+          <span style="font-size:.78rem;color:var(--text-3)">Cochez les prestations incluses. Utilisez les champs libres pour les spécificités du programme.</span>
+          <button class="btn btn-ghost btn-sm" onclick="resetPrestations()">Tout décocher</button>
+        </div>
+        <div id="np-presta-cats" style="display:flex;flex-direction:column;gap:1.2rem"></div>
+      </div>
+
+            <!-- TAB 4 : Galerie photos -->
+      <div id="pt-galerie" class="prog-tab" style="display:none">
+        <div style="font-size:.78rem;color:var(--text-3);margin-bottom:1rem">Une URL par ligne. Les photos s'afficheront en kiosque dans l'onglet Galerie du site public.</div>
+        <div class="form-grid">
+          <div class="fg full">
+            <label>URLs des photos (une par ligne)</label>
+            <textarea id="np-photos" placeholder="https://www.mhfreehome.com/wp-content/uploads/rive-azure-1.jpg&#10;https://www.mhfreehome.com/wp-content/uploads/rive-azure-2.jpg&#10;https://www.mhfreehome.com/wp-content/uploads/rive-azure-3.jpg" rows="8"></textarea>
+          </div>
+          <div class="fg full">
+            <label>URL image principale (vignette carte)</label>
+            <input id="np-img-cover" placeholder="https://www.mhfreehome.com/wp-content/uploads/cover.jpg">
+          </div>
+        </div>
+        <!-- Prévisualisation -->
+        <div id="np-photo-preview" style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1rem"></div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:.5rem" onclick="previewPhotos()">Prévisualiser les photos</button>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('m-add-prog')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveProg()">Enregistrer le programme</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Lot -->
+<div class="overlay" id="m-add-lot">
+  <div class="modal">
+    <div class="modal-hdr"><span class="modal-title">Ajouter un lot</span><button class="mc" onclick="closeModal('m-add-lot')">×</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="fg"><label>Programme *</label><select id="nl-prog"><option>— Choisir —</option></select></div>
+        <div class="fg"><label>N° de lot *</label><input id="nl-num" placeholder="A-01"></div>
+        <div class="fg"><label>Étage</label><input id="nl-etage" placeholder="RDC"></div>
+        <div class="fg"><label>Bâtiment</label><input id="nl-bat" placeholder="A"></div>
+        <div class="fg"><label>Typologie *</label>
+          <select id="nl-typo"><option>Studio</option><option>T1</option><option>T2</option><option>T3</option><option>T4</option><option>T5</option></select>
+        </div>
+        <div class="fg"><label>Surface habitable (m²)</label><input type="number" id="nl-surf" placeholder="68"></div>
+        <div class="fg"><label>Prix TTC (€)</label><input type="number" id="nl-prix" placeholder="249000"></div>
+        <div class="fg"><label>Statut *</label>
+          <select id="nl-stat"><option>Disponible</option><option>Réservé</option><option>Vendu</option></select>
+        </div>
+        <div class="fg"><label>Acquéreur</label><input id="nl-acq" placeholder="Nom acquéreur"></div>
+        <div class="fg"><label>URL Plan lot</label><input id="nl-plan" placeholder="https://…"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('m-add-lot')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveLot()">Ajouter le lot</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Lead -->
+<div class="overlay" id="m-add-lead">
+  <div class="modal">
+    <div class="modal-hdr"><span class="modal-title">Nouveau prospect</span><button class="mc" onclick="closeModal('m-add-lead')">×</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="fg"><label>Prénom *</label><input placeholder="Sophie"></div>
+        <div class="fg"><label>Nom *</label><input placeholder="Lambert"></div>
+        <div class="fg"><label>Email</label><input type="email" placeholder="…"></div>
+        <div class="fg"><label>Téléphone</label><input placeholder="06 XX XX XX XX"></div>
+        <div class="fg"><label>Programme souhaité</label><select id="lead-prog"><option>— Choisir —</option></select></div>
+        <div class="fg"><label>Typologie</label><select><option>T1</option><option>T2</option><option>T3</option><option>T4+</option></select></div>
+        <div class="fg"><label>Budget max.</label><input placeholder="250 000 €"></div>
+        <div class="fg"><label>Source</label><select><option>Site web</option><option>Téléphone</option><option>Recommandation</option><option>Salon immobilier</option><option>Réseaux sociaux</option></select></div>
+        <div class="fg full"><label>Notes</label><textarea placeholder="Recherche un T3 avec parking…"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('m-add-lead')">Annuler</button>
+      <button class="btn btn-primary" onclick="closeModal('m-add-lead');toast('Prospect enregistré')">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// ══════════════════════════════════════════════════
+// DATA STORE
+// ══════════════════════════════════════════════════
+let DB = {
+  programmes: [
+{id:1,nom:"Rive Azure",commune:"Malroy",cp:"57640",adresse:"44 rue Principale, 57640 Malroy",statut:"En commercialisation",reglementation:"RE2020",livraison:"T4 2025",livraison_detail:"T4 2025",debut_travaux:"T2 2024",lots_total:5,lots_dispos:2,pieces:"De 1 à 3",surface_min:19.3,surface_max:83.7,prix_min:89000,prix_max:329636,plan3d:"https://programmes.plan3d.immo/1206/floors/1882/7114",eligibilites:"Pinel, PTZ",youtube:"",img_cover:"https://i.ibb.co/4ZGsRny1/azure-1.jpg",photos:["https://i.ibb.co/4ZGsRny1/azure-1.jpg","https://i.ibb.co/pjxv6zsc/azure-2.jpg","https://i.ibb.co/b5LWGc97/azure-3.jpg","https://i.ibb.co/v4CDcMhF/azure-4.jpg","https://i.ibb.co/7NYdRqd9/azure-5.jpg","https://i.ibb.co/tPQGm2C0/azure-6.jpg"],desc:"Sur les rives de la Moselle, calme et modernité.",desc_long:"Rive Azure se présente comme une opportunité unique pour envisager votre futur chez-vous dans un cadre exceptionnel. Nichée sur les rives de la Moselle à Malroy, cette résidence intimiste de 5 logements (T1, T2, T3) incarne un lieu où élégance et sérénité se rencontrent, offrant une qualité de vie exceptionnelle dans un cadre moderne et respectueux de l'environnement.",atouts:[{icon:"🎬",titre:"Loisirs à portée de main",detail:"À 5 min de St Julien-lès-Metz (Kinépolis)"},{icon:"🛍️",titre:"Shopping facilité",detail:"À 10 min des zones commerciales de Semécourt et Hauconcourt"},{icon:"🎓",titre:"Éducation proche",detail:"École maternelle ErckmannChatrian à quelques pas, collèges à 10 min"},{icon:"🚗",titre:"Mobilité simplifiée",detail:"Accès rapide autoroutes vers Metz, Luxembourg, Strasbourg, Paris"},{icon:"🌿",titre:"Nature préservée",detail:"Sentiers de randonnée à quelques minutes, bord de Moselle"}],prestations:[{cat:"Structure & Construction",items:["Fondation sur radier intégral","Murs en briques de terre cuite","Cloisons acoustiques renforcées 100mm","Coffre volet roulant invisible intégré"]},{cat:"Menuiseries & Isolation",items:["Triple vitrage menuiseries bicolores","Volets roulants alu motorisés SOMFY","Gris quartz extérieur, blanc intérieur"]},{cat:"Finitions intérieures",items:["Faux plafonds avec plénum","Carrelage ou parquet espaces de vie","SdB faïence toute hauteur + douche vitrée","WC suspendu abattant soft close","Meuble vasque miroir éclairage intégré"]},{cat:"Équipements éco-responsables",items:["Pompe à chaleur air/eau (air/air studio)","Infiltration eaux de pluie espaces verts","Pré-équipement bornes recharge électrique"]},{cat:"Espaces extérieurs & parking",items:["Terrasses dalles grès-cérame 60×60 cm","Jardins clos portillons + arbustes fruitiers","1 parking sous-terrain par appartement","1 box rangement privatif en sous-sol","2 places parking extérieur"]}],timeline:[{label:"Commercialisation",done:true},{label:"Début des travaux",done:true,date:"T2 2024"},{label:"Achèvement des travaux",done:false,date:"T3 2025"},{label:"Livraison",done:false,date:"T4 2025"}]},
+    {id:2,nom:"Clos Prévert",commune:"Ay-sur-Moselle",cp:"57300",adresse:"Ay-sur-Moselle, 57300",statut:"En commercialisation",reglementation:"RE2020",livraison:"T1 2026",livraison_detail:"T1 2026",debut_travaux:"T3 2024",lots_total:18,lots_dispos:12,pieces:"De 2 à 4",surface_min:44,surface_max:92,prix_min:185000,prix_max:320000,plan3d:"",eligibilites:"Pinel, PTZ",img_cover:"",photos:[],desc:"Niché au cœur de la nature, à 5 min de Trémery-Metz.",desc_long:"Le Clos Prévert est un programme immobilier de caractère, niché au cœur de la nature et à proximité immédiate des commodités. Situé à seulement 5 minutes de Trémery-Metz, 20 minutes de Metz et 15 minutes de Thionville, il offre un cadre de vie idéal alliant modernité et tranquillité. Cette résidence de 18 logements, conçue selon la réglementation RE2020, répond aux exigences les plus élevées en matière d'efficacité énergétique et de confort de vie.",atouts:[{icon:"🏭",titre:"Bassin d'emploi",detail:"À 5 min du pôle industriel de Trémery-Metz (PSA)"},{icon:"🚗",titre:"Axe autoroutier",detail:"A31 à 2 km, accès Metz 20 min, Thionville 15 min"},{icon:"🛒",titre:"Commerces",detail:"Centre commercial Waves Shopping à 10 min"},{icon:"🎓",titre:"Écoles",detail:"Groupe scolaire à 5 min à pied, lycée à 10 min"},{icon:"🌳",titre:"Environnement vert",detail:"Bords de Moselle, sentiers cyclables, parc naturel"}],prestations:[{cat:"Structure & Construction",items:["Maçonnerie briques terre cuite","Isolation thermique renforcée","Toiture zinc et ardoise selon orientation"]},{cat:"Menuiseries",items:["Double vitrage à rupture de pont thermique","Volets roulants électriques","Portes d'entrée sécurisées A2P*"]},{cat:"Finitions intérieures",items:["Parquet contrecollé chêne espaces de vie","Carrelage grès cérame SdB et cuisine","Cuisine ouverte pré-équipée","Salle de bain avec baignoire ou douche"]},{cat:"Équipements",items:["Chaudière à condensation gaz basse consommation","VMC double flux","Pré-câblage fibre optique","Interphone vidéo"]},{cat:"Extérieurs & stationnement",items:["Terrasses et balcons par logement","Jardins privatifs RDC","1 place de parking par appartement","Local vélos sécurisé"]}],timeline:[{label:"Commercialisation",done:true,date:""},{label:"Début des travaux",done:true,date:"T3 2024"},{label:"Achèvement des travaux",done:false,date:"T3 2025"},{label:"Livraison",done:false,date:"T1 2026"}]},
+    {id:3,nom:"La Maison d'Augny",commune:"Augny",cp:"57685",adresse:"Rue Madeleine Brès, 57685 Augny",statut:"En commercialisation",reglementation:"RE2020",livraison:"T2 2025",livraison_detail:"T2 2025",debut_travaux:"T1 2024",lots_total:32,lots_dispos:5,pieces:"Studio à T3",surface_min:25,surface_max:75,prix_min:125000,prix_max:265000,plan3d:"",eligibilites:"Censi-Bouvard",img_cover:"",photos:[],desc:"Résidence dédiée aux seniors autonomes, alliant confort et sérénité.",desc_long:"La Maison d'Augny est une résidence dédiée aux seniors autonomes, alliant confort, sécurité et sérénité. Située rue Madeleine Brès à Augny, elle propose un cadre de vie paisible et verdoyant, à proximité immédiate de toutes les commodités essentielles. Cette résidence-services de 32 logements propose des appartements adaptés, des espaces communs de qualité et une gestion locative optimisée sous le régime LMNP / Censi-Bouvard.",atouts:[{icon:"🏥",titre:"Santé",detail:"CHR Metz-Thionville à 8 min, médecins et pharmacie à pied"},{icon:"🛒",titre:"Commerces",detail:"Marché, boulangerie, épicerie dans le bourg à 300m"},{icon:"🚌",titre:"Transports",detail:"Ligne de bus vers Metz, arrêt à 100m"},{icon:"🌿",titre:"Cadre naturel",detail:"Village résidentiel calme, parcs et espaces verts"},{icon:"👨‍👩‍👧",titre:"Proximité familles",detail:"10 min de Metz, idéal pour rester proche des proches"}],prestations:[{cat:"Conception adaptée seniors",items:["Appartements plain-pied ou ascenseur","Seuils zéro marche","Portes larges 90cm","Mains courantes dans les parties communes"]},{cat:"Confort & sécurité",items:["Visiophone et digicode à l'entrée","Système d'appel d'urgence en option","Détecteurs fumée et CO","Double serrure portes palières"]},{cat:"Équipements",items:["Cuisine aménagée et équipée","SdB adaptée avec douche à l'italienne","Rangements optimisés","Fibre optique et TNT"]},{cat:"Espaces communs",items:["Salon et salle d'activités","Jardin paysager","Local poussettes / fauteuils roulants","Parking résidents et visiteurs"]},{cat:"Gestion locative LMNP",items:["Gestionnaire : résidence-services agréée","Loyers garantis 9 ans","Récupération TVA 20%","Revenus non fiscalisés via amortissement"]}],timeline:[{label:"Commercialisation",done:true,date:""},{label:"Début des travaux",done:true,date:"T1 2024"},{label:"Achèvement des travaux",done:true,date:"T4 2024"},{label:"Livraison",done:false,date:"T2 2025"}]},
+    {id:4,nom:"Le Socle",commune:"Mont-Saint-Martin",cp:"54350",adresse:"Mont-Saint-Martin, 54350",statut:"Bientôt disponible",reglementation:"RE2020",livraison:"T3 2026",livraison_detail:"T3 2026",debut_travaux:"T1 2025",lots_total:28,lots_dispos:28,pieces:"De 2 à 5",surface_min:48,surface_max:115,prix_min:178000,prix_max:385000,plan3d:"",eligibilites:"Pinel+, PTZ",img_cover:"",photos:[],desc:"À la croisée des trois frontières, programme premium à Mont-Saint-Martin.",desc_long:"Situé dans la dynamique commune de Mont-Saint-Martin, Le Socle est un programme immobilier premium à la croisée des trois frontières (France, Luxembourg, Belgique). Ce programme moderne et ambitieux de 28 logements bénéficie d'une situation géographique exceptionnelle à 20 minutes de Luxembourg-Ville, offrant un accès privilégié aux emplois frontaliers tout en proposant un cadre de vie résidentiel de grande qualité. Éligible Pinel+ et PTZ, il combine investissement locatif optimisé et résidence principale.",atouts:[{icon:"🇱🇺",titre:"Luxembourg à 20 min",detail:"Accès direct aux bassins d'emploi frontaliers (45 000+ frontaliers)"},{icon:"🏦",titre:"Revenus frontaliers",detail:"Locataires frontaliers solvables, taux d'occupation élevé"},{icon:"🚗",titre:"Axes routiers",detail:"A30 à 5 min, Longwy 10 min, Thionville 30 min"},{icon:"🛒",titre:"Commerce & services",detail:"Centre-ville Mont-Saint-Martin, galerie commerciale Longwy"},{icon:"🏫",titre:"Éducation",detail:"Lycée international à Longwy, école européenne Luxembourg"}],prestations:[{cat:"Architecture & Structure",items:["Conception BBC-Effinergie+","Façades enduit minéral et bardage bois","Toits terrasses végétalisés","Ascenseur desservant tous les niveaux"]},{cat:"Menuiseries haute performance",items:["Triple vitrage Uw≤0.8 W/m²K","Stores extérieurs motorisés","Portes blindées point A2P**"]},{cat:"Finitions premium",items:["Sols carrelage grand format 60×120cm","Parquet massif chambres","Cuisine ouverte équipée","SdB italienne avec robinetterie design"]},{cat:"Énergie & domotique",items:["Pompe à chaleur air/eau","Plancher chauffant basse température","VMC double flux à haute efficacité","Domotique KNX pilotage smartphone","Bornes recharge VE incluses"]},{cat:"Extérieurs & services",items:["Terrasses spacieuses 15 à 35m²","Jardins privatifs RDC","2 places parking par T3+","Local vélos et poussettes","Gardien et vidéosurveillance"]}],timeline:[{label:"Commercialisation",done:true,date:""},{label:"Début des travaux",done:true,date:"T1 2025"},{label:"Achèvement des travaux",done:false,date:"T1 2026"},{label:"Livraison",done:false,date:"T3 2026"}]},
+    {id:5,nom:"Clos Sérénité",commune:"Kanfen",cp:"57330",adresse:"Kanfen, 57330",statut:"Bientôt disponible",reglementation:"RE2020",livraison:"T4 2026",livraison_detail:"T4 2026",debut_travaux:"T2 2025",lots_total:20,lots_dispos:20,pieces:"De 2 à 4",surface_min:50,surface_max:100,prix_min:195000,prix_max:340000,plan3d:"",eligibilites:"Pinel",img_cover:"",photos:[],desc:"Programme résidentiel au cœur de la Moselle, cadre naturel exceptionnel.",desc_long:"Le Clos Sérénité est un programme résidentiel pensé pour les familles et les investisseurs à la recherche d'un cadre de vie calme et naturel. Implanté à Kanfen, village mosellan à 15 minutes de Thionville et 25 minutes de Luxembourg, il bénéficie d'un environnement verdoyant exceptionnel tout en restant parfaitement connecté aux grands pôles d'emploi. Ses 20 logements de qualité, du T2 au T4, répondent aux besoins des primo-accédants comme des investisseurs Pinel.",atouts:[{icon:"🌲",titre:"Village nature",detail:"Kanfen, village résidentiel boisé, qualité de vie premium"},{icon:"🇱🇺",titre:"Frontière Luxembourg",detail:"25 min de Luxembourg-Ville, bassin frontalier recherché"},{icon:"🏙️",titre:"Thionville",detail:"15 min du centre de Thionville, tous services"},{icon:"🚗",titre:"Autoroutes",detail:"A31 à 8 km, accès rapide tous axes"},{icon:"🏘️",titre:"Cadre résidentiel",detail:"Village paisible, faible densité, pas de nuisances"}],prestations:[{cat:"Construction & enveloppe",items:["Structure béton armé","Isolation extérieure ITE","Toiture tuile mécanique","Façades crépis ton pierre"]},{cat:"Menuiseries",items:["Double vitrage Saint-Gobain","Volets roulants électriques aluminium","Porte d'entrée blindée"]},{cat:"Équipements intérieurs",items:["Chaudière gaz condensation","Radiateurs acier","Cuisine équipée","SdB carrelage sol/mur","Double vasque T3 et T4"]},{cat:"Espaces extérieurs",items:["Jardins privatifs RDC 30 à 80m²","Terrasses étages 8 à 15m²","Parking couvert inclus","Local à vélos commun"]},{cat:"Garanties",items:["GFA Garantie Financière d'Achèvement","Garantie décennale 10 ans","Garantie parfait achèvement 1 an","Garantie biennale équipements 2 ans"]}],timeline:[{label:"Commercialisation",done:true,date:""},{label:"Début des travaux",done:false,date:"T2 2025"},{label:"Achèvement des travaux",done:false,date:"T2 2026"},{label:"Livraison",done:false,date:"T4 2026"}]}
+  ],
+  lots: [
+    {id:1,prog:"Rive Azure",num:"A-01",etage:"RDC",typo:"T2",surface:44,prix:198000,statut:"Vendu",acq:"M. Lefebvre",plan3d:true},
+    {id:2,prog:"Rive Azure",num:"A-02",etage:"RDC",typo:"T3",surface:68,prix:249000,statut:"Réservé",acq:"Mme Bernard",plan3d:true},
+    {id:3,prog:"Rive Azure",num:"A-03",etage:"1",typo:"T2",surface:47,prix:205000,statut:"Disponible",acq:"",plan3d:true},
+    {id:4,prog:"Rive Azure",num:"A-04",etage:"1",typo:"T3",surface:72,prix:262000,statut:"Disponible",acq:"",plan3d:true},
+    {id:5,prog:"Rive Azure",num:"T-01",etage:"Toit",typo:"T4",surface:95,prix:380000,statut:"Réservé",acq:"M. Collet",plan3d:true},
+    {id:6,prog:"Clos Prévert",num:"B-01",etage:"RDC",typo:"T2",surface:45,prix:189000,statut:"Disponible",acq:"",plan3d:false},
+    {id:7,prog:"Clos Prévert",num:"B-02",etage:"1",typo:"T3",surface:70,prix:241000,statut:"Disponible",acq:"",plan3d:false},
+    {id:8,prog:"La Maison d'Augny",num:"C-01",etage:"1",typo:"Studio",surface:28,prix:142000,statut:"Vendu",acq:"Mme Perrin",plan3d:false},
+    {id:9,prog:"Le Socle",num:"D-01",etage:"RDC",typo:"T2",surface:42,prix:178000,statut:"Disponible",acq:"",plan3d:false},
+    {id:10,prog:"Le Socle",num:"D-02",etage:"2",typo:"T4",surface:88,prix:315000,statut:"Disponible",acq:"",plan3d:false},
+  ],
+  leads: [
+    {id:1,prenom:"Martin",nom:"Dupont",prog:"Rive Azure",typo:"T3",budget:"260 000€",statut:"À rappeler",source:"Site web",date:"Aujourd'hui",prio:"h"},
+    {id:2,prenom:"Sophie",nom:"Lambert",prog:"Le Socle",typo:"T2",budget:"195 000€",statut:"En négociation",source:"Téléphone",date:"Hier",prio:"h"},
+    {id:3,prenom:"Pierre",nom:"Martin",prog:"Clos Prévert",typo:"T4",budget:"250 000€",statut:"Réservation signée",source:"Recommandation",date:"Il y a 3j",prio:"m"},
+    {id:4,prenom:"Claire",nom:"Rousseau",prog:"Rive Azure",typo:"T2",budget:"210 000€",statut:"Premier contact",source:"Réseaux sociaux",date:"Il y a 5j",prio:"l"},
+  ]
+};
+
+// Temp import data
+let importData = {programmes:[], lots:[], errors:[]};
+
+// ══════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════
+const PAGE_TITLES = {
+  dashboard:'Tableau de bord',programmes:'Programmes immobiliers',lots:'Lots & disponibilités',
+  leads:'Prospects & Leads',import:'Import Excel',pages:'Pages vitrines',
+  medias:'Médiathèque',users:'Utilisateurs',settings:'Paramètres'
+};
+function nav(id) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.getElementById('tb-title').textContent = PAGE_TITLES[id]||id;
+  document.querySelectorAll('.ni').forEach(n=>{
+    if((n.getAttribute('onclick')||'').includes("'"+id+"'")) n.classList.add('active');
+  });
+  renderPage(id);
+}
+
+function renderPage(id) {
+  if(id==='dashboard') renderDashboard();
+  else if(id==='programmes') renderProg();
+  else if(id==='lots') renderLots();
+  else if(id==='leads') renderLeads();
+}
+
+// ══════════════════════════════════════════════════
+// RENDER FUNCTIONS
+// ══════════════════════════════════════════════════
+const STATUT_CLS = {
+  'En commercialisation':'bg-green','Bientôt disponible':'bg-blue',
+  'Livraison prochaine':'bg-orange','Livré':'bg-gray','Archivé':'bg-gray',
+  'Disponible':'bg-green','Réservé':'bg-orange','Vendu':'bg-red','Bloqué':'bg-gray',
+  'À rappeler':'bg-orange','En négociation':'bg-blue','Réservation signée':'bg-green','Premier contact':'bg-gray'
+};
+
+function renderDashboard() {
+  // KPIs
+  const dispos = DB.lots.filter(l=>l.statut==='Disponible').length;
+  const total = DB.lots.length;
+  const comm = DB.lots.filter(l=>l.statut!=='Disponible').length;
+  const taux = total ? Math.round(comm/total*100) : 0;
+  document.getElementById('kpi-prog').textContent = DB.programmes.length;
+  document.getElementById('kpi-dispo').textContent = dispos;
+  document.getElementById('kpi-dispo-sub').textContent = `Sur ${total} lots au total`;
+  document.getElementById('kpi-taux').textContent = taux;
+  document.getElementById('kpi-taux-sub').textContent = `${comm} lots vendus / réservés`;
+  document.getElementById('kpi-bar').style.width = taux+'%';
+  document.getElementById('nb-prog').textContent = DB.programmes.length;
+
+  // Liste programmes
+  document.getElementById('dash-prog-list').innerHTML = DB.programmes.map(p=>{
+    const dispo = DB.lots.filter(l=>l.prog===p.nom&&l.statut==='Disponible').length;
+    const totalP = DB.lots.filter(l=>l.prog===p.nom).length||p.lots_total;
+    const pct = totalP ? Math.round((totalP-dispo)/totalP*100) : 0;
+    return `<div class="pl-item">
+      <div class="pl-thumb">🏠</div>
+      <div class="pl-info">
+        <div class="pl-name">${p.nom}</div>
+        <div class="pl-loc">📍 ${p.commune} · ${dispo} lots disponibles / ${totalP}</div>
+        <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+      </div>
+      <span class="badge ${STATUT_CLS[p.statut]||'bg-gray'}">${p.statut}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderProg() {
+  const q = (document.getElementById('f-prog-q')||{value:''}).value.toLowerCase();
+  const fs = (document.getElementById('f-prog-statut')||{value:''}).value;
+  const filtered = DB.programmes.filter(p=>
+    (!fs||p.statut===fs) &&
+    (!q||p.nom.toLowerCase().includes(q)||p.commune.toLowerCase().includes(q))
+  );
+  document.getElementById('prog-tbody').innerHTML = filtered.map(p=>{
+    const dispo = DB.lots.filter(l=>l.prog===p.nom&&l.statut==='Disponible').length;
+    const totalP = DB.lots.filter(l=>l.prog===p.nom).length||p.lots_total;
+    const pct = totalP ? Math.round((totalP-dispo)/totalP*100) : 0;
+    const elis = (p.eligibilites||'').split(',').map(e=>e.trim()).filter(Boolean)
+      .map(e=>`<span class="badge bg-gold" style="margin-right:2px">${e}</span>`).join('');
+    return `<tr>
+      <td><strong>${p.nom}</strong><div style="font-size:.68rem;color:var(--text-3);margin-top:2px">${(p.desc||'').substring(0,55)}…</div></td>
+      <td>${p.commune}<div style="font-size:.68rem;color:var(--text-3)">${p.cp}</div></td>
+      <td><span class="badge ${STATUT_CLS[p.statut]||'bg-gray'}">${p.statut}</span></td>
+      <td style="white-space:nowrap">${p.livraison||'—'}</td>
+      <td><strong style="color:${dispo===0?'var(--red)':'var(--green)'}">${dispo}</strong> / ${totalP}</td>
+      <td><div style="display:flex;align-items:center;gap:.4rem"><div class="prog-bar" style="flex:1;margin:0"><div class="prog-fill g" style="width:${pct}%"></div></div><span style="font-size:.68rem;color:var(--text-2);min-width:26px">${pct}%</span></div></td>
+      <td>${elis||'—'}</td>
+      <td>${p.plan3d?`<a href="${p.plan3d}" target="_blank" class="btn btn-ghost btn-sm" style="font-size:.66rem">3D ↗</a>`:'<span style="color:var(--text-3);font-size:.72rem">—</span>'}</td>
+      <td><div style="display:flex;gap:.3rem">
+        <button class="btn btn-ghost btn-sm" onclick="editProg(${p.id})">Éditer</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteProg(${p.id})">✕</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+
+  // Populate select in add-lot modal
+  const selProg = document.getElementById('nl-prog');
+  selProg.innerHTML = '<option>— Choisir —</option>'+DB.programmes.map(p=>`<option>${p.nom}</option>`).join('');
+  const selLead = document.getElementById('lead-prog');
+  selLead.innerHTML = '<option>— Choisir —</option>'+DB.programmes.map(p=>`<option>${p.nom}</option>`).join('');
+  // Populate filter
+  const fProg = document.getElementById('f-lot-prog');
+  if(fProg) fProg.innerHTML = '<option value="">Tous les programmes</option>'+DB.programmes.map(p=>`<option>${p.nom}</option>`).join('');
+}
+function filterProg(){renderProg()}
+
+function renderLots() {
+  const fp = (document.getElementById('f-lot-prog')||{value:''}).value;
+  const fs = (document.getElementById('f-lot-stat')||{value:''}).value;
+  const ft = (document.getElementById('f-lot-typo')||{value:''}).value;
+  const fq = (document.getElementById('f-lot-q')||{value:''}).value.toLowerCase();
+  const filtered = DB.lots.filter(l=>
+    (!fp||l.prog===fp)&&(!fs||l.statut===fs)&&(!ft||l.typo.includes(ft))&&(!fq||l.num.toLowerCase().includes(fq))
+  );
+  document.getElementById('lots-tbody').innerHTML = filtered.map(l=>`<tr>
+    <td><strong>${l.num}</strong></td>
+    <td style="font-size:.72rem">${l.prog}</td>
+    <td>${l.etage}</td><td>${l.typo}</td>
+    <td>${l.surface} m²</td>
+    <td>${l.prix?l.prix.toLocaleString('fr-FR')+' €':'—'}</td>
+    <td>
+      <select onchange="changeLotStat(${l.id},this.value)" style="padding:.2rem .4rem;font-size:.68rem;width:auto;background:var(--surface-3)">
+        ${['Disponible','Réservé','Vendu','Bloqué'].map(s=>`<option ${l.statut===s?'selected':''}>${s}</option>`).join('')}
+      </select>
+    </td>
+    <td style="font-size:.72rem">${l.acq||'—'}</td>
+    <td>${l.plan3d?`<a href="https://programmes.plan3d.immo/1206/floors/1882/7114" target="_blank" style="color:var(--gold);font-size:.72rem">Voir ↗</a>`:'—'}</td>
+    <td><button class="btn btn-danger btn-sm" onclick="deleteLot(${l.id})">✕</button></td>
+  </tr>`).join('');
+}
+function filterLots(){renderLots()}
+
+function renderLeads() {
+  document.getElementById('leads-tbody').innerHTML = DB.leads.map(l=>`<tr>
+    <td><span class="ld ${l.prio}"></span>${l.prio==='h'?'Haute':l.prio==='m'?'Normale':'Basse'}</td>
+    <td><strong>${l.prenom} ${l.nom}</strong></td>
+    <td>${l.prog}</td><td>${l.typo}</td><td>${l.budget}</td>
+    <td><span class="badge ${STATUT_CLS[l.statut]||'bg-gray'}">${l.statut}</span></td>
+    <td style="font-size:.72rem">${l.source}</td>
+    <td style="font-size:.72rem">${l.date}</td>
+    <td><button class="btn btn-ghost btn-sm">Traiter</button></td>
+  </tr>`).join('');
+}
+
+// ══════════════════════════════════════════════════
+// CRUD
+// ══════════════════════════════════════════════════
+// ── Onglets modal programme ──────────────────────────────────
+function switchProgTab(id, btn) {
+  document.querySelectorAll('.prog-tab').forEach(t=>t.style.display='none');
+  document.getElementById(id).style.display='block';
+  document.querySelectorAll('#m-add-prog .tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  // Lazy init : construire les UIs dynamiques si vides au moment de l'affichage
+  if(id === 'pt-timeline') {
+    const c2 = document.getElementById('np-timeline-steps');
+    if(c2 && c2.children.length === 0) {
+      const prog = _editingProgId ? DB.programmes.find(x=>x.id===_editingProgId) : null;
+      loadTimelineToUI(prog ? prog.timeline : []);
+    }
+  }
+  if(id === 'pt-presta') {
+    const c2 = document.getElementById('np-presta-cats');
+    if(c2 && c2.children.length === 0) {
+      const prog = _editingProgId ? DB.programmes.find(x=>x.id===_editingProgId) : null;
+      loadPrestationsToUI(prog ? prog.prestations : []);
+    }
+  }
+}
+
+function previewPhotos() {
+  const urls = document.getElementById('np-photos').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const wrap = document.getElementById('np-photo-preview');
+  wrap.innerHTML = urls.map(u=>`<img src="${u}" onerror="this.style.opacity=.2;this.title='Image introuvable'" style="height:80px;width:auto;border-radius:6px;border:1px solid var(--border);object-fit:cover">`).join('');
+}
+
+
+// ══════════════════════════════════════════════════
+// BIBLIOTHÈQUE DES PRESTATIONS (liste exhaustive)
+// ══════════════════════════════════════════════════
+const PRESTA_LIBRARY = [
+  { cat: "Structure & Gros Œuvre", icon: "🏗️", items: [
+    "Fondation sur radier intégral",
+    "Fondations traditionnelles sur semelles",
+    "Murs en briques de terre cuite",
+    "Structure béton armé",
+    "Cloisons acoustiques renforcées 100mm",
+    "Isolation thermique par l'extérieur (ITE)",
+    "Coffre volet roulant invisible intégré",
+    "Toiture tuile mécanique",
+    "Toiture zinc",
+    "Toiture terrasse végétalisée"
+  ]},
+  { cat: "Menuiseries & Vitrage", icon: "🪟", items: [
+    "Double vitrage standard",
+    "Double vitrage à rupture de pont thermique",
+    "Triple vitrage menuiseries bicolores",
+    "Volets roulants manuels",
+    "Volets roulants électriques",
+    "Volets roulants alu motorisés SOMFY",
+    "Stores extérieurs motorisés",
+    "Gris quartz extérieur / blanc intérieur",
+    "Portes d'entrée sécurisées A2P*",
+    "Portes blindées A2P**",
+    "Porte palière appartement sécurisée",
+    "Portails et portillons automatiques"
+  ]},
+  { cat: "Finitions & Revêtements", icon: "🎨", items: [
+    "Faux plafonds avec plénum",
+    "Carrelage grès cérame espaces de vie",
+    "Parquet contrecollé chêne",
+    "Parquet massif",
+    "Carrelage grand format 60×120cm",
+    "Faïence SdB toute hauteur",
+    "Douche à l'italienne avec paroi vitrée",
+    "Baignoire",
+    "WC suspendu abattant soft close",
+    "Meuble vasque avec miroir éclairé",
+    "Double vasque (T3+)",
+    "Cuisine ouverte pré-équipée",
+    "Cuisine équipée (électroménager inclus)"
+  ]},
+  { cat: "Équipements & Énergie", icon: "⚡", items: [
+    "Chaudière gaz à condensation",
+    "Pompe à chaleur air/eau",
+    "Pompe à chaleur air/air (studios)",
+    "Plancher chauffant basse température",
+    "Radiateurs acier",
+    "VMC simple flux",
+    "VMC double flux haute efficacité",
+    "Chauffe-eau thermodynamique",
+    "Panneaux solaires photovoltaïques",
+    "Infiltration eaux de pluie espaces verts",
+    "Récupérateur eau de pluie"
+  ]},
+  { cat: "Domotique & Smart Home", icon: "📱", items: [
+    "Pré-câblage fibre optique",
+    "Interphone vidéo",
+    "Visiophone connecté",
+    "Domotique KNX pilotage smartphone",
+    "Eclairage LED connecté",
+    "Détecteurs fumée et CO",
+    "Pré-équipement borne recharge VE",
+    "Bornes recharge VE incluses"
+  ]},
+  { cat: "Espaces Extérieurs", icon: "🌿", items: [
+    "Terrasse dalles grès-cérame 60×60cm",
+    "Balcon avec garde-corps",
+    "Jardin privatif RDC",
+    "Jardins clos portillons + arbustes",
+    "Espaces verts communs paysagés",
+    "Pergola ou auvent",
+    "Piscine collective",
+    "Aire de jeux enfants"
+  ]},
+  { cat: "Stationnement & Rangements", icon: "🚗", items: [
+    "1 place parking extérieur",
+    "2 places parking extérieur",
+    "Parking couvert (abri)",
+    "Garage privatif",
+    "Parking sous-terrain",
+    "1 box rangement privatif en sous-sol",
+    "Cave privative",
+    "Local vélos sécurisé",
+    "Local poussettes"
+  ]},
+  { cat: "Services & Sécurité", icon: "🔒", items: [
+    "Gardien ou gardiennage",
+    "Vidéosurveillance parties communes",
+    "Digicode accès résidence",
+    "Contrôle d'accès par badge",
+    "Ascenseur",
+    "Rampe d'accès PMR",
+    "Accès PMR toutes parties communes",
+    "Conciergerie",
+    "Salle d'activités commune",
+    "Espace coworking"
+  ]},
+  { cat: "Garanties Promoteur", icon: "📋", items: [
+    "GFA — Garantie Financière d'Achèvement",
+    "Garantie Décennale (10 ans)",
+    "Garantie Parfait Achèvement (1 an)",
+    "Garantie Biennale équipements (2 ans)",
+    "Assurance Dommages-Ouvrage",
+    "Garantie de loyers (résidence services)"
+  ]}
+];
+
+// ══════════════════════════════════════════════════
+// PRESTATIONS — UI avec cases à cocher + champs libres
+// ══════════════════════════════════════════════════
+function buildPrestationsUI(selected) {
+  // selected = [{cat, items:[...]} ...] depuis les données programme
+  const selectedMap = {};
+  if(selected && selected.length) {
+    selected.forEach(s => {
+      selectedMap[s.cat] = new Set(s.items);
+    });
+  }
+  // Aussi récupérer les items "libres" (non présents dans la bibliothèque)
+  const customMap = {};
+  if(selected && selected.length) {
+    selected.forEach(s => {
+      const libCat = PRESTA_LIBRARY.find(l => l.cat === s.cat);
+      const libItems = libCat ? libCat.items : [];
+      const customs = s.items.filter(item => !libItems.includes(item));
+      if(customs.length) customMap[s.cat] = customs;
+    });
+  }
+
+  const container = document.getElementById('np-presta-cats');
+  container.innerHTML = PRESTA_LIBRARY.map(cat => {
+    const checkedItems = selectedMap[cat.cat] || new Set();
+    const customs = customMap[cat.cat] || [];
+    // Compléter avec 3 champs libres minimum
+    const customFields = [...customs, '', '', ''].slice(0, Math.max(3, customs.length + 1));
+
+    return `<div class="presta-cat-block" data-cat="${cat.cat}" style="background:var(--surface-2);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+      <div onclick="toggleCatSection(this)" style="display:flex;align-items:center;gap:.6rem;padding:.8rem 1rem;cursor:pointer;user-select:none">
+        <span style="font-size:1rem">${cat.icon}</span>
+        <span style="font-size:.85rem;font-weight:700;color:var(--text);flex:1">${cat.cat}</span>
+        <span class="cat-count" style="font-size:.72rem;color:var(--gold);font-weight:600;padding:.15rem .5rem;background:rgba(244,149,22,.12);border-radius:10px">${checkedItems.size > 0 ? checkedItems.size + ' sélectionné(s)' : 'Aucun'}</span>
+        <span class="cat-chevron" style="font-size:.85rem;color:var(--text-3);transition:transform .2s">▼</span>
+      </div>
+      <div class="cat-body" style="display:none;padding:.75rem 1rem;border-top:1px solid var(--border)">
+        <div style="display:flex;flex-direction:column;gap:.2rem;margin-bottom:.75rem">
+          ${cat.items.map(item => `
+            <label style="display:flex;align-items:center;gap:.6rem;cursor:pointer;padding:.35rem .5rem;border-radius:6px;transition:background .15s" onmouseover="this.style.background='rgba(244,149,22,.06)'" onmouseout="this.style.background='transparent'">
+              <input type="checkbox" class="presta-check" data-item="${item.replace(/"/g,'&quot;')}" ${checkedItems.has(item)?'checked':''} onchange="updateCatCount(this)" style="accent-color:var(--gold);width:15px;height:15px;flex-shrink:0;cursor:pointer">
+              <span style="font-size:.8rem;color:var(--text-2);line-height:1.3">${item}</span>
+            </label>`).join('')}
+        </div>
+        <div style="border-top:1px solid var(--border-2);padding-top:.6rem">
+          <div style="font-size:.7rem;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem">Spécificités du programme</div>
+          <div class="custom-fields" style="display:flex;flex-direction:column;gap:.35rem">
+            ${customFields.map((val, i) => `
+              <div style="display:flex;align-items:center;gap:.4rem">
+                <input type="text" class="custom-item-input" value="${val}" placeholder="Prestation spécifique…"
+                  style="flex:1;background:var(--surface-3,rgba(255,255,255,.03));border:1px solid var(--border-2);border-radius:6px;padding:.35rem .6rem;font-size:.78rem;color:var(--text-2);outline:none"
+                  onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border-2)'">
+                ${i === customFields.length - 1 ? `<button onclick="addCustomField(this)" style="background:none;border:1px dashed var(--border);color:var(--text-3);border-radius:6px;padding:.3rem .5rem;font-size:.75rem;cursor:pointer;white-space:nowrap;flex-shrink:0" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-3)'">+</button>` : `<button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--text-3);font-size:.85rem;cursor:pointer;padding:.2rem;opacity:.4" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.4'">✕</button>`}
+              </div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCatSection(header) {
+  const body = header.nextElementSibling;
+  const chevron = header.querySelector('.cat-chevron');
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
+}
+
+function updateCatCount(checkbox) {
+  const catBlock = checkbox.closest('.presta-cat-block');
+  const checked = catBlock.querySelectorAll('.presta-check:checked').length;
+  const countEl = catBlock.querySelector('.cat-count');
+  countEl.textContent = checked > 0 ? checked + ' sélectionné(s)' : 'Aucun';
+}
+
+function addCustomField(btn) {
+  const container = btn.closest('.custom-fields');
+  // Transformer le dernier bouton + en ✕
+  const lastDiv = container.lastElementChild;
+  const oldBtn = lastDiv.querySelector('button');
+  if(oldBtn) { oldBtn.innerHTML='✕'; oldBtn.onclick = function(){ this.parentElement.remove(); }; oldBtn.onmouseover=function(){this.style.opacity='1'}; oldBtn.onmouseout=function(){this.style.opacity='.4'}; oldBtn.style.cssText='background:none;border:none;color:var(--text-3);font-size:.85rem;cursor:pointer;padding:.2rem;opacity:.4'; }
+  // Ajouter nouveau champ avec bouton +
+  const div = document.createElement('div');
+  div.style.cssText = 'display:flex;align-items:center;gap:.4rem';
+  div.innerHTML = `<input type="text" class="custom-item-input" value="" placeholder="Prestation spécifique…"
+    style="flex:1;background:var(--surface-3,rgba(255,255,255,.03));border:1px solid var(--border-2);border-radius:6px;padding:.35rem .6rem;font-size:.78rem;color:var(--text-2);outline:none"
+    onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border-2)'">
+    <button onclick="addCustomField(this)" style="background:none;border:1px dashed var(--border);color:var(--text-3);border-radius:6px;padding:.3rem .5rem;font-size:.75rem;cursor:pointer;white-space:nowrap;flex-shrink:0">+</button>`;
+  container.appendChild(div);
+  div.querySelector('input').focus();
+}
+
+function readPrestationsFromUI() {
+  const results = [];
+  document.querySelectorAll('#np-presta-cats .presta-cat-block').forEach(block => {
+    const catName = block.dataset.cat;
+    const checkedItems = Array.from(block.querySelectorAll('.presta-check:checked')).map(cb => cb.dataset.item);
+    const customItems = Array.from(block.querySelectorAll('.custom-item-input')).map(i => i.value.trim()).filter(Boolean);
+    const allItems = [...checkedItems, ...customItems];
+    if(allItems.length > 0) results.push({cat: catName, items: allItems});
+  });
+  return results;
+}
+
+function loadPrestationsToUI(prestations) {
+  buildPrestationsUI(prestations);
+  // Ouvrir les catégories qui ont des items sélectionnés
+  if(prestations && prestations.length) {
+    const activeCats = new Set(prestations.filter(p=>p.items.length>0).map(p=>p.cat));
+    document.querySelectorAll('#np-presta-cats .presta-cat-block').forEach(block => {
+      if(activeCats.has(block.dataset.cat)) {
+        const header = block.querySelector('[onclick*="toggleCatSection"]');
+        const body = block.querySelector('.cat-body');
+        const chevron = block.querySelector('.cat-chevron');
+        if(body) { body.style.display = 'block'; }
+        if(chevron) { chevron.style.transform = 'rotate(180deg)'; }
+      }
+    });
+  }
+}
+
+function resetPrestations() {
+  document.querySelectorAll('#np-presta-cats .presta-check').forEach(cb => { cb.checked = false; updateCatCount(cb); });
+  document.querySelectorAll('#np-presta-cats .custom-item-input').forEach(i => i.value = '');
+}
+
+// ══════════════════════════════════════════════════
+// TIMELINE — UI structurée (étapes éditables)
+// ══════════════════════════════════════════════════
+function addTimelineStep(label='', date='', done=false) {
+  const container = document.getElementById('np-timeline-steps');
+  if(!container) return;
+  const num = container.children.length + 1;
+  const div = document.createElement('div');
+  div.className = 'timeline-step-block';
+  div.innerHTML = `
+    <div style="display:flex;align-items:center;gap:.7rem;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem">
+      <span style="color:var(--text-3);font-size:.75rem;font-weight:600;flex-shrink:0;width:16px;text-align:center">${num}</span>
+      <input class="tl-label" value="${label}" placeholder="Ex: Début des travaux"
+        style="flex:2;border:none;border-bottom:1px solid var(--border-2);background:transparent;font-size:.83rem;font-weight:600;color:var(--text);padding:.2rem .3rem;outline:none">
+      <input class="tl-date" value="${date}" placeholder="T2 2024"
+        style="flex:1;border:none;border-bottom:1px solid var(--border-2);background:transparent;font-size:.8rem;color:var(--gold);padding:.2rem .3rem;outline:none;font-weight:600">
+      <label style="display:flex;align-items:center;gap:.3rem;font-size:.75rem;color:var(--text-3);flex-shrink:0;cursor:pointer;white-space:nowrap">
+        <input type="checkbox" class="tl-done" ${done?'checked':''} style="accent-color:var(--gold)"> Réalisée
+      </label>
+      <button onclick="this.closest('.timeline-step-block').remove();renumberTimeline()" style="background:none;border:none;color:var(--text-3);cursor:pointer;font-size:.9rem;opacity:.5;padding:.2rem" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.5'">✕</button>
+    </div>`;
+  container.appendChild(div);
+}
+
+function renumberTimeline() {
+  document.querySelectorAll('#np-timeline-steps .timeline-step-block').forEach((el, i) => {
+    const numEl = el.querySelector('span');
+    if(numEl) numEl.textContent = i + 1;
+  });
+}
+
+function readTimelineFromUI() {
+  return Array.from(document.querySelectorAll('#np-timeline-steps .timeline-step-block')).map(el => ({
+    label: el.querySelector('.tl-label').value.trim(),
+    date: el.querySelector('.tl-date').value.trim(),
+    done: el.querySelector('.tl-done').checked
+  })).filter(s => s.label);
+}
+
+function loadTimelineToUI(timeline) {
+  const container = document.getElementById('np-timeline-steps');
+  if(!container) return;
+  container.innerHTML = '';
+  const steps = (timeline && timeline.length) ? timeline : [
+    {label:'Commercialisation',date:'',done:true},
+    {label:'Début des travaux',date:'',done:false},
+    {label:'Achèvement des travaux',date:'',done:false},
+    {label:'Livraison',date:'',done:false}
+  ];
+  steps.forEach(s => addTimelineStep(s.label, s.date||'', s.done||false));
+}
+
+// ══════════════════════════════════════════════════
+// LECTURE / ÉCRITURE FORMULAIRE PROGRAMME
+// ══════════════════════════════════════════════════
+function readProgForm(existingId) {
+  const nom = document.getElementById('np-nom').value.trim();
+  if(!nom){toast('Le nom est obligatoire','err');return null;}
+
+  // Atouts : parse "emoji|Titre|Détail" par ligne
+  const atoutsRaw = document.getElementById('np-atouts').value.trim();
+  const atouts = atoutsRaw ? atoutsRaw.split('\n').filter(Boolean).map(line=>{
+    const [icon,titre,...rest] = line.split('|');
+    return {icon:icon?.trim()||'📍', titre:titre?.trim()||'', detail:rest.join('|').trim()};
+  }) : [];
+
+  // Prestations depuis UI structurée
+  const prestations = readPrestationsFromUI();
+
+  // Photos
+  const photos = document.getElementById('np-photos').value.split('\n').map(s=>s.trim()).filter(Boolean);
+
+  // Timeline depuis UI structurée
+  const timeline = readTimelineFromUI();
+
+  const debutTravaux = document.getElementById('np-debut-travaux').value.trim();
+  const livraison = document.getElementById('np-livraison').value.trim();
+
+  return {
+    id: existingId || Date.now(),
+    nom,
+    commune: document.getElementById('np-commune').value.trim(),
+    cp: document.getElementById('np-cp').value.trim(),
+    adresse: document.getElementById('np-adresse').value.trim(),
+    statut: document.getElementById('np-statut').value,
+    reglementation: document.getElementById('np-reglementation').value.trim()||'RE2020',
+    livraison, livraison_detail: livraison,
+    debut_travaux: debutTravaux,
+    lots_total: parseInt(document.getElementById('np-lots').value)||0,
+    lots_dispos: parseInt(document.getElementById('np-lots').value)||0,
+    pieces: document.getElementById('np-pieces').value.trim(),
+    surface_min: parseFloat(document.getElementById('np-surf-min').value)||0,
+    surface_max: parseFloat(document.getElementById('np-surf-max').value)||0,
+    prix_min: parseFloat(document.getElementById('np-prix-min').value)||0,
+    prix_max: parseFloat(document.getElementById('np-prix-max').value)||0,
+    eligibilites: document.getElementById('np-eli').value.trim(),
+    plan3d: document.getElementById('np-plan3d').value.trim(),
+    youtube: document.getElementById('np-youtube') ? document.getElementById('np-youtube').value.trim() : '',
+    desc: document.getElementById('np-desc').value.trim(),
+    desc_long: document.getElementById('np-desc-long').value.trim(),
+    atouts, prestations, photos, timeline,
+    img_cover: document.getElementById('np-img-cover').value.trim(),
+  };
+}
+
+function fillProgForm(p) {
+  document.getElementById('np-nom').value = p.nom||'';
+  document.getElementById('np-commune').value = p.commune||'';
+  document.getElementById('np-cp').value = p.cp||'';
+  document.getElementById('np-adresse').value = p.adresse||'';
+  document.getElementById('np-statut').value = p.statut||'En commercialisation';
+  document.getElementById('np-reglementation').value = p.reglementation||'RE2020';
+  document.getElementById('np-livraison').value = p.livraison_detail||p.livraison||'';
+  document.getElementById('np-debut-travaux').value = p.debut_travaux||'';
+  document.getElementById('np-lots').value = p.lots_total||'';
+  document.getElementById('np-pieces').value = p.pieces||'';
+  document.getElementById('np-surf-min').value = p.surface_min||'';
+  document.getElementById('np-surf-max').value = p.surface_max||'';
+  document.getElementById('np-prix-min').value = p.prix_min||'';
+  document.getElementById('np-prix-max').value = p.prix_max||'';
+  document.getElementById('np-eli').value = typeof p.eligibilites==='object' ? p.eligibilites.join(', ') : (p.eligibilites||'');
+  document.getElementById('np-plan3d').value = p.plan3d||'';
+  const ytEl = document.getElementById('np-youtube'); if(ytEl) ytEl.value = p.youtube||'';
+  document.getElementById('np-desc').value = p.desc||'';
+  document.getElementById('np-desc-long').value = p.desc_long||'';
+  document.getElementById('np-img-cover').value = p.img_cover||'';
+
+  // Atouts → texte
+  if(p.atouts && p.atouts.length) {
+    document.getElementById('np-atouts').value = p.atouts.map(a=>`${a.icon}|${a.titre}|${a.detail}`).join('\n');
+  } else {
+    document.getElementById('np-atouts').value = '';
+  }
+
+  // Photos → texte
+  document.getElementById('np-photos').value = (p.photos||[]).join('\n');
+
+  // Reset les conteneurs dynamiques → reconstruction lazy quand l'onglet sera cliqué
+  const tlC = document.getElementById('np-timeline-steps');
+  if(tlC) tlC.innerHTML = '';
+  const prC = document.getElementById('np-presta-cats');
+  if(prC) prC.innerHTML = '';
+
+  // Reset to first tab
+  switchProgTab('pt-base', document.querySelector('#m-add-prog .tab'));
+}
+
+
+function fillProgForm(p) {
+  document.getElementById('np-nom').value = p.nom||'';
+  document.getElementById('np-commune').value = p.commune||'';
+  document.getElementById('np-cp').value = p.cp||'';
+  document.getElementById('np-adresse').value = p.adresse||'';
+  document.getElementById('np-statut').value = p.statut||'En commercialisation';
+  document.getElementById('np-reglementation').value = p.reglementation||'RE2020';
+  document.getElementById('np-livraison').value = p.livraison_detail||p.livraison||'';
+  document.getElementById('np-debut-travaux').value = p.debut_travaux||'';
+  document.getElementById('np-lots').value = p.lots_total||'';
+  document.getElementById('np-pieces').value = p.pieces||'';
+  document.getElementById('np-surf-min').value = p.surface_min||'';
+  document.getElementById('np-surf-max').value = p.surface_max||'';
+  document.getElementById('np-prix-min').value = p.prix_min||'';
+  document.getElementById('np-prix-max').value = p.prix_max||'';
+  document.getElementById('np-eli').value = p.eligibilites||'';
+  document.getElementById('np-plan3d').value = p.plan3d||'';
+  const ytEl = document.getElementById('np-youtube'); if(ytEl) ytEl.value = p.youtube||'';
+  document.getElementById('np-desc').value = p.desc||'';
+  document.getElementById('np-desc-long').value = p.desc_long||'';
+  document.getElementById('np-img-cover').value = p.img_cover||'';
+  // Atouts → texte
+  if(p.atouts && p.atouts.length) {
+    document.getElementById('np-atouts').value = p.atouts.map(a=>`${a.icon}|${a.titre}|${a.detail}`).join('\n');
+  } else {
+    document.getElementById('np-atouts').value = '';
+  }
+  // Prestations → texte (fallback si le textarea existe)
+  const npPresta = document.getElementById('np-prestations');
+  if(npPresta) {
+    npPresta.value = (p.prestations && p.prestations.length) ? p.prestations.map(pr=>`${pr.cat}|${pr.items.join(';')}`).join('\n') : '';
+  }
+  // Photos → texte
+  document.getElementById('np-photos').value = (p.photos||[]).join('\n');
+  // Reset les conteneurs dynamiques → reconstruction lazy quand l'onglet sera cliqué
+  const tlC = document.getElementById('np-timeline-steps');
+  if(tlC) tlC.innerHTML = '';
+  const prC = document.getElementById('np-presta-cats');
+  if(prC) prC.innerHTML = '';
+  // Reset to first tab
+  switchProgTab('pt-base', document.querySelector('#m-add-prog .tab'));
+}
+
+function newProg() {
+  _editingProgId = null;
+  // Reset tous les champs
+  ['np-nom','np-commune','np-cp','np-adresse','np-livraison','np-debut-travaux',
+   'np-lots','np-pieces','np-surf-min','np-surf-max','np-prix-min','np-prix-max',
+   'np-eli','np-plan3d','np-desc','np-desc-long','np-img-cover','np-photos','np-atouts']
+    .forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('np-statut').value = 'En commercialisation';
+  document.getElementById('np-reglementation').value = 'RE2020';
+  // Vider les conteneurs dynamiques (lazy rebuild au clic du tab)
+  const tlC = document.getElementById('np-timeline-steps');
+  if(tlC) tlC.innerHTML = '';
+  const prC = document.getElementById('np-presta-cats');
+  if(prC) prC.innerHTML = '';
+  openModal('m-add-prog');
+  switchProgTab('pt-base', document.querySelector('#m-add-prog .tab'));
+}
+
+
+let _editingProgId = null;
+
+function saveProg() {
+  const data = readProgForm(_editingProgId);
+  if(!data) return;
+  if(_editingProgId) {
+    const idx = DB.programmes.findIndex(x=>x.id===_editingProgId);
+    if(idx>=0) DB.programmes[idx] = data;
+  } else {
+    DB.programmes.push(data);
+  }
+  _editingProgId = null;
+  closeModal('m-add-prog');
+  renderDashboard();
+  renderProg && renderProg();
+  toast('Programme "'+data.nom+'" enregistré');
+}
+
+function editProg(id){
+  _editingProgId = id;
+  const p = DB.programmes.find(x=>x.id===id);
+  if(!p) return;
+  openModal('m-add-prog');
+  setTimeout(() => { fillProgForm(p); }, 50);
+}
+
+function deleteProg(id){
+  if(!confirm('Supprimer ce programme ?')) return;
+  DB.programmes = DB.programmes.filter(p=>p.id!==id);
+  renderProg(); renderDashboard(); toast('Programme supprimé');
+}
+
+function saveLot(){
+  const num = document.getElementById('nl-num').value.trim();
+  const prog = document.getElementById('nl-prog').value;
+  if(!num||prog==='— Choisir —'){toast('Programme et N° lot obligatoires','err');return}
+  DB.lots.push({
+    id:Date.now(), prog, num, etage:document.getElementById('nl-etage').value,
+    typo:document.getElementById('nl-typo').value,
+    surface:parseFloat(document.getElementById('nl-surf').value)||0,
+    prix:parseFloat(document.getElementById('nl-prix').value)||0,
+    statut:document.getElementById('nl-stat').value,
+    acq:document.getElementById('nl-acq').value,
+    plan3d:!!document.getElementById('nl-plan').value
+  });
+  closeModal('m-add-lot'); renderLots(); renderDashboard();
+  toast('Lot '+num+' ajouté');
+}
+
+function deleteLot(id){
+  DB.lots = DB.lots.filter(l=>l.id!==id);
+  renderLots(); renderDashboard(); toast('Lot supprimé');
+}
+
+function changeLotStat(id,val){
+  const l = DB.lots.find(x=>x.id===id);
+  if(l){l.statut=val; renderDashboard(); toast('Lot '+l.num+' → '+val)}
+}
+
+// ══════════════════════════════════════════════════
+// IMPORT EXCEL — cœur du système
+// ══════════════════════════════════════════════════
+function dragOver(e){e.preventDefault();document.getElementById('drop-zone').classList.add('drag')}
+function dragLeave(){document.getElementById('drop-zone').classList.remove('drag')}
+function dropFile(e){e.preventDefault();dragLeave();const f=e.dataTransfer.files[0];if(f)handleFile(f)}
+
+function handleFile(file) {
+  if(!file) return;
+  if(!file.name.match(/\.(xlsx|xls)$/i)){toast('Format non supporté — utilisez .xlsx','err');return}
+
+  const dz = document.getElementById('drop-zone');
+  document.getElementById('drop-title').textContent = '⏳ Lecture en cours…';
+  document.getElementById('drop-sub').textContent = file.name;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(e.target.result, {type:'array'});
+      parseWorkbook(wb, file.name);
+    } catch(err) {
+      toast('Erreur de lecture : '+err.message,'err');
+      document.getElementById('drop-title').textContent = 'Glissez votre fichier Excel ici';
+      document.getElementById('drop-sub').textContent = 'ou cliquez pour parcourir';
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function parseWorkbook(wb, fname) {
+  importData = {programmes:[], lots:[], errors:[]};
+
+  // ── Feuille PROGRAMMES ──
+  const shProg = wb.Sheets[wb.SheetNames.find(n=>n.includes('PROGRAMMES')||n.includes('Programmes'))];
+  if(shProg) {
+    const rows = XLSX.utils.sheet_to_json(shProg, {defval:''});
+    rows.forEach((row,i)=>{
+      const nom = (row['NOM_PROGRAMME *']||row['NOM_PROGRAMME']||'').toString().trim();
+      if(!nom) return;
+      const statut = (row['STATUT *']||row['STATUT']||'En commercialisation').toString().trim();
+      importData.programmes.push({
+        id: Date.now()+i,
+        nom,
+        commune: (row['COMMUNE *']||row['COMMUNE']||'').toString().trim(),
+        cp: (row['CODE_POSTAL']||'').toString().trim(),
+        statut,
+        livraison: (row['DATE_LIVRAISON']||'').toString().trim(),
+        lots_total: parseInt(row['NB_LOTS_TOTAL'])||0,
+        lots_dispos: parseInt(row['NB_LOTS_TOTAL'])||0,
+        eligibilites: (row['ELIGIBILITES']||'').toString().trim(),
+        plan3d: (row['URL_PLAN3D']||'').toString().trim(),
+        desc: (row['DESCRIPTION_COURTE']||'').toString().trim()
+      });
+      if(!nom) importData.errors.push({ligne:i+3,champ:'NOM_PROGRAMME',msg:'Nom manquant'});
+    });
+  } else {
+    importData.errors.push({ligne:'—',champ:'Feuille PROGRAMMES',msg:'Feuille introuvable dans le fichier'});
+  }
+
+  // ── Feuille LOTS ──
+  const shLots = wb.Sheets[wb.SheetNames.find(n=>n.includes('LOTS')||n.includes('Lots'))];
+  if(shLots) {
+    const rows = XLSX.utils.sheet_to_json(shLots, {defval:''});
+    rows.forEach((row,i)=>{
+      const prog = (row['NOM_PROGRAMME *']||row['NOM_PROGRAMME']||'').toString().trim();
+      const num  = (row['NUMERO_LOT *']||row['NUMERO_LOT']||'').toString().trim();
+      if(!prog||!num) return;
+      const statut = (row['STATUT *']||row['STATUT']||'Disponible').toString().trim();
+      importData.lots.push({
+        id: Date.now()+1000+i,
+        prog, num,
+        etage: (row['ETAGE']||'').toString().trim(),
+        typo: (row['TYPOLOGIE *']||row['TYPOLOGIE']||'T2').toString().trim(),
+        surface: parseFloat(row['SURFACE_HABITABLE'])||0,
+        prix: parseFloat(row['PRIX_TTC *']||row['PRIX_TTC'])||0,
+        statut,
+        acq: (row['ACQUÉREUR_NOM']||'').toString().trim(),
+        plan3d: !!(row['URL_PLAN_LOT']||'').toString().trim()
+      });
+      // Validation
+      if(!['Disponible','Réservé','Vendu','Bloqué'].includes(statut))
+        importData.errors.push({ligne:i+3,champ:'STATUT',msg:`"${statut}" n'est pas un statut valide pour le lot ${num}`});
+      const nomExists = importData.programmes.some(p=>p.nom===prog)||DB.programmes.some(p=>p.nom===prog);
+      if(!nomExists)
+        importData.errors.push({ligne:i+3,champ:'NOM_PROGRAMME',msg:`"${prog}" ne correspond à aucun programme connu`});
+    });
+  }
+
+  showPreview(fname);
+}
+
+function showPreview(fname) {
+  document.getElementById('drop-title').textContent = '✓ Fichier chargé';
+  document.getElementById('drop-sub').textContent = fname;
+
+  const pw = document.getElementById('preview-wrap');
+  pw.classList.add('show');
+
+  // Step indicator
+  document.getElementById('step-3').className='step done';
+  document.getElementById('step-4').className='step active';
+
+  // Banners
+  const hasProg = importData.programmes.length>0;
+  const hasErr = importData.errors.length>0;
+  document.getElementById('import-ok-banner').style.display = hasProg?'flex':'none';
+  if(hasProg) document.getElementById('import-ok-txt').textContent =
+    `${importData.programmes.length} programme(s) et ${importData.lots.length} lot(s) prêts à importer`;
+
+  document.getElementById('import-warn-banner').style.display = hasErr?'flex':'none';
+  if(hasErr) document.getElementById('import-warn-txt').innerHTML =
+    `<strong>${importData.errors.length} avertissement(s)</strong> — l'import reste possible, vérifiez l'onglet Erreurs.`;
+
+  // Summary stats
+  const dispos = importData.lots.filter(l=>l.statut==='Disponible').length;
+  const reser = importData.lots.filter(l=>l.statut==='Réservé').length;
+  const vendus = importData.lots.filter(l=>l.statut==='Vendu').length;
+  document.getElementById('import-summary').innerHTML = [
+    [importData.programmes.length,'Programmes','bg-blue'],
+    [importData.lots.length,'Lots au total','bg-gray'],
+    [dispos,'Disponibles','bg-green'],
+    [reser,'Réservés','bg-orange'],
+    [vendus,'Vendus','bg-red'],
+    [importData.errors.length,'Alertes','bg-gray'],
+  ].map(([v,l,c])=>`<div class="imp-stat"><strong>${v}</strong><span>${l}</span></div>`).join('');
+
+  // Counters
+  document.getElementById('cnt-prog').textContent = importData.programmes.length;
+  document.getElementById('cnt-lots').textContent = importData.lots.length;
+  document.getElementById('cnt-err').textContent = importData.errors.length;
+
+  // Preview programmes table
+  const pCols = ['nom','commune','cp','statut','livraison','lots_total','eligibilites'];
+  const pHdrs = ['Nom','Commune','CP','Statut','Livraison','Nb lots','Éligibilités'];
+  document.getElementById('prev-prog-hdr').innerHTML = '<tr>'+pHdrs.map(h=>`<th>${h}</th>`).join('')+'</tr>';
+  document.getElementById('prev-prog-body').innerHTML = importData.programmes.map(p=>
+    `<tr>${pCols.map(c=>`<td style="font-size:.72rem">${p[c]||'—'}</td>`).join('')}</tr>`
+  ).join('') || '<tr><td colspan="7" style="text-align:center;padding:1rem;color:var(--text-3)">Aucun programme détecté</td></tr>';
+
+  // Preview lots table
+  const lCols = ['prog','num','etage','typo','surface','prix','statut','acq'];
+  const lHdrs = ['Programme','N° lot','Étage','Typo','Surf.','Prix TTC','Statut','Acquéreur'];
+  document.getElementById('prev-lots-hdr').innerHTML = '<tr>'+lHdrs.map(h=>`<th>${h}</th>`).join('')+'</tr>';
+  document.getElementById('prev-lots-body').innerHTML = importData.lots.map(l=>
+    `<tr>${lCols.map(c=>{
+      let v = l[c]||'—';
+      if(c==='prix'&&l[c]) v=l[c].toLocaleString('fr-FR')+' €';
+      if(c==='statut') v=`<span class="badge ${STATUT_CLS[l[c]]||'bg-gray'}">${l[c]}</span>`;
+      return `<td style="font-size:.72rem">${v}</td>`;
+    }).join('')}</tr>`
+  ).join('') || '<tr><td colspan="8" style="text-align:center;padding:1rem;color:var(--text-3)">Aucun lot détecté</td></tr>';
+
+  // Errors
+  document.getElementById('errors-list').innerHTML = importData.errors.length===0
+    ? '<div style="color:var(--green);font-size:.8rem;padding:.5rem">✓ Aucune erreur détectée</div>'
+    : importData.errors.map(e=>`<div style="padding:.5rem;border-bottom:1px solid var(--border);font-size:.76rem">
+        <span style="color:var(--text-3)">Ligne ${e.ligne}</span> — 
+        <strong>${e.champ}</strong> : ${e.msg}
+      </div>`).join('');
+}
+
+function showPreviewTab(tabId, btn) {
+  ['prev-prog','prev-lots','prev-errors'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.style.display = id===tabId?'block':'none';
+  });
+  document.querySelectorAll('#page-import .tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function confirmImport() {
+  if(!importData.programmes.length&&!importData.lots.length){
+    toast('Aucune donnée à importer','err');return;
+  }
+
+  // Merge programmes (upsert par nom)
+  importData.programmes.forEach(np=>{
+    const idx = DB.programmes.findIndex(p=>p.nom===np.nom);
+    if(idx>=0) Object.assign(DB.programmes[idx], np);
+    else DB.programmes.push(np);
+  });
+
+  // Merge lots (upsert par prog+num)
+  importData.lots.forEach(nl=>{
+    const idx = DB.lots.findIndex(l=>l.prog===nl.prog&&l.num===nl.num);
+    if(idx>=0) Object.assign(DB.lots[idx], nl);
+    else DB.lots.push(nl);
+  });
+
+  resetImport();
+  renderDashboard();
+  toast(`✓ ${importData.programmes.length} programme(s) et ${importData.lots.length} lot(s) importés avec succès`);
+
+  // Reset
+  importData = {programmes:[],lots:[],errors:[]};
+
+  // Go to programmes
+  setTimeout(()=>nav('programmes'), 800);
+}
+
+function resetImport() {
+  document.getElementById('preview-wrap').classList.remove('show');
+  document.getElementById('drop-title').textContent = 'Glissez votre fichier Excel ici';
+  document.getElementById('drop-sub').textContent = 'ou cliquez pour parcourir';
+  document.getElementById('file-input').value='';
+  document.getElementById('step-3').className='step active';
+  document.getElementById('step-4').className='step';
+  importData={programmes:[],lots:[],errors:[]};
+}
+
+function downloadTemplate() {
+  toast('Téléchargez le fichier FREEHOME_Import_Template.xlsx fourni avec ce CMS');
+}
+
+// ══════════════════════════════════════════════════
+// PUBLISH → D1 via API (remplace l'export JSON)
+// ══════════════════════════════════════════════════
+async function publishToSite() {
+  const btn = document.querySelector('[onclick="publishToSite()"]');
+  if(btn) { btn.disabled = true; btn.textContent = '⏳ Publication en cours…'; }
+
+  // Construire les données à envoyer
+  const data = {
+    programmes: DB.programmes.map(p => {
+      const lots = DB.lots.filter(l => l.prog === p.nom);
+      return {
+        id: p.id,
+        nom: p.nom,
+        commune: p.commune,
+        cp: p.cp,
+        adresse: p.adresse||'',
+        statut: p.statut,
+        reglementation: p.reglementation||'RE2020',
+        livraison: p.livraison,
+        livraison_detail: p.livraison_detail||p.livraison,
+        debut_travaux: p.debut_travaux||'',
+        lots_total: p.lots_total,
+        pieces: p.pieces||'',
+        surface_min: p.surface_min||0,
+        surface_max: p.surface_max||0,
+        prix_min: p.prix_min||0,
+        prix_max: p.prix_max||0,
+        eligibilites: p.eligibilites || '',
+        plan3d: p.plan3d||'',
+        youtube: p.youtube||'',
+        img_cover: p.img_cover||'',
+        photos: JSON.stringify(p.photos||[]),
+        desc_courte: p.desc||'',
+        desc_longue: p.desc_long||p.desc||'',
+        atouts: JSON.stringify(p.atouts||[]),
+        prestations: JSON.stringify(p.prestations||[]),
+        timeline: JSON.stringify(p.timeline||[]),
+        lots: lots.map(l => ({
+          num: l.num, etage: l.etage, typo: l.typo,
+          surface: l.surface, prix: l.prix, statut: l.statut,
+          acquereur: l.acq||'', plan3d: l.plan3d?1:0
+        }))
+      };
+    }),
+    leads: DB.leads.map(l => ({
+      prenom: l.prenom, nom: l.nom, programme: l.prog,
+      typo: l.typo, budget: l.budget, statut: l.statut,
+      source: l.source, priorite: l.prio
+    }))
+  };
+
+  try {
+    const resp = await fetch('/api/sync', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(data)
+    });
+    const result = await resp.json();
+    if(result.success) {
+      toast('Publié sur le site ! ' + (result.programmes||0) + ' programmes, ' + (result.lots||0) + ' lots synchronisés');
+    } else {
+      toast('Erreur: ' + (result.error||'inconnue'), 'err');
+    }
+  } catch(e) {
+    toast('Erreur réseau: ' + e.message, 'err');
+  }
+
+  if(btn) { btn.disabled = false; btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><polyline points="20 6 9 17 4 12"/></svg> Publier sur le site'; }
+}
+
+// Garder l'ancien export JSON en backup
+function exportSiteData() {
+  // Pour chaque programme, inclure ses lots
+  const data = {
+    generated: new Date().toISOString(),
+    programmes: DB.programmes.map(p => {
+      const lots = DB.lots.filter(l => l.prog === p.nom);
+      return {
+        id: p.id,
+        nom: p.nom,
+        commune: p.commune,
+        cp: p.cp,
+        adresse: p.adresse||'',
+        statut: p.statut,
+        reglementation: p.reglementation||'RE2020',
+        livraison: p.livraison,
+        livraison_detail: p.livraison_detail||p.livraison,
+        debut_travaux: p.debut_travaux||'',
+        lots_total: p.lots_total,
+        pieces: p.pieces||'',
+        surface_min: p.surface_min||0,
+        surface_max: p.surface_max||0,
+        prix_min: p.prix_min||0,
+        prix_max: p.prix_max||0,
+        eligibilites: p.eligibilites ? p.eligibilites.split(',').map(s=>s.trim()) : [],
+        plan3d: p.plan3d||'',
+        youtube: p.youtube||'',
+        img_cover: p.img_cover||'',
+        photos: p.photos||[],
+        desc: p.desc||'',
+        desc_long: p.desc_long||p.desc||'',
+        atouts: p.atouts||[],
+        prestations: p.prestations||[],
+        timeline: p.timeline||[
+          {label:'Commercialisation',done:true},
+          {label:'Début des travaux',done:!!(p.debut_travaux),date:p.debut_travaux||''},
+          {label:'Achèvement des travaux',done:false,date:''},
+          {label:'Livraison',done:false,date:p.livraison||''}
+        ],
+        lots: lots.map(l => ({
+          num: l.num,
+          etage: l.etage,
+          typo: l.typo,
+          surface: l.surface,
+          prix: l.prix,
+          statut: l.statut
+        }))
+      };
+    })
+  };
+
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'freehome-data.json';
+  a.click();
+  toast('✓ freehome-data.json téléchargé — placez-le à côté du site public');
+}
+
+// ══════════════════════════════════════════════════
+// MODAL / TOAST
+// ══════════════════════════════════════════════════
+function openModal(id){document.getElementById(id).classList.add('open')}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open')}));
+
+let toastT;
+function toast(msg,type) {
+  const el=document.getElementById('toast');
+  el.textContent=(type==='err'?'⚠ ':'✓ ')+msg;
+  el.style.borderColor=type==='err'?'rgba(231,76,60,.3)':'var(--gold-border)';
+  el.classList.add('show');
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>el.classList.remove('show'),3000);
+}
+
+// ══════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════
+// PAGES VITRINES
+// ══════════════════════════════════════════════════
+const STATIC_PAGES = [
+  {slug:'/', label:'Accueil', statut:'Publiée', modified:'Hier', editable:true, type:'static',
+   content:{titre:'FREEHOME — Promoteur immobilier Grand Est', accroche:'Des logements neufs de qualité en Moselle', texte:'Bienvenue sur le site FREEHOME. Découvrez nos programmes immobiliers neufs en Moselle et dans le Grand Est.'}},
+  {slug:'/projets-livres', label:'Projets livrés', statut:'Publiée', modified:'Il y a 1 mois', editable:true, type:'static',
+   content:{titre:'Nos projets livrés', accroche:'', texte:'Retrouvez ici les programmes immobiliers livrés par FREEHOME.'}},
+  {slug:'/contact', label:'Contact / FAQ', statut:'Publiée', modified:'Il y a 2 mois', editable:true, type:'static',
+   content:{titre:'Contactez-nous', accroche:'', texte:'Notre équipe est disponible pour répondre à vos questions.'}},
+];
+
+function renderPages() {
+  const tbody = document.getElementById('pages-tbody');
+  if(!tbody) return;
+
+  const staticRows = STATIC_PAGES.map(p => `
+    <tr>
+      <td><strong>${p.label}</strong></td>
+      <td><code>${p.slug}</code></td>
+      <td><span class="badge ${p.statut==='Publiée'?'bg-green':'bg-orange'}">${p.statut}</span></td>
+      <td style="color:var(--text-3);font-size:.8rem">${p.modified}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="editStaticPage('${p.slug}')">Éditer</button></td>
+    </tr>`).join('');
+
+  // Pages programmes (une par programme)
+  const now = new Date();
+  const progRows = DB.programmes.map(p => {
+    const slug = '/'+p.commune.toLowerCase().replace(/[^a-z0-9]/g,'-').replace(/-+/g,'-')+'-'+p.nom.toLowerCase().replace(/[^a-z0-9]/g,'-').replace(/-+/g,'-');
+    const statut = p.statut.includes('commercialisation') ? 'Publiée' : 'Brouillon';
+    return `<tr>
+      <td><strong>${p.nom}</strong></td>
+      <td><code>${slug}</code></td>
+      <td><span class="badge ${statut==='Publiée'?'bg-green':'bg-orange'}">${statut}</span></td>
+      <td style="color:var(--text-3);font-size:.8rem">—</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="editProg(${p.id})">Éditer la fiche</button></td>
+    </tr>`;
+  }).join('');
+
+  tbody.innerHTML = `
+    <tr style="background:rgba(244,149,22,.04)"><td colspan="5" style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);padding:.5rem 1rem">Pages statiques</td></tr>
+    ${staticRows}
+    <tr style="background:rgba(244,149,22,.04)"><td colspan="5" style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);padding:.5rem 1rem">Pages programmes</td></tr>
+    ${progRows}`;
+}
+
+let _editingPageSlug = null;
+
+function editStaticPage(slug) {
+  _editingPageSlug = slug;
+  const page = STATIC_PAGES.find(p => p.slug === slug);
+  if(!page) return;
+  document.getElementById('ep-label').textContent = 'Éditer : ' + page.label;
+  document.getElementById('ep-titre').value = page.content.titre||'';
+  document.getElementById('ep-accroche').value = page.content.accroche||'';
+  document.getElementById('ep-texte').value = page.content.texte||'';
+  openModal('m-edit-page');
+}
+
+function saveStaticPage() {
+  const page = STATIC_PAGES.find(p => p.slug === _editingPageSlug);
+  if(!page) return;
+  page.content.titre = document.getElementById('ep-titre').value;
+  page.content.accroche = document.getElementById('ep-accroche').value;
+  page.content.texte = document.getElementById('ep-texte').value;
+  page.modified = "À l'instant";
+  closeModal('m-edit-page');
+  renderPages();
+  toast('Page "' + page.label + '" sauvegardée');
+}
+
+// ══════════════════════════════════════════════════
+// CHARGEMENT DEPUIS D1 AU DÉMARRAGE
+// ══════════════════════════════════════════════════
+async function loadFromD1() {
+  try {
+    // Charger programmes + lots
+    const resp = await fetch('/api/programmes?t='+Date.now());
+    if(!resp.ok) throw new Error('API indisponible');
+    const data = await resp.json();
+    if(data.programmes && data.programmes.length) {
+      DB.programmes = [];
+      DB.lots = [];
+      let nextId = 1;
+      let nextLotId = 1;
+      data.programmes.forEach(p => {
+        // Parser les champs JSON
+        ['photos','atouts','prestations','timeline'].forEach(k => {
+          if(typeof p[k] === 'string') { try { p[k] = JSON.parse(p[k]); } catch(e) { p[k] = []; } }
+          if(!Array.isArray(p[k])) p[k] = [];
+        });
+        if(typeof p.lots === 'string') { try { p.lots = JSON.parse(p.lots); } catch(e) { p.lots = []; } }
+        // Eligibilites : garder en string pour le CMS
+        const eli = typeof p.eligibilites === 'object' ? (p.eligibilites||[]).join(', ') : (p.eligibilites||'');
+        const prog = {
+          id: nextId++,
+          nom: p.nom, commune: p.commune, cp: p.cp||'', adresse: p.adresse||'',
+          statut: p.statut, reglementation: p.reglementation||'RE2020',
+          livraison: p.livraison||'', livraison_detail: p.livraison_detail||p.livraison||'',
+          debut_travaux: p.debut_travaux||'', lots_total: p.lots_total||0,
+          pieces: p.pieces||'', surface_min: p.surface_min||0, surface_max: p.surface_max||0,
+          prix_min: p.prix_min||0, prix_max: p.prix_max||0,
+          eligibilites: eli, plan3d: p.plan3d||'', youtube: p.youtube||'',
+          img_cover: p.img_cover||'', photos: p.photos||[],
+          desc: p.desc||p.desc_courte||'', desc_long: p.desc_long||p.desc_longue||'',
+          atouts: p.atouts||[], prestations: p.prestations||[], timeline: p.timeline||[]
+        };
+        // Reconstruire les lots du CMS depuis l'API
+        if(p.lots && p.lots.length) {
+          p.lots.forEach(l => {
+            DB.lots.push({
+              id: nextLotId++, prog: p.nom, num: l.num, etage: l.etage||'',
+              typo: l.typo||'', surface: l.surface||0, prix: l.prix||0,
+              statut: l.statut||'Disponible', acq: l.acquereur||'', plan3d: !!l.plan3d
+            });
+          });
+        }
+        DB.programmes.push(prog);
+      });
+      // Mettre à jour lots_total
+      DB.programmes.forEach(p => {
+        const count = DB.lots.filter(l => l.prog === p.nom).length;
+        if(count > 0) p.lots_total = count;
+      });
+      console.log('[CMS] D1 chargé:', DB.programmes.length, 'programmes,', DB.lots.length, 'lots');
+    }
+
+    // Charger leads
+    const respL = await fetch('/api/leads?t='+Date.now());
+    if(respL.ok) {
+      const dataL = await respL.json();
+      if(dataL.leads && dataL.leads.length) {
+        DB.leads = dataL.leads.map((l, i) => ({
+          id: i+1, prenom: l.prenom||'', nom: l.nom||'', prog: l.programme||'',
+          typo: l.typo||'', budget: l.budget||'', statut: l.statut||'Premier contact',
+          source: l.source||'', date: l.created_at ? new Date(l.created_at+'Z').toLocaleDateString('fr-FR') : '—',
+          prio: l.priorite||'l'
+        }));
+        console.log('[CMS] Leads chargés:', DB.leads.length);
+      }
+    }
+  } catch(e) {
+    console.log('[CMS] Impossible de charger D1, utilisation des données locales', e);
+  }
+
+  // Render tout
+  renderDashboard();
+  renderLots();
+  renderLeads();
+  renderPages();
+  setTimeout(()=>{
+    const fProg = document.getElementById('f-lot-prog');
+    if(fProg) fProg.innerHTML = '<option value="">Tous les programmes</option>'+DB.programmes.map(p=>`<option>${p.nom}</option>`).join('');
+  },100);
+  toast('Données synchronisées depuis la base ✓');
+}
+
+// Lancer le chargement D1
+loadFromD1();
+</script>
+<!-- Modal Édition page statique -->
+<div class="overlay" id="m-edit-page">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-hdr"><span class="modal-title" id="ep-label">Éditer la page</span><button class="mc" onclick="closeModal('m-edit-page')">×</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="fg full"><label>Titre de la page</label><input id="ep-titre" placeholder="Titre principal"></div>
+        <div class="fg full"><label>Accroche (sous-titre)</label><input id="ep-accroche" placeholder="Phrase d'accroche courte"></div>
+        <div class="fg full"><label>Texte principal</label><textarea id="ep-texte" rows="6" placeholder="Contenu de la page…"></textarea></div>
+      </div>
+      <div style="margin-top:1rem;padding:.75rem;background:rgba(244,149,22,.06);border-radius:8px;border:1px solid rgba(244,149,22,.2)">
+        <div style="font-size:.72rem;color:var(--gold);font-weight:600;margin-bottom:.3rem">ℹ️ Pour modifier une page programme</div>
+        <div style="font-size:.78rem;color:var(--text-3)">Cliquez sur "Éditer la fiche" dans le tableau — cela ouvre la fiche

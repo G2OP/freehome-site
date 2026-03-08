@@ -1,0 +1,16 @@
+{
+  "name": "freehome-site",
+  "main": "worker.js",
+  "compatibility_date": "2024-01-01",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "mhfreehome-db",
+      "database_id": "c8db2491-df07-4e48-af35-ffb0dfb979d7"
+    }
+  ],
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS"
+  }
+}
