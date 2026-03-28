@@ -219,19 +219,7 @@
   --nav-h: 68px;
 }
 
-/* Dark mode */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg:             #0a0a0a;
-    --color-bg-subtle:      #111111;
-    --color-bg-muted:       #1a1a1a;
-    --color-border:         #262626;
-    --color-border-strong:  #404040;
-    --color-text-primary:   #f9fafb;
-    --color-text-secondary: #a1a1aa;
-    --color-text-muted:     #52525b;
-  }
-}
+/* Dark mode — DESACTIVE (interdit CLAUDE.md pour outils standalone) */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;font-size:16px}
 body{font-family:'DM Sans',sans-serif;background:var(--white);color:var(--text);line-height:1.6;overflow-x:hidden}
@@ -253,8 +241,8 @@ nav {
   position: fixed;top:0;left:0;right:0;z-index:100;
   height: var(--nav-h);
   display:flex;align-items:center;
-  padding:0 var(--space-4) 0 var(--space-4);
-  justify-content:space-between;
+  padding:0 var(--space-4) 0 170px;
+  justify-content:flex-end;
   background: #0D1A14;
   border-bottom: 1px solid rgba(244,149,22,.15);
   transition: border-color .3s, box-shadow .3s;
@@ -275,15 +263,15 @@ nav.scrolled{border-bottom-color:rgba(244,149,22,.25);box-shadow:0 4px 24px rgba
   border-bottom-right-radius:8px;
   overflow:hidden;
   width:160px;
-  max-height:var(--nav-h);
+  height:auto;
   opacity:1;
   transform:translateY(0);
-  transition:opacity .4s ease, transform .4s ease, width .4s ease;
+  transition:opacity .3s ease, transform .3s ease;
   pointer-events:auto;
 }
 .nav-logo.hidden{
   opacity:0;
-  transform:translateY(-20px);
+  transform:translateY(-100%);
   pointer-events:none;
 }
 .nav-logo-img{
