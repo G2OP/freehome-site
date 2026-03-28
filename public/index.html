@@ -3964,11 +3964,62 @@ async function submitForm() {
       throw new Error(data.error || 'Erreur serveur');
     }
   } catch(e) {
+    // Offline ? Sauvegarder en local pour sync ulterieur
+    if (!navigator.onLine) {
+      var pending = JSON.parse(localStorage.getItem('fh_pending_leads') || '[]');
+      pending.push({
+        prenom: prenom, nom: nom, email: email, telephone: tel,
+        programme: (prog === '— Choisir un programme —') ? '' : prog,
+        notes: objet !== 'Information générale' ? '[' + objet + '] ' + msg : msg,
+        savedAt: new Date().toISOString()
+      });
+      localStorage.setItem('fh_pending_leads', JSON.stringify(pending));
+      document.querySelector('.contact-form').innerHTML =
+        '<div style="text-align:center;padding:3rem 1.5rem">' +
+        '<div style="font-size:3rem;margin-bottom:1rem;color:var(--color-warning)">📱</div>' +
+        '<h3 style="font-family:\'DM Sans\',sans-serif;font-size:1.4rem;font-weight:600;margin-bottom:.75rem">Message sauvegarde !</h3>' +
+        '<p style="color:var(--text-2);line-height:1.8;font-size:.95rem">' +
+        'Vous etes hors ligne. Votre demande sera envoyee automatiquement des le retour de la connexion.' +
+        '</p></div>';
+      return;
+    }
     btn.disabled = false;
     btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:17px;height:17px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Envoyer ma demande';
-    showToast('⚠️ Une erreur est survenue, veuillez réessayer.');
+    showToast('Une erreur est survenue, veuillez reessayer.');
   }
 }
+
+// ── Background Sync — envoi des formulaires en attente ──
+async function syncPendingLeads() {
+  var pending = JSON.parse(localStorage.getItem('fh_pending_leads') || '[]');
+  if (!pending.length || !navigator.onLine) return;
+
+  var remaining = [];
+  for (var i = 0; i < pending.length; i++) {
+    try {
+      var resp = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(pending[i])
+      });
+      var data = await resp.json();
+      if (!data.success) remaining.push(pending[i]);
+    } catch(e) {
+      remaining.push(pending[i]);
+    }
+  }
+  localStorage.setItem('fh_pending_leads', JSON.stringify(remaining));
+  if (remaining.length < pending.length) {
+    showToast('Demande(s) en attente envoyee(s) avec succes !');
+  }
+}
+
+// Sync au retour en ligne
+window.addEventListener('online', syncPendingLeads);
+// Sync au chargement si des messages sont en attente
+window.addEventListener('load', function() {
+  setTimeout(syncPendingLeads, 2000);
+});
 
 /* ════════════════════════════════════
    TOAST
