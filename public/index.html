@@ -264,6 +264,7 @@ nav.scrolled{border-bottom-color:rgba(244,149,22,.25);box-shadow:0 4px 24px rgba
   overflow:hidden;
   width:160px;
   height:auto;
+  /* Empeche les sections de recouvrir le logo */
   opacity:1;
   transform:translateY(0);
   transition:opacity .4s ease, transform .4s ease, width .4s ease;
@@ -369,6 +370,7 @@ section{padding:2.8rem var(--space-4)}
   display:flex;align-items:center;
   background:var(--off-white);
   position:relative;overflow:hidden;
+  z-index:1;
 }
 .hero-bg-shapes{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 /* Hero shapes — visibles uniquement sur desktop */
