@@ -1,3 +1,7 @@
 .wrangler/
 .DS_Store
-wrangler.jsonc git -C /Users/imac/freehome-site add -A
+wrangler.jsonc
+
+# Backups locaux — ne jamais commiter
+_backup_avant_pwa/
+_backup_workers/
