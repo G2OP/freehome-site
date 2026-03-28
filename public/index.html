@@ -6,6 +6,15 @@
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.mhfreehome.fr/">
 
+<!-- PWA -->
+<meta name="theme-color" content="#16a34a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FREEHOME">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://www.mhfreehome.fr/">
@@ -1195,6 +1204,89 @@ input,select,textarea{font-size:1rem}
     scroll-behavior: auto !important;
   }
 }
+
+/* ══════════════════════════════════════════
+   PWA UPDATE TOAST
+══════════════════════════════════════════ */
+.pwa-update-toast {
+  position: fixed;
+  bottom: var(--space-4);
+  left: var(--space-4);
+  right: var(--space-4);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-6);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  box-shadow: 0 8px 32px rgba(0,0,0,.12);
+  z-index: 9999;
+  animation: fadeInUp 0.3s ease;
+}
+.pwa-update-toast span {
+  flex: 1;
+  font-size: .9rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+.pwa-update-toast button {
+  min-height: 44px;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.875rem;
+  font-family: 'DM Sans', sans-serif;
+}
+.pwa-update-toast button:first-of-type {
+  background: var(--color-accent);
+  color: white;
+}
+.pwa-update-toast button:first-of-type:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.pwa-update-toast button:last-of-type {
+  background: var(--color-bg-muted);
+  color: var(--color-text-secondary);
+}
+@media (min-width: 640px) {
+  .pwa-update-toast {
+    left: auto;
+    right: var(--space-6);
+    max-width: 420px;
+  }
+}
+
+/* Version badge */
+.version-badge {
+  font-size: .72rem;
+  color: rgba(255,255,255,.4);
+  letter-spacing: .05em;
+}
+
+/* Offline banner */
+.offline-banner {
+  position: fixed;
+  top: var(--nav-h);
+  left: 0; right: 0;
+  background: var(--color-warning);
+  color: white;
+  text-align: center;
+  padding: var(--space-2) var(--space-4);
+  font-size: .85rem;
+  font-weight: 600;
+  z-index: 99;
+  display: none;
+}
+.offline-banner.visible { display: block; }
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 </style>
 </head>
 <body>
@@ -2152,7 +2244,7 @@ input,select,textarea{font-size:1rem}
       </div>
     </div>
     <div class="footer-bottom">
-      <div>© 2025 Maison &amp; Habitat FREEHOME — Tous droits réservés</div>
+      <div>© 2025 Maison &amp; Habitat FREEHOME — Tous droits réservés <span class="version-badge" data-version></span></div>
       <div class="footer-bottom-links">
         <a href="/mentions-legales">Mentions légales</a>
         <a href="/politique-confidentialite">Politique de confidentialité</a>
@@ -3980,6 +4072,92 @@ observeFadeIns();
 })();
 </script>
 
+<!-- ═══ OFFLINE BANNER ═══ -->
+<div class="offline-banner" id="offline-banner">Vous etes hors ligne — les donnees affichees peuvent ne pas etre a jour</div>
 
+<!-- ═══ PWA — Service Worker + Mise a jour + Version ═══ -->
+<script src="/version.js"></script>
+<script>
+// ── Afficher la version dans le footer ──
+document.querySelectorAll('[data-version]').forEach(function(el) {
+  el.textContent = 'v' + APP_VERSION
+})
+
+// ── Enregistrement Service Worker ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js')
+      .then(function(registration) {
+        console.log('[SW] Enregistre, scope:', registration.scope)
+
+        // Verifier si une mise a jour est en attente
+        if (registration.waiting) {
+          showUpdateToast()
+          return
+        }
+
+        // Ecouter les nouvelles installations
+        registration.addEventListener('updatefound', function() {
+          var newWorker = registration.installing
+          if (!newWorker) return
+          newWorker.addEventListener('statechange', function() {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              showUpdateToast()
+            }
+          })
+        })
+      })
+      .catch(function(err) {
+        console.warn('[SW] Echec enregistrement:', err)
+      })
+
+    // Forcer le rechargement quand le nouveau SW prend le controle
+    var refreshing = false
+    navigator.serviceWorker.addEventListener('controllerchange', function() {
+      if (!refreshing) {
+        refreshing = true
+        window.location.reload()
+      }
+    })
+  })
+}
+
+// ── Toast mise a jour PWA ──
+function showUpdateToast() {
+  var existing = document.querySelector('.pwa-update-toast')
+  if (existing) return
+
+  var toast = document.createElement('div')
+  toast.className = 'pwa-update-toast'
+  toast.innerHTML =
+    '<span>Nouvelle version disponible</span>' +
+    '<button onclick="applyPWAUpdate()">Mettre a jour</button>' +
+    '<button onclick="this.parentElement.remove()">Plus tard</button>'
+  document.body.appendChild(toast)
+}
+
+function applyPWAUpdate() {
+  navigator.serviceWorker.ready.then(function(registration) {
+    if (registration.waiting) {
+      registration.waiting.postMessage({ type: 'SKIP_WAITING' })
+    }
+  })
+}
+
+// ── Detection online/offline ──
+function updateOnlineStatus() {
+  var banner = document.getElementById('offline-banner')
+  if (banner) {
+    if (navigator.onLine) {
+      banner.classList.remove('visible')
+    } else {
+      banner.classList.add('visible')
+    }
+  }
+}
+window.addEventListener('online', updateOnlineStatus)
+window.addEventListener('offline', updateOnlineStatus)
+updateOnlineStatus()
+</script>
 
 </body></html>
