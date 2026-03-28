@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
-  <rect width="192" height="192" rx="24" fill="#1C453C"/>
-  <text x="96" y="72" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="22" fill="#F49516" letter-spacing="3">FREE</text>
-  <text x="96" y="98" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="22" fill="#ffffff" letter-spacing="3">HOME</text>
-  <rect x="56" y="112" width="80" height="2" rx="1" fill="#F49516" opacity="0.6"/>
-  <text x="96" y="134" text-anchor="middle" font-family="sans-serif" font-weight="400" font-size="10" fill="rgba(255,255,255,0.6)" letter-spacing="2">IMMOBILIER</text>
-  <!-- Maison icon -->
-  <path d="M96 148 L80 162 L80 176 L90 176 L90 168 L102 168 L102 176 L112 176 L112 162 Z" fill="#F49516" opacity="0.8"/>
-</svg>
