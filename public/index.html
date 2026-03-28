@@ -383,19 +383,25 @@ section{padding:2.8rem var(--space-4)}
   position:relative;overflow:hidden;
 }
 .hero-bg-shapes{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-.hero-shape-1{
-  position:absolute;right:-8%;top:5%;
-  width:52%;aspect-ratio:1;
-  background:linear-gradient(135deg,rgba(28,69,60,.04) 0%,rgba(42,95,79,.01) 100%);
-  border-radius:40% 60% 55% 45% / 45% 40% 60% 55%;
-  animation:morph 12s ease-in-out infinite;
-}
-.hero-shape-2{
-  position:absolute;right:5%;bottom:10%;
-  width:22%;aspect-ratio:1;
-  background:rgba(184,146,74,.03);
-  border-radius:60% 40% 45% 55%;
-  animation:morph 9s ease-in-out infinite reverse;
+/* Hero shapes — visibles uniquement sur desktop */
+.hero-shape-1,.hero-shape-2{display:none}
+@media(min-width:1024px){
+  .hero-shape-1{
+    display:block;
+    position:absolute;right:-8%;top:5%;
+    width:52%;aspect-ratio:1;
+    background:linear-gradient(135deg,rgba(28,69,60,.03) 0%,rgba(42,95,79,.01) 100%);
+    border-radius:40% 60% 55% 45% / 45% 40% 60% 55%;
+    animation:morph 12s ease-in-out infinite;
+  }
+  .hero-shape-2{
+    display:block;
+    position:absolute;right:5%;bottom:10%;
+    width:22%;aspect-ratio:1;
+    background:rgba(184,146,74,.02);
+    border-radius:60% 40% 45% 55%;
+    animation:morph 9s ease-in-out infinite reverse;
+  }
 }
 .hero-dots{
   position:absolute;left:0;bottom:0;
