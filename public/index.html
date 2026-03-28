@@ -260,13 +260,13 @@ nav.scrolled{border-bottom-color:rgba(244,149,22,.25);box-shadow:0 4px 24px rgba
   z-index:102;
   border-right:1px solid rgba(244,149,22,.25);
   border-bottom:1px solid rgba(244,149,22,.25);
-  border-bottom-right-radius:8px;
+  border-bottom-right-radius:12px;
   overflow:hidden;
   width:160px;
   height:auto;
   opacity:1;
   transform:translateY(0);
-  transition:opacity .3s ease, transform .3s ease;
+  transition:opacity .4s ease, transform .4s ease, width .4s ease;
   pointer-events:auto;
 }
 .nav-logo.hidden{
@@ -1044,7 +1044,7 @@ footer{background:var(--text);color:rgba(255,255,255,.6);padding:2.5rem var(--sp
 /* ── TABLETTE — 640px+ ── */
 @media(min-width:640px){
   nav{padding:0 1.5rem 0 220px}
-  .nav-logo{width:200px;border-bottom-right-radius:8px}
+  .nav-logo{width:200px;border-bottom-right-radius:12px}
   .nav-logo-img{width:200px;height:auto}
 
   .hero{
