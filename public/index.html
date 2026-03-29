@@ -1513,7 +1513,7 @@ input,select,textarea{font-size:1rem}
         </div>
       </div>
     </div><div class="prog-card fade-in" onclick="openDetail(4)">
-      <div class="prog-card-img" style="background:url('https://pub-3105b3e906c4430184b8bf5a483a8977.r2.dev/programmes/socle-08.png') center/cover;background-size:cover">
+      <div class="prog-card-img" style="background:url('https://pub-3105b3e906c4430184b8bf5a483a8977.r2.dev/programmes/socle-08.jpg') center/cover;background-size:cover">
         
         <div class="prog-card-img-overlay"></div>
         <div class="prog-card-badges">
@@ -1719,7 +1719,7 @@ input,select,textarea{font-size:1rem}
         <div id="pd-galerie-wrap">
           <!-- Galerie kiosque -->
           <div id="pd-galerie-main" style="position:relative;background:#000;border-radius:var(--r);overflow:hidden;aspect-ratio:16/9;max-height:480px">
-            <img id="pd-galerie-img" src="" alt="" style="width:100%;height:100%;object-fit:cover;transition:opacity .4s">
+            <img id="pd-galerie-img" src="" alt="" decoding="async" style="width:100%;height:100%;object-fit:cover;transition:opacity .4s">
             <div id="pd-galerie-empty" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.8rem;color:rgba(255,255,255,.4)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:48px;height:48px;opacity:.4"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
               <p style="font-size:.85rem">Aucune photo disponible pour ce programme</p>
@@ -2537,9 +2537,9 @@ function galInit(photos) {
   counter.style.display = 'block';
   play.style.display = 'block';
 
-  // Thumbnails
+  // Thumbnails — loading lazy pour ne pas tout télécharger d'un coup
   thumbs.innerHTML = galPhotos.map((url,i)=>`
-    <img src="${url}" onclick="galGo(${i})" 
+    <img src="${url}" loading="lazy" decoding="async" onclick="galGo(${i})"
       style="height:64px;width:auto;border-radius:6px;cursor:pointer;object-fit:cover;border:2px solid ${i===0?'#F49516':'transparent'};opacity:${i===0?'1':'.6'};transition:all .2s;flex-shrink:0"
       onerror="this.style.display='none'">`).join('');
 
