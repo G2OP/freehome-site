@@ -3015,7 +3015,7 @@ function renderLotsTable(lots, statFilter='', typoFilter='') {
       <td><strong>${l.prix.toLocaleString('fr-FR')} €</strong></td>
       <td><span class="lot-status ${cls}">${l.statut}</span></td>
       <td>${l.plan3d?`<a href="${l.plan3d}" target="_blank" style="color:var(--accent);font-size:.78rem;white-space:nowrap">Voir ↗</a>`:'—'}</td>
-      <td>${l.statut==='Disponible'?`<button class="btn btn-forest btn-sm" onclick="window.location='#contact'">Réserver</button>`:'—'}</td>
+      <td>${l.statut==='Disponible'?`<button class="btn btn-forest btn-sm" onclick="closeDetail();document.getElementById('contact').scrollIntoView({behavior:'smooth'})">Réserver</button>`:'—'}</td>
     </tr>`;
   }).join('');
 }
