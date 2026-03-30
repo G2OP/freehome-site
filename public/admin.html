@@ -2080,10 +2080,10 @@ textarea:focus-visible,
         <div class="card">
           <div class="card-hdr"><span class="card-title">Société</span></div>
           <div class="card-body">
-            <div class="fg"><label>Raison sociale</label><input value="Maison &amp; Habitat FREEHOME"></div>
-            <div class="fg"><label>Téléphone</label><input value="+33 (0)3 87 XX XX XX"></div>
-            <div class="fg"><label>Email</label><input value="contact@mhfreehome.com"></div>
-            <button class="btn btn-primary btn-sm" style="margin-top:.3rem">Enregistrer</button>
+            <div class="fg"><label>Raison sociale</label><input id="company-name" value="Maison &amp; Habitat FREEHOME"></div>
+            <div class="fg"><label>Téléphone</label><input id="company-tel" type="tel" value="+33 (0)3 87 XX XX XX"></div>
+            <div class="fg"><label>Email</label><input id="company-email" type="email" value="contact@mhfreehome.com"></div>
+            <button class="btn btn-primary btn-sm" style="margin-top:.3rem" onclick="saveCompany()">Enregistrer</button>
           </div>
         </div>
         <!-- Carte SEO -->
@@ -4143,6 +4143,24 @@ document.addEventListener('DOMContentLoaded', () => {
   if(d) d.addEventListener('input', () => updateSEOCount('seo-desc','seo-desc-count',155));
 });
 
+async function saveCompany() {
+  const payload = {
+    company_name:  document.getElementById('company-name')?.value.trim()  || '',
+    company_tel:   document.getElementById('company-tel')?.value.trim()   || '',
+    company_email: document.getElementById('company-email')?.value.trim() || '',
+  };
+  try {
+    const resp = await fetch('/api/settings', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)
+    });
+    const result = await resp.json();
+    if(!result.success) throw new Error(result.error);
+    toast('✓ Informations société sauvegardées — footer mis à jour');
+  } catch(e) {
+    toast('Erreur sauvegarde société : ' + e.message, 'err');
+  }
+}
+
 async function saveSEO() {
   const payload = {
     seo_title: document.getElementById('seo-title')?.value.trim() || '',
@@ -4306,6 +4324,10 @@ async function loadFromD1() {
           if(s.page_contact_accroche) pageContact.content.accroche = s.page_contact_accroche;
           if(s.page_contact_texte)    pageContact.content.texte    = s.page_contact_texte;
         }
+        // Charger infos société
+        if(s.company_name  !== undefined) { const el=document.getElementById('company-name');  if(el) el.value=s.company_name||''; }
+        if(s.company_tel   !== undefined) { const el=document.getElementById('company-tel');   if(el) el.value=s.company_tel||''; }
+        if(s.company_email !== undefined) { const el=document.getElementById('company-email'); if(el) el.value=s.company_email||''; }
         // Charger SEO
         if(s.seo_title !== undefined) { const el=document.getElementById('seo-title'); if(el){ el.value=s.seo_title||''; updateSEOCount('seo-title','seo-title-count',60); } }
         if(s.seo_desc  !== undefined) { const el=document.getElementById('seo-desc');  if(el){ el.value=s.seo_desc||'';  updateSEOCount('seo-desc','seo-desc-count',155); } }
