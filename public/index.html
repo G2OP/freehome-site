@@ -1182,6 +1182,15 @@ footer{background:var(--text);color:rgba(255,255,255,.6);padding:2.5rem var(--sp
   .prog-detail-header{padding:1.8rem 2.5rem}
   .pdh-name{font-size:2rem}
   .prog-detail-body{padding:2rem 2.5rem}
+
+  /* Scroll interne : tabs toujours visibles, contenu seul scrolle */
+  .prog-detail-overlay{overflow:hidden;align-items:center;padding:1rem 0}
+  .prog-detail{
+    display:flex;flex-direction:column;
+    max-height:calc(100vh - 2rem);
+  }
+  .pdb-tabs-sticky{flex-shrink:0;position:static}
+  .prog-detail-body{overflow-y:auto;flex:1;min-height:0}
   .lot-cards{grid-template-columns:repeat(2,1fr)}
   .pdb-info-grid{grid-template-columns:repeat(2,1fr)!important}
   .pdb-atouts-grid{grid-template-columns:repeat(2,1fr)!important}
@@ -1651,14 +1660,16 @@ input,select,textarea{font-size:1rem}
       </div>
       <button class="pdh-close" onclick="closeDetail()">✕</button>
     </div>
+    <!-- Tabs navigation — hors du corps scrollant pour rester visibles -->
+    <div class="pdb-tabs pdb-tabs-sticky">
+      <button class="pdb-tab active" onclick="switchTab(this,'tab-desc')">Le programme</button>
+      <button class="pdb-tab" onclick="switchTab(this,'tab-prestations')">Prestations</button>
+      <button class="pdb-tab" onclick="switchTab(this,'tab-galerie')">Galerie</button>
+      <button class="pdb-tab" id="btn-tab-media" onclick="switchTab(this,'tab-plan3d')" style="display:none">Vidéo &amp; 3D</button>
+      <button class="pdb-tab" onclick="switchTab(this,'tab-lots')">Lots disponibles</button>
+    </div>
+
     <div class="prog-detail-body">
-      <div class="pdb-tabs pdb-tabs-sticky">
-        <button class="pdb-tab active" onclick="switchTab(this,'tab-desc')">Le programme</button>
-        <button class="pdb-tab" onclick="switchTab(this,'tab-prestations')">Prestations</button>
-        <button class="pdb-tab" onclick="switchTab(this,'tab-galerie')">Galerie</button>
-        <button class="pdb-tab" id="btn-tab-media" onclick="switchTab(this,'tab-plan3d')" style="display:none">Vidéo &amp; 3D</button>
-        <button class="pdb-tab" onclick="switchTab(this,'tab-lots')">Lots disponibles</button>
-      </div>
 
       <!-- ═══ MENU ACCORDÉON MOBILE (même contenu, navigation verticale) ═══ -->
       <div class="pdb-accordion" id="pdb-accordion">
