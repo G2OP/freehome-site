@@ -1,7 +1,7 @@
 // sw.js — Service Worker FREEHOME PWA
 // Strategie : Cache First pour app shell + assets, Network First pour API
 
-const CACHE_NAME = 'freehome-v2.0.0'
+const CACHE_NAME = 'freehome-v2.1.0'
 const API_CACHE = 'freehome-api-v1'
 
 // App shell — fichiers critiques a cacher immediatement
@@ -16,10 +16,11 @@ const APP_SHELL = [
 // INSTALL — pre-cache de l'app shell
 // ─────────────────────────────────────────────────────────────────
 self.addEventListener('install', event => {
+  // Ne PAS appeler skipWaiting() ici — laisser le SW passer par "waiting"
+  // pour que le toast de mise à jour s'affiche dans l'app
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(APP_SHELL))
-      .then(() => self.skipWaiting()) // ne pas attendre, activer directement si demande
   )
 })
 
