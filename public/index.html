@@ -573,6 +573,71 @@ section{padding:2.8rem var(--space-4)}
 .pdb-tab.active{color:#F49516;border-bottom-color:#F49516}
 .pdb-panel{display:none}.pdb-panel.active{display:block}
 
+/* Sticky tabs dans l'overlay fiche */
+.pdb-tabs-sticky{
+  position:sticky;top:0;z-index:10;
+  background:#fff;
+  border-bottom:2px solid var(--border);
+  margin-bottom:1.8rem;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);
+}
+
+/* Lightbox */
+.lightbox{
+  position:fixed;inset:0;z-index:999;
+  background:rgba(0,0,0,.92);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.lightbox.open{opacity:1;pointer-events:all}
+.lightbox img{
+  max-width:92vw;max-height:88vh;
+  object-fit:contain;border-radius:6px;
+  box-shadow:0 8px 40px rgba(0,0,0,.6);
+}
+.lightbox-close{
+  position:fixed;top:1.2rem;right:1.5rem;
+  background:rgba(255,255,255,.12);border:none;color:#fff;
+  width:44px;height:44px;border-radius:50%;font-size:1.5rem;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:background .2s;
+}
+.lightbox-close:hover{background:rgba(255,255,255,.25)}
+.lightbox-nav{
+  position:fixed;top:50%;transform:translateY(-50%);
+  background:rgba(255,255,255,.12);border:none;color:#fff;
+  width:48px;height:48px;border-radius:50%;font-size:1.6rem;
+  cursor:pointer;transition:background .2s;display:flex;align-items:center;justify-content:center;
+}
+.lightbox-nav:hover{background:rgba(255,255,255,.25)}
+.lightbox-prev{left:1rem}
+.lightbox-next{right:1rem}
+.lightbox-counter{
+  position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);
+  color:rgba(255,255,255,.6);font-size:.78rem;letter-spacing:.05em;
+}
+
+/* Cartes lots (remplace tableau sur mobile, complète sur desktop) */
+.lot-cards{display:grid;grid-template-columns:1fr;gap:.6rem}
+.lot-card{
+  display:flex;align-items:center;gap:1rem;
+  padding:.85rem 1rem;
+  background:#fff;border:1px solid var(--border);border-radius:var(--r);
+  transition:border-color .15s,box-shadow .15s;
+}
+.lot-card:hover{border-color:var(--border-strong);box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.lot-card-num{
+  font-size:.75rem;font-weight:700;color:var(--text-3);
+  text-transform:uppercase;letter-spacing:.08em;min-width:40px;
+}
+.lot-card-info{flex:1;display:flex;flex-wrap:wrap;gap:.3rem .8rem;align-items:center}
+.lot-card-typo{font-size:.9rem;font-weight:700;color:var(--text)}
+.lot-card-surf{font-size:.82rem;color:var(--text-2)}
+.lot-card-prix{font-size:.95rem;font-weight:700;color:var(--text);margin-left:auto}
+.lot-card-actions{display:flex;align-items:center;gap:.5rem;flex-shrink:0}
+.lot-card-plan{font-size:.75rem;color:var(--accent);text-decoration:none;white-space:nowrap}
+.lot-card-plan:hover{text-decoration:underline}
+
 /* Lots table */
 .lots-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem}
 .lots-filter-row{display:flex;gap:.5rem;flex-wrap:wrap}
@@ -1117,6 +1182,7 @@ footer{background:var(--text);color:rgba(255,255,255,.6);padding:2.5rem var(--sp
   .prog-detail-header{padding:1.8rem 2.5rem}
   .pdh-name{font-size:2rem}
   .prog-detail-body{padding:2rem 2.5rem}
+  .lot-cards{grid-template-columns:repeat(2,1fr)}
   .pdb-info-grid{grid-template-columns:repeat(2,1fr)!important}
   .pdb-atouts-grid{grid-template-columns:repeat(2,1fr)!important}
   .plan3d-container iframe{height:560px}
@@ -1586,7 +1652,7 @@ input,select,textarea{font-size:1rem}
       <button class="pdh-close" onclick="closeDetail()">✕</button>
     </div>
     <div class="prog-detail-body">
-      <div class="pdb-tabs">
+      <div class="pdb-tabs pdb-tabs-sticky">
         <button class="pdb-tab active" onclick="switchTab(this,'tab-desc')">Le programme</button>
         <button class="pdb-tab" onclick="switchTab(this,'tab-prestations')">Prestations</button>
         <button class="pdb-tab" onclick="switchTab(this,'tab-galerie')">Galerie</button>
@@ -1719,7 +1785,8 @@ input,select,textarea{font-size:1rem}
         <div id="pd-galerie-wrap">
           <!-- Galerie kiosque -->
           <div id="pd-galerie-main" style="position:relative;background:#000;border-radius:var(--r);overflow:hidden;aspect-ratio:16/9;max-height:480px">
-            <img id="pd-galerie-img" src="" alt="" decoding="async" style="width:100%;height:100%;object-fit:cover;transition:opacity .4s">
+            <img id="pd-galerie-img" src="" alt="" decoding="async" onclick="if(galPhotos.length)lightboxOpen(galPhotos,galIdx)" style="width:100%;height:100%;object-fit:cover;transition:opacity .4s;cursor:zoom-in">
+            <div style="position:absolute;bottom:3.5rem;right:1rem;background:rgba(0,0,0,.55);color:#fff;font-size:.68rem;padding:.2rem .5rem;border-radius:8px;pointer-events:none;opacity:.8">🔍 Agrandir</div>
             <div id="pd-galerie-empty" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.8rem;color:rgba(255,255,255,.4)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:48px;height:48px;opacity:.4"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
               <p style="font-size:.85rem">Aucune photo disponible pour ce programme</p>
@@ -2231,6 +2298,15 @@ input,select,textarea{font-size:1rem}
 
 <div id="toast"></div>
 
+<!-- Lightbox galerie -->
+<div class="lightbox" id="lightbox" onclick="lightboxClose(event)">
+  <button class="lightbox-close" onclick="lightboxClose()">✕</button>
+  <button class="lightbox-nav lightbox-prev" onclick="lightboxNav(-1,event)">‹</button>
+  <img id="lightbox-img" src="" alt="">
+  <button class="lightbox-nav lightbox-next" onclick="lightboxNav(1,event)">›</button>
+  <div class="lightbox-counter" id="lightbox-counter"></div>
+</div>
+
 <script>
 /* ════════════════════════════════════
    DATA
@@ -2498,6 +2574,36 @@ let currentProg = null;
 /* ════════════════════════════════════
    GALERIE KIOSQUE
 ════════════════════════════════════ */
+// ══ LIGHTBOX ══
+var lbPhotos = [];
+var lbIdx = 0;
+function lightboxOpen(photos, idx) {
+  lbPhotos = photos; lbIdx = idx;
+  document.getElementById('lightbox-img').src = lbPhotos[lbIdx];
+  document.getElementById('lightbox-counter').textContent = (lbIdx+1) + ' / ' + lbPhotos.length;
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function lightboxClose(e) {
+  if (e && e.target !== document.getElementById('lightbox') && !e.target.classList.contains('lightbox-close')) return;
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function lightboxNav(dir, e) {
+  if (e) e.stopPropagation();
+  lbIdx = ((lbIdx + dir) + lbPhotos.length) % lbPhotos.length;
+  var img = document.getElementById('lightbox-img');
+  img.style.opacity = '0';
+  setTimeout(function(){ img.src = lbPhotos[lbIdx]; img.style.opacity = '1'; }, 150);
+  document.getElementById('lightbox-counter').textContent = (lbIdx+1) + ' / ' + lbPhotos.length;
+}
+document.addEventListener('keydown', function(e) {
+  if (!document.getElementById('lightbox').classList.contains('open')) return;
+  if (e.key === 'Escape') lightboxClose({target: document.getElementById('lightbox')});
+  if (e.key === 'ArrowLeft') lightboxNav(-1, e);
+  if (e.key === 'ArrowRight') lightboxNav(1, e);
+});
+
 let galPhotos = [];
 let galIdx = 0;
 let galTimer = null;
@@ -3005,19 +3111,53 @@ function renderLotsTable(lots, statFilter='', typoFilter='') {
   );
   document.getElementById('pd-lots-count').textContent = `${filtered.length} lot${filtered.length>1?'s':''}`;
   const tbody = document.getElementById('pd-lots-tbody');
-  tbody.innerHTML = filtered.map(l=>{
+
+  // Rendu cartes
+  const statusColor = {
+    'Disponible': {bg:'#E8F8EF',color:'#1A7A3E',dot:'#22c55e'},
+    'Réservé':    {bg:'#FFF3E0',color:'#C17A1A',dot:'#f59e0b'},
+    'Vendu':      {bg:'#FEEDED',color:'#C0392B',dot:'#ef4444'},
+  };
+
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--text-3);font-size:.88rem">Aucun lot ne correspond aux filtres sélectionnés</td></tr>`;
+    return;
+  }
+
+  // Injection dans une div cards à côté du tableau (on réutilise le tbody pour rester compatible)
+  const cardsHtml = filtered.map(l => {
+    const st = statusColor[l.statut] || {bg:'#f3f4f6',color:'#6b7280',dot:'#9ca3af'};
     const cls = {Disponible:'dispo',Réservé:'reserve',Vendu:'vendu'}[l.statut]||'';
-    return `<tr>
-      <td><strong>${l.num}</strong></td>
-      <td>${l.etage}</td>
-      <td>${l.typo}</td>
-      <td>${l.surface} m²</td>
-      <td><strong>${l.prix.toLocaleString('fr-FR')} €</strong></td>
-      <td><span class="lot-status ${cls}">${l.statut}</span></td>
-      <td>${l.plan3d?`<a href="${l.plan3d}" target="_blank" style="color:var(--accent);font-size:.78rem;white-space:nowrap">Voir ↗</a>`:'—'}</td>
-      <td>${l.statut==='Disponible'?`<button class="btn btn-forest btn-sm" onclick="closeDetail();document.getElementById('contact').scrollIntoView({behavior:'smooth'})">Réserver</button>`:'—'}</td>
-    </tr>`;
+    const isDispo = l.statut === 'Disponible';
+    return `<div class="lot-card">
+      <div class="lot-card-num">Lot ${l.num}</div>
+      <div class="lot-card-info">
+        <span class="lot-card-typo">${l.typo}</span>
+        <span class="lot-card-surf">${l.surface} m² · Ét. ${l.etage||'RDC'}</span>
+      </div>
+      <div class="lot-card-prix">${isDispo ? l.prix.toLocaleString('fr-FR') + ' €' : ''}</div>
+      <div class="lot-card-actions">
+        <span class="lot-status ${cls}" style="background:${st.bg};color:${st.color}">
+          <span style="width:6px;height:6px;border-radius:50%;background:${st.dot};display:inline-block"></span>
+          ${l.statut}
+        </span>
+        ${l.plan3d ? `<a class="lot-card-plan" href="${l.plan3d}" target="_blank" rel="noopener">Plan ↗</a>` : ''}
+        ${isDispo ? `<button class="btn btn-forest btn-sm" style="min-height:36px;padding:.35rem .9rem;font-size:.78rem" onclick="closeDetail();document.getElementById('contact').scrollIntoView({behavior:'smooth'})">Réserver</button>` : ''}
+      </div>
+    </div>`;
   }).join('');
+
+  // On place les cartes dans un wrapper, le tableau reste vide (masqué)
+  const tableWrap = document.getElementById('pd-lots-table').parentElement;
+  tableWrap.style.display = 'none';
+  let cardsWrap = document.getElementById('pd-lots-cards');
+  if (!cardsWrap) {
+    cardsWrap = document.createElement('div');
+    cardsWrap.id = 'pd-lots-cards';
+    cardsWrap.className = 'lot-cards';
+    tableWrap.parentElement.insertBefore(cardsWrap, tableWrap);
+  }
+  cardsWrap.innerHTML = cardsHtml;
 }
 
 function filterLots(sel) { if(currentProg) renderLotsTable(currentProg.lots, sel.value, document.querySelectorAll('.lots-filter-row select')[1].value); }
