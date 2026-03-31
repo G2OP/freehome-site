@@ -3,10 +3,20 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const path = url.pathname;
+    const allowedOrigins = [
+      "https://mhfreehome.com",
+      "https://www.mhfreehome.com",
+      "https://mhfreehome.fr",
+      "https://www.mhfreehome.fr",
+      "https://freehome-site.mhfreehome.workers.dev"
+    ];
+    const origin = request.headers.get("Origin") || "";
+    const corsOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
     const corsHeaders = {
-      "Access-Control-Allow-Origin": "https://freehome-site.mhfreehome.workers.dev",
+      "Access-Control-Allow-Origin": corsOrigin,
       "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization"
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      "Access-Control-Allow-Credentials": "true"
     };
     if (request.method === "OPTIONS") {
       return new Response(null, { headers: corsHeaders });
