@@ -249,7 +249,7 @@ export default {
           const eProg   = escHtml(d.programme); const eNotes = escHtml(d.notes);
 
           const FROM_EMAIL = 'FREEHOME <noreply@mhfreehome.fr>';
-          const NOTIF_TO   = 'mhfreehome@gmail.com';
+          const NOTIF_TO   = 'contact@mhfreehome.com';
           const dateStr    = new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' });
 
           const rows = [
