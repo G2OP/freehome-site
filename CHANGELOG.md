@@ -1,5 +1,24 @@
 # Changelog — FREEHOME Site
 
+## [2.1.0] — 2026-03-31
+
+### Nouvelles fonctionnalites
+- **Tabs navigation fiche programme** : barre Le programme / Prestations / Galerie / Video & 3D / Lots disponibles toujours visible (scroll interne du corps, tabs fixes au-dessus)
+- **Lightbox galerie** : clic sur photo ouvre plein ecran avec navigation fleches, compteur, fermeture Echap
+- **Cartes lots colorees** : remplacement tableau Excel par cartes flex avec points de couleur (vert Disponible / orange Reserve / rouge Vendu) — grille 2 colonnes desktop
+
+### Correctifs
+- **Bouton Reserver** : ferme la fiche avant de scroller vers contact (bug Windows overlay reste en avant-plan)
+- **Tabs sticky** : fix architecture — prog-detail-body scroll en interne, tabs en dehors du conteneur scrollant
+
+### Contenu & Admin
+- **100% contenu parametrable** : tous les elements du site (hero, stats, sections, FAQ, footer, coordonnees) editables depuis la console admin
+- **Tel et email dynamiques** : repercutes sur toutes les sections (contact, FAQ, footer)
+
+### Performance
+- **Migration images vers Cloudflare R2** : 9 images migrees de ibb.co vers R2 (pub-3105...)
+- **Compression images** : reduction ~85% taille moyenne (PIL JPEG quality 80)
+
 ## [2.0.0] — 2026-03-28
 
 ### Nouvelles fonctionnalites
