@@ -1,5 +1,12 @@
 # Changelog — FREEHOME Site
 
+## [2.1.1] — 2026-04-16
+
+### Correctifs securite — RGPD CRITIQUE
+- **Chatbot IA — hallucination noms acquereurs** : le Conseiller IA generait des noms d'acquéreurs fictifs pour les lots Réservés/Vendus (ex: "Mme Karine SPIRONELLI"), créant un risque RGPD grave même sans vraie fuite de données
+- **Règle RGPD dans system prompt** : ajout instruction absolue — ne jamais mentionner, inventer ni deviner le nom d'un acquéreur, dire uniquement "lot réservé" ou "lot vendu"
+- **Suppression `acquereur` du contexte IA** : le champ `l.acquereur` retiré du `lotsStr` injecté dans le prompt (défense en profondeur — était déjà absent de l'API publique)
+
 ## [2.1.0] — 2026-03-31
 
 ### Nouvelles fonctionnalites

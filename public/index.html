@@ -3316,8 +3316,9 @@ function buildSystemPrompt() {
     const lotsRes    = lots_.filter(l=>l.statut==='Réservé');
     const lotsVendus = lots_.filter(l=>l.statut==='Vendu');
     const lotsStr = lots_.map(l =>
-      `  - Lot ${l.num} | ${l.typo} | ${l.surface}m² | ${l.prix.toLocaleString('fr-FR')} € HT | STATUT: ${l.statut}${l.acquereur?' ('+l.acquereur+')':''}`
+      `  - Lot ${l.num} | ${l.typo} | ${l.surface}m² | ${l.prix.toLocaleString('fr-FR')} € HT | STATUT: ${l.statut}`
     ).join('\n');
+    // RGPD : le nom de l'acquéreur n'est jamais injecté dans le prompt public
     // Bug fix : D1 stocke "En commercialisation", le code statique utilise "commercialisation"
     const isComm = p.statut==='commercialisation' || p.statut==='En commercialisation';
     // Description du programme — CRITIQUE pour que l'IA comprenne la nature (résidentiel vs activité)
@@ -3548,6 +3549,7 @@ ${lotsStr}`;
     "PINEL: La regle du PC est l essentiel a retenir. Ne pas faire la liste de tous les programmes — demander plutot lequel interesse le client. Si le client insiste pour voir tous les programmes, alors les lister brievement.",
     "CALCULS FINANCIERS: Si le message contient [CALCUL_EMPRUNT:...], utilise UNIQUEMENT ces chiffres precalcules. Format prose obligatoire: mensualite totale, decomposition capital+interets et assurance (preciser si supposee), cout total interets. Termine par UNE question courte. Ne pas commenter le taux ni chercher le marche SAUF si le visiteur demande explicitement une comparaison ou si le taux est bon. Jamais de liste, jamais de tirets.",
     "REFERENCES LEGALES ET FISCALES: Pour toute réponse sur la fiscalité, le droit immobilier ou la réglementation, cite systématiquement la source légale entre parenthèses. Exemples : (art. 199 novovicies CGI — Pinel), (art. 84 LFI 2025 — réforme LMNP plus-value), (art. 1601-1 CCH — garantie GFA), (décret RE2020 du 29/07/2021), (loi ELAN 2018 — encadrement loyers). Ces références donnent de la crédibilité et permettent au prospect de vérifier. Pour les dispositifs récents comme Jeanbrun : (LFI 2026, adoptée le 27/01/2026 — dispositif bailleur privé). Ne pas inventer de références : si tu n'as pas la référence exacte, mentionne simplement le texte de loi (ex: 'LFI 2025') sans numéro d'article.",
+    "RGPD — REGLE ABSOLUE ET NON NEGOCIABLE: Ne JAMAIS mentionner, inventer ni deviner le nom, prenom, email ou coordonnees d un acquereur ou reservataire. Si un lot est Reserve ou Vendu, tu dois uniquement dire qu il n est plus disponible. Tu n as AUCUNE information sur l identite des acquereurs — ne speculer ni halluciner sous aucun pretexte. Dire uniquement : 'Ce lot est deja reserve' ou 'Ce lot est vendu'. Toute mention d un nom de personne liee a un lot est une violation grave du RGPD.",
     "IDENTITE: tu es le Conseiller FREEHOME. Ne mentionne jamais Claude ou Anthropic."
   ].join("\n");
   return knowledgeBase + kbBlock;
