@@ -2873,7 +2873,7 @@ function saveFicheAcquereur() {
   // Sync API
   fetch('/api/acquereurs/' + id, {
     method: 'PUT',
-    headers: {'Content-Type':'application/json', 'X-Admin-Token': AUTH_TOKEN},
+    headers: {'Content-Type':'application/json', 'X-Admin-Token': getAdminToken()},
     body: JSON.stringify({
       nom: a.nom, prenom: a.prenom, email: a.email, telephone: a.telephone,
       statut: a.statut, date_reservation: a.date_reservation,
@@ -3674,6 +3674,8 @@ function editLot(id) {
   openModal('m-add-lot');
 }
 
+function getAdminToken() { return sessionStorage.getItem('fh_admin_token') || ''; }
+
 function saveLot(){
   const num = document.getElementById('nl-num').value.trim();
   const prog = document.getElementById('nl-prog').value;
@@ -3713,7 +3715,8 @@ function saveLot(){
     if (idx2 >= 0) DB.acquereurs[idx2] = acqRecord;
     else DB.acquereurs.push(acqRecord);
     fetch('/api/acquereurs', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
+      method: 'POST',
+      headers: {'Content-Type':'application/json', 'X-Admin-Token': getAdminToken()},
       body: JSON.stringify(acqRecord)
     }).catch(e => console.warn('Acquéreur non persisté:', e));
   }
@@ -4607,6 +4610,17 @@ async function loadFromD1() {
         }
       }
     } catch(e) { console.warn('[CMS] Acquéreurs non chargés', e); }
+
+  // Merger les acquéreurs dans DB.lots pour affichage dans la colonne ACQUÉREUR
+  // (DB.lots.acq est vide car /api/programmes ne retourne pas acquereur)
+  if (DB.acquereurs && DB.acquereurs.length) {
+    DB.acquereurs.forEach(a => {
+      if (!a.nom) return;
+      const lot = DB.lots.find(l => l.prog === a.programme_nom && l.num === a.lot_num);
+      if (lot) lot.acq = a.nom;
+    });
+    console.log('[CMS] Acquéreurs mergés dans lots');
+  }
 
   // Charger leads
     const respL = await fetch('/api/leads?t='+Date.now());
