@@ -176,16 +176,25 @@ export default {
               typeof p.timeline==="string"?p.timeline:JSON.stringify(p.timeline||[])
             ).run();
             progCount++;
+            // Récupérer les acquéreurs existants AVANT de supprimer (protection données)
+            const existingAcq = await env.DB.prepare(
+              "SELECT num, acquereur FROM lots WHERE programme_nom=? AND acquereur != ''"
+            ).bind(p.nom).all();
+            const acqMap = {};
+            (existingAcq.results||[]).forEach(r => { acqMap[r.num] = r.acquereur; });
+
             await env.DB.prepare("DELETE FROM lots WHERE programme_nom=?").bind(p.nom).run();
             if (p.lots && p.lots.length) {
               for (const l of p.lots) {
+                // Préserver l'acquéreur existant si le payload envoie une valeur vide
+                const acquereur = l.acquereur || acqMap[l.num] || "";
                 await env.DB.prepare(`
                   INSERT INTO lots (programme_nom,num,etage,typo,surface,prix,statut,acquereur,plan3d,updated_at)
                   VALUES (?,?,?,?,?,?,?,?,?,datetime('now'))
                 `).bind(
                   p.nom, l.num, l.etage||"", l.typo||"",
                   l.surface||0, l.prix||0, l.statut||"Disponible",
-                  l.acquereur||"", l.plan3d||0
+                  acquereur, l.plan3d||0
                 ).run();
                 lotCount++;
               }

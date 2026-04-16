@@ -3996,6 +3996,16 @@ async function publishToSite() {
   const btn = document.querySelector('[onclick="publishToSite()"]');
   if(btn) { btn.disabled = true; btn.textContent = '⏳ Publication en cours…'; }
 
+  // Fusionner les acquéreurs dans DB.lots AVANT de syncer
+  // (DB.lots.acq peut être vide si chargé depuis /api/programmes qui ne retourne pas acquereur)
+  if (DB.acquereurs && DB.acquereurs.length) {
+    DB.acquereurs.forEach(a => {
+      if (!a.nom) return;
+      const lot = DB.lots.find(l => l.prog === a.programme_nom && l.num === a.lot_num);
+      if (lot && !lot.acq) lot.acq = a.nom;
+    });
+  }
+
   // Construire les données à envoyer
   const data = {
     programmes: DB.programmes.map(p => {
