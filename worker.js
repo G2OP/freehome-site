@@ -139,6 +139,48 @@ export default {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // DELETE /api/programmes/:nom  — supprime un programme et ses lots en D1
+    // ─────────────────────────────────────────────────────────────────────────
+    if (path.match(/^\/api\/programmes\/(.+)$/) && request.method === "DELETE") {
+      const authErr = await requireAdmin(); if (authErr) return authErr;
+      try {
+        const nom = decodeURIComponent(path.split('/api/programmes/')[1]);
+        await env.DB.prepare("DELETE FROM lots WHERE programme_nom=?").bind(nom).run();
+        await env.DB.prepare("DELETE FROM acquereurs WHERE programme_nom=?").bind(nom).run();
+        await env.DB.prepare("DELETE FROM pdf_documents WHERE programme_nom=?").bind(nom).run();
+        await env.DB.prepare("DELETE FROM programmes WHERE nom=?").bind(nom).run();
+        return new Response(JSON.stringify({ success: true, message: `Programme "${nom}" supprimé` }), {
+          headers: { "Content-Type": "application/json", ...corsHeaders }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ success: false, error: e.message }), {
+          status: 500, headers: { "Content-Type": "application/json", ...corsHeaders }
+        });
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // DELETE /api/lots/:num  — supprime un lot en D1
+    // ─────────────────────────────────────────────────────────────────────────
+    if (path.match(/^\/api\/lots\/(.+)$/) && request.method === "DELETE") {
+      const authErr = await requireAuth(); if (authErr) return authErr;
+      try {
+        const num = decodeURIComponent(path.split('/api/lots/')[1]);
+        const progNom = url.searchParams.get('programme') || '';
+        await env.DB.prepare(
+          "DELETE FROM lots WHERE num=? AND (programme_nom=? OR ?='')"
+        ).bind(num, progNom, progNom).run();
+        return new Response(JSON.stringify({ success: true, message: `Lot "${num}" supprimé` }), {
+          headers: { "Content-Type": "application/json", ...corsHeaders }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ success: false, error: e.message }), {
+          status: 500, headers: { "Content-Type": "application/json", ...corsHeaders }
+        });
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // POST /api/sync
     // ─────────────────────────────────────────────────────────────────────────
     if (path === "/api/sync" && request.method === "POST") {

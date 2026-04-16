@@ -1,5 +1,14 @@
 # Changelog — FREEHOME Site
 
+## [2.2.2] — 2026-04-16
+
+### Correctifs
+- **Routes DELETE manquantes** : `DELETE /api/programmes/:nom` et `DELETE /api/lots/:num` créées dans worker.js — les boutons Supprimer de l'admin persistaient en mémoire seulement. La suppression de programme efface en cascade lots + acquéreurs + PDFs associés.
+
+### Documentation
+- **`schema.sql`** : schéma complet de la base D1 créé à la racine — 12 tables, colonnes, types, contraintes, index
+- **`AUDIT.md`** mis à jour : points clôturés déplacés, version corrigée à 2.2.2
+
 ## [2.2.1] — 2026-04-16
 
 ### Sécurité — Token HMAC proxy IA

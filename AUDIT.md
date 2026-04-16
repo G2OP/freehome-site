@@ -1,5 +1,5 @@
 # Audit technique — FREEHOME Site
-## Date : 2026-04-16 — Version auditée : 2.2.1
+## Date : 2026-04-16 — Version auditée : 2.2.2
 
 ---
 
@@ -53,11 +53,16 @@ L'audit conduit le 2026-04-16 sur les versions 2.1.x a relevé plusieurs anomali
 
 | Problème | Fichier | Impact | Priorité |
 |---|---|---|---|
-| Routes `DELETE /api/programmes/:nom` et `DELETE /api/lots/:num` non implémentées dans worker.js — `deleteProg()` et `deleteLot()` dans admin.html font des appels API silencieux sans résultat | worker.js | Fonctionnel : la suppression ne produit pas d'erreur visible (fetch sans await de réponse métier), mais les enregistrements ne sont pas réellement supprimés en D1 | Haute |
-| `schema.sql` manquant — le schéma de la base D1 n'est pas documenté dans le dépôt | — | Documentation : impossible de recréer la base à froid sans inspecter le dashboard Cloudflare | Haute |
 | Binding Vectorize non configuré dans `wrangler.toml` — le code de suppression de vecteurs dans `DELETE /api/pdf-documents/:id` est conditionné par `env.VECTORIZE` et ne s'exécute jamais | wrangler.toml | Fonctionnel : les chunks supprimés en D1 ne le sont pas dans Vectorize. Non bloquant tant que Vectorize reste désactivé | Basse |
 | `GET /api/settings` reste public (aucune authentification) | worker.js | Voulu et documenté — index.html l'appelle pour afficher tel/email/tagline. Aucun secret dans settings. | Aucun — acceptable |
 | `X-Admin-Token` envoyé par admin.html dans certains appels mais non vérifié côté worker | worker.js / admin.html | Superflu : l'authentification réelle est le cookie session. Le header est inoffensif mais crée une fausse impression de sécurité supplémentaire | Basse |
+
+## Points clôturés après audit initial (v2.2.2)
+
+| Problème signalé | Correction appliquée | Version |
+|---|---|---|
+| Routes `DELETE /api/programmes/:nom` et `DELETE /api/lots/:num` manquantes | Routes ajoutées dans worker.js — suppression cascade (lots + acquereurs + pdf_documents + programme) | 2.2.2 |
+| `schema.sql` manquant | Fichier `schema.sql` créé à la racine — 12 tables documentées avec colonnes, types, contraintes et index | 2.2.2 |
 
 ---
 
