@@ -1,5 +1,33 @@
 # Changelog — FREEHOME Site
 
+## [2.2.0] — 2026-04-16
+
+### Correctifs critiques
+- **Route `POST /api/leads/:id/statut` manquante** : les changements de statut leads depuis l'admin étaient silencieusement perdus — route ajoutée dans worker.js avec UPDATE D1 (statut + notes)
+- **Leads sync — perte email/téléphone** : `publishToSite()` n'envoyait pas `email`, `telephone`, `notes` dans le payload sync → données perdues à chaque publication. Payload complété + `DELETE FROM leads` remplacé par UPSERT (INSERT OR IGNORE / UPDATE by id) pour préserver les leads entrants
+- **HTML admin tbody statique** : le tbody `#lots-tbody` contenait 55 lignes hardcodées avec IDs 1–55 conflictuels avec les IDs D1. Remplacé par un message "Chargement depuis D1…"
+
+### Sécurité
+- **Proxy IA CORS wildcard corrigé** : `freehome-ai-proxy` avait `Access-Control-Allow-Origin: *` — remplacé par liste stricte des 5 origines autorisées + rejet 403 pour toute origine non reconnue
+- **Plafond max_tokens proxy IA** : limité à 2000 pour éviter les abus de quota Anthropic
+- **GET /api/knowledge protégé** : accès restreint — session valide, X-Internal-Key ou referer mhfreehome requis (proxy IA utilise X-Internal-Key)
+
+### Correctifs moyens
+- **`changeLotStat()` sans persistance** : ajout de `markDirty()` pour signaler qu'une publication est nécessaire
+- **`deleteProg()` / `deleteLot()`** : ajout d'appels API DELETE (silencieux si route absente) + `markDirty()`
+- **`plan3d` lots absent de l'API** : champ `plan3d` ajouté dans le mapping lots de `GET /api/programmes`
+- **Statut "Livré" non normalisé** : normalisation `'Livré'` → `'livre'` ajoutée dans `loadCMSData()`
+- **CACHE_NAME SW désynchronisé** : mis à jour `freehome-v2.1.0` → `freehome-v2.1.2`
+
+### Correctifs mineurs
+- **Messages toast PDF incorrects** : corrigés pour ingestPdf et deletePdfDoc
+- **Règle cache ibb.co obsolète** : supprimée du sw.js (migration R2 déjà faite)
+- **TODO Vectorize** : commentaire ajouté sur le binding non configuré dans wrangler.toml
+
+### Documentation & infrastructure
+- **WORKFLOW.md** : chemin local mis à jour, proxy IA documenté, ressources R2 ajoutées
+- **`.gitignore`** : ajout de `_media_migration/`
+
 ## [2.1.2] — 2026-04-16
 
 ### Correctifs

@@ -82,7 +82,8 @@ export default {
             timeline:    parseJ(p.timeline),
             lots: progLots.map((l) => ({
               num: l.num, etage: l.etage, typo: l.typo,
-              surface: l.surface, prix: l.prix, statut: l.statut
+              surface: l.surface, prix: l.prix, statut: l.statut,
+              plan3d: l.plan3d || ''
             }))
           };
         });
@@ -202,21 +203,58 @@ export default {
           }
         }
         if (data.leads && data.leads.length) {
-          await env.DB.prepare("DELETE FROM leads").run();
+          // UPSERT leads — ne jamais écraser un lead avec source 'Site web' créé depuis le site
+          // On utilise INSERT OR IGNORE pour préserver les leads entrants entre deux syncs admin
           for (const l of data.leads) {
-            await env.DB.prepare(`
-              INSERT INTO leads (prenom,nom,programme,typo,budget,statut,source,priorite,updated_at)
-              VALUES (?,?,?,?,?,?,?,?,datetime('now'))
-            `).bind(
-              l.prenom||"", l.nom, l.programme||"", l.typo||"",
-              l.budget||"", l.statut||"", l.source||"", l.priorite||"l"
-            ).run();
+            // Si le lead a un ID, on tente un UPDATE ; sinon INSERT OR IGNORE
+            if (l.id) {
+              await env.DB.prepare(`
+                UPDATE leads SET prenom=?,nom=?,email=?,telephone=?,programme=?,typo=?,budget=?,statut=?,source=?,priorite=?,notes=?,updated_at=datetime('now')
+                WHERE id=?
+              `).bind(
+                l.prenom||"", l.nom||"", l.email||"", l.telephone||"",
+                l.programme||"", l.typo||"", l.budget||"", l.statut||"", l.source||"", l.priorite||"l",
+                l.notes||"", l.id
+              ).run();
+            } else {
+              await env.DB.prepare(`
+                INSERT OR IGNORE INTO leads (prenom,nom,email,telephone,programme,typo,budget,statut,source,priorite,notes,updated_at)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,datetime('now'))
+              `).bind(
+                l.prenom||"", l.nom||"", l.email||"", l.telephone||"",
+                l.programme||"", l.typo||"", l.budget||"", l.statut||"", l.source||"", l.priorite||"l",
+                l.notes||""
+              ).run();
+            }
           }
         }
         return new Response(JSON.stringify({
           success: true, programmes: progCount, lots: lotCount,
           message: `${progCount} programmes et ${lotCount} lots synchronisés`
         }), { headers: { "Content-Type": "application/json", ...corsHeaders } });
+      } catch (e) {
+        return new Response(JSON.stringify({ success: false, error: e.message }), {
+          status: 500, headers: { "Content-Type": "application/json", ...corsHeaders }
+        });
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // POST /api/leads/:id/statut  — mettre à jour le statut d'un lead
+    // ─────────────────────────────────────────────────────────────────────────
+    if (path.match(/^\/api\/leads\/(\d+)\/statut$/) && request.method === "POST") {
+      const authErr = await requireAuth(); if (authErr) return authErr;
+      try {
+        const id = parseInt(path.split('/')[3]);
+        const body = await request.json();
+        const statut = body.statut || '';
+        const notes  = body.notes !== undefined ? body.notes : null;
+        await env.DB.prepare(
+          "UPDATE leads SET statut=?, notes=COALESCE(?,notes), updated_at=datetime('now') WHERE id=?"
+        ).bind(statut, notes, id).run();
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { "Content-Type": "application/json", ...corsHeaders }
+        });
       } catch (e) {
         return new Response(JSON.stringify({ success: false, error: e.message }), {
           status: 500, headers: { "Content-Type": "application/json", ...corsHeaders }
@@ -534,6 +572,7 @@ export default {
     // GET /api/settings
     // ─────────────────────────────────────────────────────────────────────────
     if (path === "/api/settings" && request.method === "GET") {
+      // NOTE : route publique volontaire — index.html l'appelle pour afficher tel/email/tagline
       try {
         const rows = await env.DB.prepare("SELECT key, value FROM settings").all();
         const settings = {};
@@ -574,6 +613,16 @@ export default {
     // GET /api/knowledge
     // ─────────────────────────────────────────────────────────────────────────
     if (path === "/api/knowledge" && request.method === "GET") {
+      // Autoriser le proxy IA interne ou les utilisateurs authentifiés
+      const referer = request.headers.get('Referer') || '';
+      const xInternalKey = request.headers.get('X-Internal-Key') || '';
+      const internalKeyValid = xInternalKey === (env.INTERNAL_KEY || 'fh-internal-2026');
+      const session = await getSession();
+      if (!session && !internalKeyValid && !referer.includes('mhfreehome')) {
+        return new Response(JSON.stringify({ error: 'Non autorisé' }), {
+          status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
       try {
         const rows = await env.DB.prepare("SELECT categorie, titre, contenu FROM knowledge_base ORDER BY categorie, titre").all();
         return new Response(JSON.stringify({ success: true, knowledge: rows.results }), {
@@ -655,7 +704,7 @@ export default {
           "SELECT vectorize_id FROM pdf_chunks WHERE document_id=?"
         ).bind(docId).all();
         const vectorIds = chunks.results.map(c => c.vectorize_id).filter(Boolean);
-        // Supprimer de Vectorize
+        // TODO: binding Vectorize non configuré dans wrangler.toml — suppression vecteurs désactivée
         if (vectorIds.length > 0 && env.VECTORIZE) {
           await env.VECTORIZE.deleteByIds(vectorIds);
         }

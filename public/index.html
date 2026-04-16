@@ -2741,6 +2741,7 @@ async function loadCMSData() {
         // Normaliser le statut (D1 → site public)
         if(p.statut === 'En commercialisation') p.statut = 'commercialisation';
         if(p.statut === 'Bientôt disponible') p.statut = 'bientot';
+        if(p.statut === 'Livré' || p.statut === 'livre') p.statut = 'livre';
         // Normaliser eligibilites
         if(typeof p.eligibilites === 'string') {
           p.eligibilites = p.eligibilites.split(',').map(s=>s.trim()).filter(Boolean);

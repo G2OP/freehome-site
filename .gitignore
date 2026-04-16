@@ -5,3 +5,4 @@ wrangler.jsonc
 # Backups locaux — ne jamais commiter
 _backup_avant_pwa/
 _backup_workers/
+_media_migration/

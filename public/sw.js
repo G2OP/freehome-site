@@ -1,7 +1,7 @@
 // sw.js — Service Worker FREEHOME PWA
 // Strategie : Cache First pour app shell + assets, Network First pour API
 
-const CACHE_NAME = 'freehome-v2.1.0'
+const CACHE_NAME = 'freehome-v2.1.2'
 const API_CACHE = 'freehome-api-v1'
 
 // App shell — fichiers critiques a cacher immediatement
@@ -56,12 +56,6 @@ self.addEventListener('fetch', event => {
 
   // Google Fonts — Cache First longue duree
   if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
-    event.respondWith(cacheFirstStrategy(event.request, CACHE_NAME))
-    return
-  }
-
-  // Images externes (ibb.co etc.) — Cache First 7 jours
-  if (url.hostname.includes('ibb.co') || url.hostname.includes('imgur.com')) {
     event.respondWith(cacheFirstStrategy(event.request, CACHE_NAME))
     return
   }
