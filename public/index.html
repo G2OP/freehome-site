@@ -3690,12 +3690,30 @@ function needsWebSearch(message) {
 // ─── APPEL API AVEC GESTION TOOL_USE (web_search) ────────────────────────────
 const PROXY_URL = 'https://freehome-ai-proxy.mhfreehome.workers.dev';
 
+// Cache du token court-terme (valide 15 min — renouvelé automatiquement)
+let _chatToken = null;
+let _chatTokenExpires = 0;
+
+async function getChatToken() {
+  const now = Date.now();
+  if (_chatToken && now < _chatTokenExpires - 30000) return _chatToken; // 30s de marge
+  try {
+    const r = await fetch('/api/chatbot-token', { cache: 'no-store' });
+    if (!r.ok) return '';
+    const d = await r.json();
+    _chatToken = d.token || '';
+    _chatTokenExpires = d.expires || (now + 900000);
+    return _chatToken;
+  } catch(e) { return ''; }
+}
+
 async function apiCall(payload) {
   let response;
   try {
+    const token = await getChatToken();
     response = await fetch(PROXY_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Chat-Token': token },
       body: JSON.stringify(payload)
     });
   } catch(err) {
@@ -3704,6 +3722,7 @@ async function apiCall(payload) {
   if(!response.ok) {
     const err = await response.json().catch(()=>({}));
     if(response.status === 401) throw new Error('Clé API invalide ou expirée.');
+    if(response.status === 403) throw new Error('Session expirée. Rechargez la page.');
     if(response.status === 429) throw new Error('Trop de requêtes. Réessayez dans un instant.');
     throw new Error(err?.error?.message || 'Erreur API (' + response.status + ')');
   }

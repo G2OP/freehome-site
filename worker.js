@@ -240,6 +240,36 @@ export default {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // GET /api/chatbot-token  — token court-terme pour authentifier les appels proxy IA
+    // Fenêtre glissante 15 min — empêche les appels directs au proxy sans passer par le site
+    // ─────────────────────────────────────────────────────────────────────────
+    if (path === "/api/chatbot-token" && request.method === "GET") {
+      try {
+        const secret = env.PROXY_SHARED_SECRET || 'fh-proxy-default-2026';
+        // Fenêtre de 15 min : floor(timestamp / 900000)
+        const window15 = Math.floor(Date.now() / 900000);
+        const raw = `${window15}:${secret}`;
+        // HMAC-SHA256 via Web Crypto
+        const key = await crypto.subtle.importKey(
+          'raw', new TextEncoder().encode(secret),
+          { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+        );
+        const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(raw));
+        const token = btoa(String.fromCharCode(...new Uint8Array(sig)))
+          .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+        const expiresMs = (window15 + 1) * 900000;
+        return new Response(JSON.stringify({ token, expires: expiresMs }), {
+          headers: { "Content-Type": "application/json", ...corsHeaders,
+            "Cache-Control": "no-store" }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ success: false, error: e.message }), {
+          status: 500, headers: { "Content-Type": "application/json", ...corsHeaders }
+        });
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // POST /api/leads/:id/statut  — mettre à jour le statut d'un lead
     // ─────────────────────────────────────────────────────────────────────────
     if (path.match(/^\/api\/leads\/(\d+)\/statut$/) && request.method === "POST") {

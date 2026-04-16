@@ -1,5 +1,12 @@
 # Changelog — FREEHOME Site
 
+## [2.2.1] — 2026-04-16
+
+### Sécurité — Token HMAC proxy IA
+- **Token court-terme HMAC-SHA256** : le chatbot IA obtient désormais un token signé (fenêtre 15 min) via `GET /api/chatbot-token` avant chaque session. Ce token est envoyé en header `X-Chat-Token` au proxy IA.
+- **Proxy IA vérifie le token** : toute requête sans token valide → 403. Rend inutile tout appel direct au proxy sans passer par le site FREEHOME.
+- **Secret partagé `PROXY_SHARED_SECRET`** : stocké uniquement côté serveur (wrangler secret), jamais exposé au navigateur. Doit être configuré via `npx wrangler secret put PROXY_SHARED_SECRET` sur les deux workers.
+
 ## [2.2.0] — 2026-04-16
 
 ### Correctifs critiques
