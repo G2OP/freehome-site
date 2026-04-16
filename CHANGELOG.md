@@ -1,5 +1,10 @@
 # Changelog — FREEHOME Site
 
+## [2.1.2] — 2026-04-16
+
+### Correctifs
+- **Chatbot IA — prix affichés "HT" à tort** : le `lotsStr` injecté dans le system prompt mentionnait `€ HT` pour tous les lots alors que les programmes résidentiels sont en TTC. Suppression du qualificatif HT — le prix est maintenant affiché en `€` sans mention HT/TTC (chaque programme a sa propre nature TVA).
+
 ## [2.1.1] — 2026-04-16
 
 ### Correctifs securite — RGPD CRITIQUE

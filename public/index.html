@@ -3316,7 +3316,7 @@ function buildSystemPrompt() {
     const lotsRes    = lots_.filter(l=>l.statut==='Réservé');
     const lotsVendus = lots_.filter(l=>l.statut==='Vendu');
     const lotsStr = lots_.map(l =>
-      `  - Lot ${l.num} | ${l.typo} | ${l.surface}m² | ${l.prix.toLocaleString('fr-FR')} € HT | STATUT: ${l.statut}`
+      `  - Lot ${l.num} | ${l.typo} | ${l.surface}m² | ${l.prix.toLocaleString('fr-FR')} € | STATUT: ${l.statut}`
     ).join('\n');
     // RGPD : le nom de l'acquéreur n'est jamais injecté dans le prompt public
     // Bug fix : D1 stocke "En commercialisation", le code statique utilise "commercialisation"
