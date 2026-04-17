@@ -6,8 +6,6 @@ export default {
     const allowedOrigins = [
       "https://mhfreehome.com",
       "https://www.mhfreehome.com",
-      "https://mhfreehome.fr",
-      "https://www.mhfreehome.fr",
       "https://freehome-site.mhfreehome.workers.dev"
     ];
     const origin = request.headers.get("Origin") || "";
@@ -444,7 +442,7 @@ export default {
 
   <!-- FOOTER -->
   <div style="border-top:1px solid #E4DFD5;padding:14px 32px;text-align:center">
-    <p style="margin:0;font-size:.7rem;color:#B0A090">FREE HOME · <a href="https://www.mhfreehome.fr" style="color:#9A8A6A;text-decoration:none">mhfreehome.fr</a> · contact@mhfreehome.fr</p>
+    <p style="margin:0;font-size:.7rem;color:#B0A090">FREE HOME · <a href="https://www.mhfreehome.com" style="color:#9A8A6A;text-decoration:none">mhfreehome.com</a> · contact@mhfreehome.com</p>
   </div>
 
 </div>
@@ -507,7 +505,7 @@ export default {
 
     <!-- CTA site -->
     <div style="text-align:center;margin-bottom:4px">
-      <a href="https://www.mhfreehome.fr"
+      <a href="https://www.mhfreehome.com"
          style="display:inline-block;background:#C9A84C;color:#1A1008;padding:12px 28px;border-radius:6px;text-decoration:none;font-size:.85rem;font-weight:700;letter-spacing:.06em">
         Découvrir nos programmes →
       </a>
@@ -516,12 +514,12 @@ export default {
 
   <!-- CONTACT -->
   <div style="background:#F2EDE4;padding:16px 32px;border-top:1px solid #E4DFD5">
-    <p style="margin:0;font-size:.82rem;color:#4A4030">Une question ? Contactez-nous : <a href="mailto:contact@mhfreehome.fr" style="color:#8A6A10;text-decoration:none;font-weight:600">contact@mhfreehome.fr</a></p>
+    <p style="margin:0;font-size:.82rem;color:#4A4030">Une question ? Contactez-nous : <a href="mailto:contact@mhfreehome.com" style="color:#8A6A10;text-decoration:none;font-weight:600">contact@mhfreehome.com</a></p>
   </div>
 
   <!-- FOOTER -->
   <div style="border-top:1px solid #E4DFD5;padding:13px 32px;text-align:center">
-    <p style="margin:0;font-size:.7rem;color:#B0A090">© FREE HOME · <a href="https://www.mhfreehome.fr" style="color:#9A8A6A;text-decoration:none">mhfreehome.fr</a> · Cet email fait suite à votre demande de contact.</p>
+    <p style="margin:0;font-size:.7rem;color:#B0A090">© FREE HOME · <a href="https://www.mhfreehome.com" style="color:#9A8A6A;text-decoration:none">mhfreehome.com</a> · Cet email fait suite à votre demande de contact.</p>
   </div>
 
 </div>
@@ -867,7 +865,7 @@ export default {
     // GET /sitemap.xml
     // ─────────────────────────────────────────────────────────────────────────
     if (path === "/sitemap.xml") {
-      const BASE = "https://www.mhfreehome.fr";
+      const BASE = "https://www.mhfreehome.com";
       const now = new Date().toISOString().split('T')[0];
       let progUrls = '';
       try {
@@ -894,7 +892,7 @@ ${progUrls}
     // GET /robots.txt
     // ─────────────────────────────────────────────────────────────────────────
     if (path === "/robots.txt") {
-      const robots = `User-agent: *\nAllow: /\nDisallow: /admin\nSitemap: https://www.mhfreehome.fr/sitemap.xml\n`;
+      const robots = `User-agent: *\nAllow: /\nDisallow: /admin\nSitemap: https://www.mhfreehome.com/sitemap.xml\n`;
       return new Response(robots, {
         headers: { "Content-Type": "text/plain; charset=UTF-8", ...corsHeaders }
       });

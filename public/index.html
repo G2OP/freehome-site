@@ -2,9 +2,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FREEHOME — Programmes Immobiliers Neufs | Grand Est, Moselle</title>
-<meta name="description" content="Maison &amp; Habitat FREEHOME, promoteur immobilier dans le Grand Est. Programmes neufs à Malroy, Ay-sur-Moselle, Augny, Mont-Saint-Martin. Éligible Pinel, PTZ.">
+<meta name="description" content="Maison &amp; Habitat FREEHOME, promoteur immobilier dans le Grand Est. Programmes neufs à Malroy, Ay-sur-Moselle, Mont-Saint-Martin. Éligible Pinel, PTZ.">
 <meta name="robots" content="index, follow">
-<link rel="canonical" href="https://www.mhfreehome.fr/">
+<link rel="canonical" href="https://www.mhfreehome.com/">
 
 <!-- PWA -->
 <meta name="theme-color" content="#16a34a">
@@ -17,7 +17,7 @@
 
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://www.mhfreehome.fr/">
+<meta property="og:url" content="https://www.mhfreehome.com/">
 <meta property="og:title" content="FREEHOME — Programmes Immobiliers Neufs | Grand Est, Moselle">
 <meta property="og:description" content="Promoteur immobilier dans le Grand Est depuis plus de 15 ans. Programmes neufs éligibles Pinel &amp; PTZ à Malroy, Ay-sur-Moselle, Augny, Mont-Saint-Martin, Kanfen.">
 <meta property="og:image" content="https://pub-3105b3e906c4430184b8bf5a483a8977.r2.dev/programmes/azure-2.jpg">
@@ -40,8 +40,8 @@
   "name": "Maison & Habitat FREEHOME",
   "alternateName": "FREEHOME",
   "description": "Promoteur immobilier spécialisé dans les programmes immobiliers neufs dans le Grand Est. Résidences éligibles Pinel, PTZ, Censi-Bouvard. Garantie Financière d'Achèvement.",
-  "url": "https://www.mhfreehome.fr",
-  "logo": "https://www.mhfreehome.fr/",
+  "url": "https://www.mhfreehome.com",
+  "logo": "https://www.mhfreehome.com/",
   "image": "https://pub-3105b3e906c4430184b8bf5a483a8977.r2.dev/programmes/azure-2.jpg",
   "telephone": "+33387XXXXXX",
   "email": "contact@mhfreehome.com",
@@ -2762,6 +2762,12 @@ async function loadCMSData() {
         if(idx>=0) Object.assign(PROGRAMMES[idx], p);
         else PROGRAMMES.push(p);
       });
+      // Supprimer les programmes du tableau statique absents de D1
+      // (ex: programme supprimé depuis l'admin — évite les "fantômes")
+      const d1Noms = new Set(data.programmes.map(p => p.nom));
+      for(let i = PROGRAMMES.length - 1; i >= 0; i--) {
+        if(!d1Noms.has(PROGRAMMES[i].nom)) PROGRAMMES.splice(i, 1);
+      }
       console.log('[FREEHOME] Données D1 chargées:', data.programmes.length, 'programmes');
       renderProgs(); // Re-render avec les nouvelles données
       // Peupler le select programme du formulaire de contact

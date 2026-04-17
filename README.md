@@ -1,6 +1,6 @@
 # FREEHOME Site — Documentation technique
 
-Version actuelle : **2.2.1** — Dernière mise à jour : 2026-04-16
+Version actuelle : **2.2.3** — Dernière mise à jour : 2026-04-18
 
 ---
 
@@ -10,9 +10,10 @@ Site vitrine PWA pour **Maison & Habitat FREEHOME**, promoteur immobilier en ré
 
 | URL | Rôle |
 |---|---|
-| https://www.mhfreehome.fr | Production (domaine custom) |
+| https://www.mhfreehome.com | **Production (domaine principal)** |
 | https://mhfreehome.com | Alias production |
 | https://freehome-site.mhfreehome.workers.dev | Worker direct (Cloudflare) |
+| https://mhfreehome.fr | ⚠️ Ancien site PROMOGES — NE PAS UTILISER |
 
 ---
 

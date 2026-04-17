@@ -1,5 +1,13 @@
 # Changelog — FREEHOME Site
 
+## [2.2.3] — 2026-04-18
+
+### Correctifs
+- **Programmes fantômes** : `loadCMSData()` supprime désormais du tableau statique tout programme absent de D1 (ex : programme AUGNY supprimé depuis l'admin mais qui restait affiché sur le site car présent dans le tableau statique).
+- **Domaine corrigé partout** : toutes les références `mhfreehome.fr` remplacées par `mhfreehome.com` (canonical, og:url, schema.org, emails de confirmation, sitemap.xml, robots.txt). `mhfreehome.fr` renvoie vers l'ancien site PROMOGES — le domaine production est `.com`.
+- **CORS nettoyé** : `mhfreehome.fr` et `www.mhfreehome.fr` retirés de la liste des origines autorisées dans le worker principal et le proxy IA. Seuls `.com` et le worker dev restent.
+- **Meta description** : "Augny" retiré de la description (programme supprimé).
+
 ## [2.2.2] — 2026-04-16
 
 ### Correctifs
