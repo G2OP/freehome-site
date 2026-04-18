@@ -1642,6 +1642,47 @@ function renderProgrammePage(prog, lots) {
     .ftr{background:#000;color:#fff;padding:2rem 20px;}
     .ftr a{color:rgba(255,255,255,.7);}
     .ftr a:hover{color:#fff;}
+    /* ── Bouton PDF (écran uniquement) ── */
+    .btn-pdf{position:fixed;bottom:24px;right:24px;z-index:999;display:inline-flex;align-items:center;gap:8px;padding:12px 20px;background:#000;color:#fff;border:none;border-radius:${dnkMode ? '0' : '6px'};font-size:14px;font-weight:700;cursor:pointer;min-height:44px;box-shadow:0 4px 16px rgba(0,0,0,.3);transition:background .15s,transform .1s;font-family:inherit;}
+    .btn-pdf:hover{background:#222;transform:translateY(-2px);}
+    .btn-pdf:focus-visible{outline:2px solid ${gold};outline-offset:2px;}
+    /* ── PRINT / PDF ── */
+    .print-header,.print-footer{display:none;}
+    @media print{
+      *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+      @page{size:A4 portrait;margin:12mm 14mm 16mm 14mm;}
+      body{font-size:11pt;color:#000;background:#fff;}
+      /* Masquer les éléments UI */
+      .nav,.breadcrumb,.cta-band,.ftr,.btn-pdf,
+      .simulateur-section,.photos-grid{display:none!important;}
+      /* Afficher les blocs print */
+      .print-header{display:block!important;padding-bottom:14px;border-bottom:3px solid ${accent};margin-bottom:14px;page-break-after:avoid;}
+      .print-footer{display:flex!important;margin-top:20px;padding-top:10px;border-top:1px solid #ccc;font-size:9pt;color:#555;justify-content:space-between;align-items:center;gap:12px;}
+      /* Container full width */
+      .container{max-width:100%!important;padding:0!important;}
+      main{padding:0!important;}
+      /* Hero masqué → print-header prend le relais */
+      .hero{display:none!important;}
+      /* Info grid — 3 col en print */
+      .info-grid{grid-template-columns:repeat(3,1fr)!important;gap:6px!important;padding:12px 0!important;}
+      .info-card{padding:8px 10px!important;break-inside:avoid;}
+      .ic-label{font-size:8pt!important;}
+      .ic-val{font-size:11pt!important;}
+      /* Sections */
+      section{page-break-inside:avoid;margin-bottom:12pt;}
+      .section-title{font-size:12pt!important;margin-top:14pt!important;padding-bottom:5px!important;page-break-after:avoid;}
+      /* Lots table */
+      .table-wrap{overflow:visible!important;}
+      table.lots{font-size:9pt!important;width:100%;}
+      table.lots th{background:${accent}!important;color:#fff!important;padding:6px 5px!important;}
+      table.lots td{padding:5px!important;}
+      table.lots tr:nth-child(even) td{background:#f5f5f5!important;}
+      /* Prestations categories */
+      ul{page-break-inside:avoid;}
+      li{page-break-inside:avoid;}
+      /* Eligibilités */
+      span[style*="border"]{border:1px solid ${accent}!important;color:${accent}!important;}
+    }
     ${simCss}
   </style>
 </head>
@@ -1654,6 +1695,11 @@ function renderProgrammePage(prog, lots) {
       <a href="/#contact" class="cta">Contact</a>
     </div>
   </nav>
+
+  <!-- BOUTON PDF (fixe, coin bas-droit, masqué en impression) -->
+  <button class="btn-pdf" onclick="window.print()" aria-label="Télécharger en PDF">
+    &#x1F4E5; Télécharger PDF
+  </button>
 
   <!-- HERO -->
   <header class="hero">
@@ -1669,6 +1715,23 @@ function renderProgrammePage(prog, lots) {
       </div>
     </div>
   </header>
+
+  <!-- EN-TÊTE PRINT (masqué à l'écran, visible uniquement en impression) -->
+  <div class="print-header">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;">
+      <div>
+        <div style="font-size:9pt;font-weight:700;color:${gold};text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;">Résidence neuve — Groupe G2O Participation</div>
+        <div style="font-size:22pt;font-weight:700;color:${accent};line-height:1.1;margin-bottom:4px;">${esc(prog.nom)}</div>
+        <div style="font-size:12pt;color:#444;">${esc(prog.commune)}${prog.cp ? ' (' + esc(prog.cp) + ')' : ''}${prog.adresse ? ' \u2014 ' + esc(prog.adresse) : ''}</div>
+        ${prog.statut ? `<div style="margin-top:8px;display:inline-block;padding:4px 12px;background:${gold};color:#0D1A14;font-size:9pt;font-weight:700;">${esc(prog.statut)}</div>` : ''}
+      </div>
+      <div style="text-align:right;flex-shrink:0;">
+        <div style="font-size:18pt;font-weight:900;color:#000;letter-spacing:.05em;">FREE<span style="color:${gold};">HOME</span></div>
+        <div style="font-size:8pt;color:#666;margin-top:2px;">mhfreehome.com</div>
+        <div style="font-size:8pt;color:#666;">06 30 10 51 78</div>
+      </div>
+    </div>
+  </div>
 
   <main>
     <div class="container">
@@ -1749,6 +1812,12 @@ function renderProgrammePage(prog, lots) {
 
     <!-- SIMULATEUR DNK -->
     ${simulateurHtml}
+
+    <!-- PIED DE PAGE PRINT (masqué à l'écran) -->
+    <div class="print-footer">
+      <div><strong>FREEHOME — Maison &amp; Habitat — Groupe G2O Participation</strong><br>7 rue A.M. Amp&egrave;re, 57070 Metz &mdash; 06 30 10 51 78 &mdash; contact@mhfreehome.com</div>
+      <div style="text-align:right;white-space:nowrap;">mhfreehome.com/programme/${esc(prog.slug || '')}<br><span style="color:#999;font-size:8pt;">Document g&eacute;n&eacute;r&eacute; le ${new Date().toLocaleDateString('fr-FR')}</span></div>
+    </div>
 
     <!-- CTA CONTACT -->
     <div class="cta-band">
