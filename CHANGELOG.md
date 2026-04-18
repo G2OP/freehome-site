@@ -1,5 +1,10 @@
 # Changelog — FREEHOME Site
 
+## [2.3.4] — 2026-04-18
+
+### Nouvelles fonctionnalités
+- **Conseiller IA — heure + statut bureau temps réel** : le system prompt injecte désormais l'heure exacte (Paris, `Europe/Paris`) en plus de la date. Calcul automatique du statut bureau (`OUVERT` / `FERMÉ`) selon les horaires FREEHOME (lun-ven 9h-18h, sam 9h-12h). Le conseiller peut répondre "nous sommes ouverts en ce moment, appelez le 06 30 10 51 78" ou "nous rouvrons lundi à 9h, laissez un message via le formulaire".
+
 ## [2.3.3] — 2026-04-18
 
 ### Nouvelles fonctionnalités

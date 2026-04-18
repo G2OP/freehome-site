@@ -3331,7 +3331,31 @@ async function loadKnowledgeBase() {
 
 // Génère le system prompt avec les données LIVE des programmes
 function buildSystemPrompt() {
-  const now = new Date().toLocaleDateString('fr-FR', {day:'numeric',month:'long',year:'numeric'});
+  const _d = new Date();
+  const now = _d.toLocaleString('fr-FR', {
+    weekday:'long', day:'numeric', month:'long', year:'numeric',
+    hour:'2-digit', minute:'2-digit', timeZone:'Europe/Paris'
+  });
+  // Calcul ouverture bureau (heure Paris)
+  const parisFmt = new Intl.DateTimeFormat('fr-FR', {
+    weekday:'long', hour:'numeric', minute:'numeric',
+    hour12:false, timeZone:'Europe/Paris'
+  });
+  const parts = Object.fromEntries(parisFmt.formatToParts(_d).map(p=>[p.type,p.value]));
+  const dow = parts.weekday; // "lundi", "mardi" …
+  const hParis = parseInt(parts.hour);
+  const mParis = parseInt(parts.minute);
+  const minOfDay = hParis * 60 + mParis;
+  const isWeekday = !['samedi','dimanche'].includes(dow);
+  const isSaturday = dow === 'samedi';
+  // Horaires : lundi-vendredi 9h-18h, samedi 9h-12h
+  const bureauOuvert = (isWeekday && minOfDay >= 9*60 && minOfDay < 18*60)
+    || (isSaturday && minOfDay >= 9*60 && minOfDay < 12*60);
+  const statutBureau = bureauOuvert
+    ? "OUVERT en ce moment"
+    : (dow === 'dimanche' ? "FERMÉ (dimanche)"
+      : isSaturday && minOfDay >= 12*60 ? "FERMÉ (samedi après-midi)"
+      : minOfDay < 9*60 ? "FERMÉ (avant 9h)" : "FERMÉ (après 18h)");
 
   // Sérialise les lots de chaque programme
   const progsCtx = PROGRAMMES.map(p => {
@@ -3372,7 +3396,11 @@ ${lotsStr}`;
     "FREEHOME commercialise DEUX types de biens : (1) des logements neufs residentiel (appartements, maisons, residences seniors) ET (2) des locaux d activite neufs (depots, entrepots, locaux commerciaux — programme DYNAMIK PARK a CUVRY 57). Ne jamais dire que FREEHOME ne vend pas de locaux d activite ou de depots — c est faux. TOUJOURS consulter les donnees des programmes ci-dessous avant de repondre.",
     "Tu combines l expertise d un agent immobilier neuf, d un conseiller en gestion de patrimoine (CGP) et d un specialiste de la fiscalite immobiliere et commerciale francaise.",
     "",
-    "Date du jour: " + now,
+    "Date et heure exactes (Paris) : " + now,
+    "Statut bureau au moment de cette conversation : " + statutBureau,
+    "HORAIRES FREEHOME : Lundi-Vendredi 9h00-18h00 | Samedi 9h00-12h00 | Dimanche et jours feries : ferme.",
+    "Contact direct : 06 30 10 51 78 — contact@mhfreehome.com",
+    "REGLE : si on te demande si les bureaux sont ouverts, si on peut appeler, si quelqu un est disponible — reponds en te basant sur le statut bureau ci-dessus. Si ferme, indique quand c est a nouveau ouvert et propose le formulaire de contact.",
     "",
     "DONNEES TEMPS REEL DE NOS PROGRAMMES:",
     progsCtx,
