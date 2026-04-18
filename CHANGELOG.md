@@ -1,5 +1,10 @@
 # Changelog — FREEHOME Site
 
+## [2.3.1] — 2026-04-18
+
+### Correctifs
+- **Navigation home → plaquettes** : bouton "📄 Plaquette" ajouté dans chaque carte programme (lien vers `/programme/:slug`, visible uniquement si slug défini) et dans le header de l'overlay de détail — permet d'accéder aux pages SSR directement depuis la page d'accueil.
+
 ## [2.3.0] — 2026-04-18
 
 ### Nouvelles fonctionnalités

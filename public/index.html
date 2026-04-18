@@ -1658,7 +1658,10 @@ input,select,textarea{font-size:1rem}
           <span id="pd-loc-txt">—</span>
         </div>
       </div>
-      <button class="pdh-close" onclick="closeDetail()">✕</button>
+      <div style="display:flex;align-items:center;gap:.6rem">
+        <a id="pd-plaquette-link" href="#" target="_blank" rel="noopener" style="display:none;font-size:.75rem;color:#fff;background:var(--forest);padding:.3rem .7rem;border-radius:4px;text-decoration:none;font-weight:600;white-space:nowrap">📄 Plaquette</a>
+        <button class="pdh-close" onclick="closeDetail()">✕</button>
+      </div>
     </div>
     <!-- Tabs navigation — hors du corps scrollant pour rester visibles -->
     <div class="pdb-tabs pdb-tabs-sticky">
@@ -2563,7 +2566,10 @@ function renderProgs(filter='') {
         </div>
         <div class="prog-card-footer">
           <div class="prog-card-elis">${(Array.isArray(p.eligibilites)?p.eligibilites:[]).map(e=>`<span class="badge badge-gray" style="font-size:.65rem">${e}</span>`).join('')}</div>
-          <span style="font-size:.78rem;color:var(--forest);font-weight:600">Voir →</span>
+          <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-top:.2rem">
+            <span style="font-size:.78rem;color:var(--forest);font-weight:600;cursor:pointer">Détails →</span>
+            ${p.slug ? `<a href="/programme/${p.slug}" onclick="event.stopPropagation()" style="font-size:.75rem;color:#fff;background:var(--forest);padding:.25rem .6rem;border-radius:4px;text-decoration:none;font-weight:600;white-space:nowrap">📄 Plaquette</a>` : ''}
+          </div>
         </div>
       </div>
     </div>`;
@@ -2917,6 +2923,18 @@ function openDetail(id) {
 
   document.getElementById('pd-name').textContent = p.nom;
   document.getElementById('pd-loc-txt').textContent = `${p.commune} — ${p.cp}`;
+
+  // ── LIEN PLAQUETTE ──
+  const plaqLink = document.getElementById('pd-plaquette-link');
+  if(plaqLink) {
+    if(p.slug) {
+      plaqLink.href = '/programme/' + p.slug;
+      plaqLink.style.display = 'inline-flex';
+      plaqLink.style.alignItems = 'center';
+    } else {
+      plaqLink.style.display = 'none';
+    }
+  }
 
   // ── FICHE TECHNIQUE ──
   const ficheEl = document.getElementById('pd-fiche');

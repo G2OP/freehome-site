@@ -1173,8 +1173,9 @@ function renderProgrammePage(prog, lots) {
   };
 
   const dnkMode = Number(prog.simulateur_actif) === 1;
-  const accent  = dnkMode ? '#FF4614' : '#16a34a';
-  const accentH = dnkMode ? '#E63E10' : '#15803d';
+  const accent  = dnkMode ? '#FF4614' : '#1C453C';   // orange DNK / vert anglais résidentiel
+  const accentH = dnkMode ? '#E63E10' : '#153429';   // hover
+  const gold    = dnkMode ? '#FF4614' : '#F49516';   // boutons CTA (or comme le site vitrine)
   const photos       = parseJ(prog.photos);
   const atouts       = parseJ(prog.atouts);
   const prestations  = parseJ(prog.prestations);
@@ -1210,7 +1211,7 @@ function renderProgrammePage(prog, lots) {
 
   // ── Lots table ──────────────────────────────────────────────────────────────
   const lotStatusColor = s => {
-    if (s === 'Disponible') return '#16a34a';
+    if (s === 'Disponible') return '#1C453C';
     if (s === 'R\u00E9serv\u00E9') return '#d97706';
     if (s === 'Livr\u00E9') return '#2563eb';
     if (s === 'Bloqu\u00E9') return '#6b7280';
@@ -1234,7 +1235,23 @@ function renderProgrammePage(prog, lots) {
 
   // ── Prestations ────────────────────────────────────────────────────────────
   const prestHtml = prestations.length > 0
-    ? prestations.map(p => '<li style="padding:8px 0 8px 24px;position:relative;border-bottom:1px solid #f3f4f6;font-size:15px;"><span style="position:absolute;left:0;color:' + accent + ';font-weight:700;">&#10003;</span>' + esc(typeof p === 'string' ? p : p.titre || p.texte || JSON.stringify(p)) + '</li>').join('')
+    ? prestations.map(p => {
+        if (typeof p === 'string') {
+          return '<li style="padding:8px 0 8px 24px;position:relative;border-bottom:1px solid #f3f4f6;font-size:15px;"><span style="position:absolute;left:0;color:' + accent + ';font-weight:700;">&#10003;</span>' + esc(p) + '</li>';
+        }
+        // Format {cat, items} — catégorie + liste d'items
+        if (p.cat && Array.isArray(p.items)) {
+          const itemsList = p.items.map(item =>
+            '<li style="padding:4px 0 4px 20px;position:relative;font-size:14px;color:#374151;"><span style="position:absolute;left:0;color:' + accent + ';font-size:12px;line-height:1.8;">&#10003;</span>' + esc(item) + '</li>'
+          ).join('');
+          return '<li style="list-style:none;padding:12px 0;border-bottom:1px solid #f3f4f6;">'
+            + '<div style="font-weight:700;font-size:14px;color:#111827;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em;font-size:12px;">' + esc(p.cat) + '</div>'
+            + '<ul style="list-style:none;padding:0;margin:0;">' + itemsList + '</ul>'
+            + '</li>';
+        }
+        // Fallback : p.titre ou p.texte
+        return '<li style="padding:8px 0 8px 24px;position:relative;border-bottom:1px solid #f3f4f6;font-size:15px;"><span style="position:absolute;left:0;color:' + accent + ';font-weight:700;">&#10003;</span>' + esc(p.titre || p.texte || String(p)) + '</li>';
+      }).join('')
     : '';
 
   // ── Éligibilités chips ─────────────────────────────────────────────────────
@@ -1566,11 +1583,11 @@ function renderProgrammePage(prog, lots) {
     .nav{position:sticky;top:0;z-index:100;background:#000;display:flex;justify-content:space-between;align-items:center;padding:0 20px;height:56px;}
     @media(min-width:640px){.nav{padding:0 32px;}}
     .nav-logo{font-size:18px;font-weight:700;color:#fff;letter-spacing:.05em;}
-    .nav-logo span{color:${accent};}
+    .nav-logo span{color:${gold};}
     .nav-links{display:flex;gap:4px;align-items:center;}
     .nav-links a{color:#fff;font-size:13px;font-weight:600;padding:8px 14px;min-height:44px;display:flex;align-items:center;transition:background .15s;}
-    .nav-links a:hover{background:${accent};}
-    .nav-links .cta{background:${accent};}
+    .nav-links a:hover{background:rgba(255,255,255,.1);}
+    .nav-links .cta{background:${gold};color:${dnkMode ? '#fff' : '#0D1A14'};border-radius:${dnkMode ? '0' : '4px'};}
     /* Hero */
     .hero{position:relative;overflow:hidden;}
     .hero-img{width:100%;height:280px;object-fit:cover;object-position:center 55%;}
@@ -1582,7 +1599,7 @@ function renderProgrammePage(prog, lots) {
     @media(min-width:640px){.hero-ov{padding:32px 32px 20px;}}
     .hero-ov h1{font-size:clamp(1.5rem,4vw,2.5rem);font-weight:700;color:#fff;line-height:1.15;letter-spacing:-.02em;}
     .hero-ov .subline{font-size:16px;color:rgba(255,255,255,.85);margin-top:8px;}
-    .hero-ov .badge{display:inline-block;padding:4px 12px;background:${accent};color:#fff;font-size:12px;font-weight:700;border-radius:${dnkMode ? '0' : '4px'};margin-top:10px;}
+    .hero-ov .badge{display:inline-block;padding:4px 12px;background:${gold};color:${dnkMode ? '#fff' : '#0D1A14'};font-size:12px;font-weight:700;border-radius:${dnkMode ? '0' : '4px'};margin-top:10px;}
     /* Breadcrumb */
     .breadcrumb{padding:12px 0;font-size:13px;color:#6b7280;display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
     .breadcrumb a{color:#6b7280;}
@@ -1610,9 +1627,9 @@ function renderProgrammePage(prog, lots) {
     /* Contact form */
     .form-contact input,.form-contact select,.form-contact textarea{width:100%;padding:12px 14px;font-size:16px;font-family:inherit;border:1px solid #d1d5db;border-radius:${dnkMode ? '0' : '6px'};background:#fff;margin-bottom:12px;color:#111827;}
     .form-contact input:focus,.form-contact select:focus,.form-contact textarea:focus{outline:2px solid ${accent};border-color:${accent};}
-    .btn-cta{display:inline-flex;align-items:center;justify-content:center;padding:14px 28px;background:${accent};color:#fff;border:none;border-radius:${dnkMode ? '0' : '6px'};font-size:16px;font-weight:600;cursor:pointer;width:100%;min-height:44px;transition:background .15s;}
-    .btn-cta:hover{background:${accentH};}
-    .btn-cta:focus-visible{outline:2px solid ${accent};outline-offset:2px;}
+    .btn-cta{display:inline-flex;align-items:center;justify-content:center;padding:14px 28px;background:${gold};color:${dnkMode ? '#fff' : '#0D1A14'};border:none;border-radius:${dnkMode ? '0' : '6px'};font-size:16px;font-weight:700;cursor:pointer;width:100%;min-height:44px;transition:background .15s,transform .1s;}
+    .btn-cta:hover{background:${dnkMode ? accentH : '#e8880a'};transform:translateY(-1px);}
+    .btn-cta:focus-visible{outline:2px solid ${gold};outline-offset:2px;}
     /* CTA band */
     .cta-band{background:${accent};color:#fff;padding:2rem 20px;text-align:center;}
     .cta-band h2{font-size:clamp(1.25rem,3vw,1.75rem);font-weight:700;margin-bottom:8px;}
@@ -1791,7 +1808,7 @@ function renderProgrammePage(prog, lots) {
       });
       const d = await r.json();
       if (d.success) {
-        msg.style.color='#16a34a';
+        msg.style.color='#1C453C';
         msg.textContent = 'Message envoy\u00E9 ! Nous vous rappelons sous 24h.';
         document.getElementById('f-prenom').value='';
         document.getElementById('f-nom').value='';
