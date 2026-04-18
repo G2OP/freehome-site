@@ -869,10 +869,9 @@ export default {
       const now = new Date().toISOString().split('T')[0];
       let progUrls = '';
       try {
-        const progs = await env.DB.prepare("SELECT nom, commune, cp FROM programmes ORDER BY id").all();
+        const progs = await env.DB.prepare("SELECT nom, slug FROM programmes WHERE slug != '' ORDER BY id").all();
         progUrls = progs.results.map(p => {
-          const slug = `/${p.commune.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'')}-${p.nom.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'')}`;
-          return `  <url><loc>${BASE}${slug}</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>`;
+          return `  <url><loc>${BASE}/programme/${p.slug}</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>`;
         }).join('\n');
       } catch(e) {}
       const xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -1026,6 +1025,43 @@ ${progUrls}
       }
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // GET /programme/:slug — Page SSR programme (data-driven, auto à chaque ajout)
+    // ─────────────────────────────────────────────────────────────────────────
+    const progSlugMatch = path.match(/^\/programme\/([a-z0-9-]+)$/);
+    if (progSlugMatch && request.method === 'GET') {
+      const slug = progSlugMatch[1];
+      try {
+        const prog = await env.DB.prepare(
+          'SELECT * FROM programmes WHERE slug=?'
+        ).bind(slug).first();
+        if (!prog) {
+          return new Response(
+            '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Programme introuvable | FREEHOME</title><meta name="viewport" content="width=device-width,initial-scale=1"></head>' +
+            '<body style="font-family:\'DM Sans\',sans-serif;padding:60px 20px;text-align:center;background:#fff;">' +
+            '<p style="font-size:14px;color:#555;letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px;">FREEHOME</p>' +
+            '<h1 style="font-size:2rem;margin-bottom:12px;">Programme introuvable</h1>' +
+            '<p style="color:#666;margin-bottom:32px;">Ce programme n\'existe pas ou n\'est plus disponible.</p>' +
+            '<a href="/" style="background:#16a34a;color:#fff;padding:12px 28px;text-decoration:none;font-weight:600;">Voir tous les programmes</a>' +
+            '</body></html>',
+            { status: 404, headers: { 'Content-Type': 'text/html; charset=UTF-8' } }
+          );
+        }
+        const lotsResult = await env.DB.prepare(
+          'SELECT * FROM lots WHERE programme_nom=? ORDER BY num'
+        ).bind(prog.nom).all();
+        const html = renderProgrammePage(prog, lotsResult.results || []);
+        return new Response(html, {
+          headers: {
+            'Content-Type': 'text/html; charset=UTF-8',
+            'Cache-Control': 'public, max-age=300, s-maxage=3600'
+          }
+        });
+      } catch(e) {
+        return new Response('Erreur: ' + e.message, { status: 500, headers: { 'Content-Type': 'text/plain' } });
+      }
+    }
+
     // Fallback assets statiques
     try {
       return env.ASSETS.fetch(request);
@@ -1104,4 +1140,674 @@ function chunkText(text, programmeName, docType, maxWords = 400, overlapWords = 
     chunks.push(prefix + current.join('\n\n'));
   }
   return chunks;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SSR : Rendu HTML d'une page programme (data-driven)
+// Mode résidentiel (simulateur_actif=0) → vert #16a34a
+// Mode activité/DNK (simulateur_actif=1) → orange #FF4614
+// ─────────────────────────────────────────────────────────────────────────────
+function renderProgrammePage(prog, lots) {
+  const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const parseJ = (v, fallback=[]) => {
+    if (Array.isArray(v)) return v;
+    try { const r = JSON.parse(v); return Array.isArray(r) ? r : fallback; }
+    catch(e) { return fallback; }
+  };
+  const parseElig = v => {
+    if (Array.isArray(v)) return v;
+    if (!v) return [];
+    try { const r = JSON.parse(v); return Array.isArray(r) ? r : []; }
+    catch(e) { return String(v).split(',').map(s=>s.trim()).filter(Boolean); }
+  };
+  const fmtEur = n => {
+    if (!n || Number(n) === 0) return '';
+    const m = Math.round(Number(n));
+    let s = m.toString();
+    let result = '';
+    for (let i = 0; i < s.length; i++) {
+      if (i > 0 && (s.length - i) % 3 === 0) result += '\u00A0';
+      result += s[i];
+    }
+    return result + '\u00A0\u20AC';
+  };
+
+  const dnkMode = Number(prog.simulateur_actif) === 1;
+  const accent  = dnkMode ? '#FF4614' : '#16a34a';
+  const accentH = dnkMode ? '#E63E10' : '#15803d';
+  const photos       = parseJ(prog.photos);
+  const atouts       = parseJ(prog.atouts);
+  const prestations  = parseJ(prog.prestations);
+  const eligibilites = parseElig(prog.eligibilites);
+  const seoTitle = esc(prog.seo_title || prog.nom + ' \u2014 R\u00E9sidence neuve \u00E0 ' + prog.commune + ' | FREEHOME');
+  const seoDesc  = esc(prog.seo_description || 'Programme immobilier neuf ' + prog.nom + ' \u00E0 ' + prog.commune + '. D\u00E9couvrez les lots disponibles.');
+  const canonical = 'https://www.mhfreehome.com/programme/' + prog.slug;
+  const coverImg  = prog.img_cover || '';
+  const prixMin   = Number(prog.prix_min) || 0;
+  const prixMax   = Number(prog.prix_max) || 0;
+  const prixLabel = prixMin && prixMax && prixMin !== prixMax
+    ? fmtEur(prixMin) + ' \u00E0 ' + fmtEur(prixMax)
+    : prixMin ? '\u00C0 partir de ' + fmtEur(prixMin) : '';
+
+  const lotsDisponibles = lots.filter(l => l.statut === 'Disponible');
+  const lotsReserves    = lots.filter(l => l.statut === 'R\u00E9serv\u00E9');
+
+  const jsonLd = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "RealEstateListing",
+    "name": prog.nom,
+    "description": prog.desc_courte || prog.desc_longue || '',
+    "url": canonical,
+    "image": coverImg,
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": prog.commune,
+      "postalCode": prog.cp,
+      "streetAddress": prog.adresse || '',
+      "addressCountry": "FR"
+    }
+  });
+
+  // ── Lots table ──────────────────────────────────────────────────────────────
+  const lotStatusColor = s => {
+    if (s === 'Disponible') return '#16a34a';
+    if (s === 'R\u00E9serv\u00E9') return '#d97706';
+    if (s === 'Livr\u00E9') return '#2563eb';
+    if (s === 'Bloqu\u00E9') return '#6b7280';
+    return '#374151';
+  };
+  const lotsHtml = lots.length > 0 ? lots.map(l =>
+    '<tr>' +
+    '<td style="font-weight:600;">' + esc(l.num) + '</td>' +
+    '<td>' + esc(l.typo || '') + '</td>' +
+    '<td>' + (l.etage !== undefined && l.etage !== '' ? esc(String(l.etage)) : '\u2014') + '</td>' +
+    '<td>' + (l.surface ? l.surface + '\u00A0m\u00B2' : '\u2014') + '</td>' +
+    '<td style="font-weight:600;">' + (l.prix ? fmtEur(l.prix) : '\u2014') + '</td>' +
+    '<td><span style="display:inline-block;padding:3px 10px;background:' + lotStatusColor(l.statut) + ';color:#fff;border-radius:' + (dnkMode ? '0' : '4px') + ';font-size:12px;font-weight:600;">' + esc(l.statut || '') + '</span></td>' +
+    '</tr>'
+  ).join('') : '<tr><td colspan="6" style="text-align:center;color:#666;padding:20px;">Aucun lot renseigné</td></tr>';
+
+  // ── Atouts ──────────────────────────────────────────────────────────────────
+  const atoutsHtml = atouts.length > 0
+    ? atouts.map(a => '<li style="padding:8px 0 8px 24px;position:relative;border-bottom:1px solid #f3f4f6;font-size:15px;"><span style="position:absolute;left:0;color:' + accent + ';font-weight:700;">&#8212;</span>' + esc(typeof a === 'string' ? a : a.titre || a.texte || JSON.stringify(a)) + '</li>').join('')
+    : '';
+
+  // ── Prestations ────────────────────────────────────────────────────────────
+  const prestHtml = prestations.length > 0
+    ? prestations.map(p => '<li style="padding:8px 0 8px 24px;position:relative;border-bottom:1px solid #f3f4f6;font-size:15px;"><span style="position:absolute;left:0;color:' + accent + ';font-weight:700;">&#10003;</span>' + esc(typeof p === 'string' ? p : p.titre || p.texte || JSON.stringify(p)) + '</li>').join('')
+    : '';
+
+  // ── Éligibilités chips ─────────────────────────────────────────────────────
+  const eligHtml = eligibilites.map(e =>
+    '<span style="display:inline-block;padding:4px 12px;border:1px solid ' + accent + ';color:' + accent + ';font-size:13px;font-weight:600;border-radius:' + (dnkMode ? '0' : '4px') + ';margin:3px;">' + esc(e) + '</span>'
+  ).join('');
+
+  // ── Photos galerie ─────────────────────────────────────────────────────────
+  const photosHtml = photos.length > 0
+    ? photos.map(url => '<img src="' + esc(typeof url === 'string' ? url : url.url || '') + '" alt="' + esc(prog.nom) + '" loading="lazy" style="width:100%;height:220px;object-fit:cover;display:block;">')
+      .join('')
+    : '';
+
+  // ── Simulateur HTML (DNK uniquement) ──────────────────────────────────────
+  const simulateurHtml = dnkMode ? `
+<section id="simulateur" style="background:#fff;padding:3rem 0;">
+  <div style="max-width:1280px;margin:0 auto;padding:0 20px;">
+    <h2 style="font-size:clamp(1.5rem,3vw,1.75rem);font-weight:700;border-bottom:3px solid #FF4614;padding-bottom:8px;margin-bottom:20px;">SIMULATEUR INVESTISSEUR &mdash; CHOISISSEZ UNE CONFIGURATION</h2>
+
+    <div style="margin-bottom:16px;">
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;" class="preset-grid">
+        <div class="preset-card active" data-surface="177" data-price="209500" data-rent="96" onclick="applyPreset(this)" tabindex="0" role="button">
+          <div class="pc-name">1 cellule inter.</div>
+          <div class="pc-detail">177 m&sup2; &mdash; 209&nbsp;500&nbsp;&euro;</div>
+        </div>
+        <div class="preset-card" data-surface="183" data-price="219600" data-rent="110" onclick="applyPreset(this)" tabindex="0" role="button">
+          <div class="pc-name">1 cellule commerce</div>
+          <div class="pc-detail">183 m&sup2; &mdash; 219&nbsp;600&nbsp;&euro;</div>
+        </div>
+        <div class="preset-card" data-surface="354" data-price="419000" data-rent="96" onclick="applyPreset(this)" tabindex="0" role="button">
+          <div class="pc-name">2 cellules inter.</div>
+          <div class="pc-detail">354 m&sup2; &mdash; 419&nbsp;000&nbsp;&euro;</div>
+        </div>
+        <div class="preset-card" data-surface="708" data-price="838000" data-rent="96" onclick="applyPreset(this)" tabindex="0" role="button">
+          <div class="pc-name">4 cellules inter.</div>
+          <div class="pc-detail">708 m&sup2; &mdash; 838&nbsp;000&nbsp;&euro;</div>
+        </div>
+        <div class="preset-card" data-surface="366" data-price="439200" data-rent="110" onclick="applyPreset(this)" tabindex="0" role="button">
+          <div class="pc-name">Lot vitrine</div>
+          <div class="pc-detail">366 m&sup2; &mdash; 439&nbsp;200&nbsp;&euro;</div>
+        </div>
+        <div class="preset-card" data-surface="2275" data-price="2600000" data-rent="88" onclick="applyPreset(this)" tabindex="0" role="button">
+          <div class="pc-name">Activit&eacute; sportive</div>
+          <div class="pc-detail">2&nbsp;275 m&sup2; &mdash; &Agrave; n&eacute;gocier</div>
+        </div>
+        <div class="preset-card" data-surface="3350" data-price="4000000" data-rent="96" onclick="applyPreset(this)" tabindex="0" role="button">
+          <div class="pc-name">B&acirc;timent complet</div>
+          <div class="pc-detail">3&nbsp;350 m&sup2; &mdash; 4&nbsp;000&nbsp;000&nbsp;&euro;</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sim-main">
+      <!-- PARAMETRES -->
+      <div class="params">
+        <div class="panel">
+          <h3>Acquisition</h3>
+          <div class="form-row">
+            <label>Surface totale <span class="val" id="v-surface">177 m&sup2;</span></label>
+            <input type="range" id="s-surface" min="100" max="3500" step="1" value="177" oninput="calc()">
+          </div>
+          <div class="form-row">
+            <label>Prix d&rsquo;acquisition HT</label>
+            <input type="number" id="n-price" value="209500" step="500" oninput="calc()">
+          </div>
+          <div class="form-row">
+            <label>Frais de notaire <span class="val" id="v-notaire">3%</span></label>
+            <input type="range" id="s-notaire" min="0" max="8" step="0.5" value="3" oninput="calc()">
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Location</h3>
+          <div class="form-row">
+            <label>Loyer HT /m&sup2;/an <span class="val" id="v-rent">96&nbsp;&euro;</span></label>
+            <input type="range" id="s-rent" min="60" max="140" step="1" value="96" oninput="calc()">
+          </div>
+          <div class="form-row">
+            <label>Taux d&rsquo;occupation <span class="val" id="v-occup">90%</span></label>
+            <input type="range" id="s-occup" min="50" max="100" step="1" value="90" oninput="calc()">
+          </div>
+          <div class="form-row">
+            <label>Indexation ILAT/ILC <span class="val" id="v-index">2,0%</span></label>
+            <input type="range" id="s-index" min="0" max="5" step="0.1" value="2.0" oninput="calc()">
+            <div style="display:flex;gap:6px;margin-top:6px;align-items:center;">
+              <span style="font-size:12px;color:#8A8A8D;">R&eacute;vision :</span>
+              <button class="proj-btn active" data-rev="1" onclick="setRevision(1)">Annuelle</button>
+              <button class="proj-btn" data-rev="3" onclick="setRevision(3)">Triennale</button>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Financement</h3>
+          <div class="form-row">
+            <label>Apport personnel <span class="val" id="v-apport">20%</span></label>
+            <input type="range" id="s-apport" min="0" max="100" step="5" value="20" oninput="calc()">
+          </div>
+          <div class="form-row">
+            <label>Taux de cr&eacute;dit <span class="val" id="v-taux">3,5%</span></label>
+            <input type="range" id="s-taux" min="1" max="7" step="0.1" value="3.5" oninput="calc()">
+          </div>
+          <div class="form-row">
+            <label>Dur&eacute;e cr&eacute;dit <span class="val" id="v-duree">20 ans</span></label>
+            <input type="range" id="s-duree" min="7" max="25" step="1" value="20" oninput="calc()">
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Hypoth&egrave;se de revente</h3>
+          <div class="form-row">
+            <label>Appr&eacute;ciation annuelle du bien <span class="val" id="v-appre">1,5%</span></label>
+            <input type="range" id="s-appre" min="0" max="5" step="0.1" value="1.5" oninput="calc()">
+            <div id="appre-gauge" style="margin-top:8px;font-size:12px;line-height:1.5;color:#8A8A8D;"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Charges annuelles /m&sup2; &mdash; Qui paie ?</h3>
+          <p style="font-size:12px;color:#8A8A8D;margin-bottom:12px;">Bail commercial&nbsp;: la plupart des charges sont report&eacute;es sur le locataire. Cliquez pour basculer.</p>
+          <div class="form-row">
+            <label>Taxe fonci&egrave;re <span class="val" id="v-tf">15&nbsp;&euro;/m&sup2;</span></label>
+            <input type="range" id="s-tf" min="5" max="40" step="1" value="15" oninput="calc()">
+            <div class="toggle-row">
+              <span class="toggle-who locataire" id="tw-tf">Locataire</span>
+              <div class="toggle-switch locataire" id="t-tf" onclick="toggleCharge('tf')" role="switch" aria-checked="false" tabindex="0"></div>
+            </div>
+          </div>
+          <div class="form-row">
+            <label>Assurance PNO <span class="val" id="v-pno">3&nbsp;&euro;/m&sup2;</span></label>
+            <input type="range" id="s-pno" min="1" max="10" step="0.5" value="3" oninput="calc()">
+            <div class="toggle-row">
+              <span class="toggle-who bailleur" id="tw-pno">Bailleur</span>
+              <div class="toggle-switch" id="t-pno" onclick="toggleCharge('pno')" role="switch" aria-checked="true" tabindex="0"></div>
+            </div>
+          </div>
+          <div class="form-row">
+            <label>Charges copropri&eacute;t&eacute; <span class="val" id="v-copro">8&nbsp;&euro;/m&sup2;</span></label>
+            <input type="range" id="s-copro" min="0" max="20" step="1" value="8" oninput="calc()">
+            <div class="toggle-row">
+              <span class="toggle-who locataire" id="tw-copro">Locataire</span>
+              <div class="toggle-switch locataire" id="t-copro" onclick="toggleCharge('copro')" role="switch" aria-checked="false" tabindex="0"></div>
+            </div>
+          </div>
+          <div class="form-row">
+            <label>Gestion locative <span class="val" id="v-gestion">8%</span></label>
+            <input type="range" id="s-gestion" min="0" max="15" step="1" value="8" oninput="calc()">
+            <div class="toggle-row">
+              <span class="toggle-who bailleur" id="tw-gestion">Bailleur</span>
+              <div class="toggle-switch" id="t-gestion" onclick="toggleCharge('gestion')" role="switch" aria-checked="true" tabindex="0"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESULTATS -->
+      <div class="results">
+        <div class="big-stat" id="bs-rdt" style="background:#FF4614;">
+          <div class="bs-val" id="r-rdt-brut" style="font-size:2.5rem;font-weight:700;color:#fff;text-align:center;">—</div>
+          <div style="text-align:center;font-size:14px;color:#fff;font-weight:600;margin-top:4px;">Rendement brut</div>
+        </div>
+        <div class="result-card">
+          <h4>Revenus locatifs</h4>
+          <div class="result-row"><span class="result-label">Loyer brut annuel</span><span class="result-value" id="r-loyer-brut">&mdash;</span></div>
+          <div class="result-row"><span class="result-label">Loyer net (apr&egrave;s vacance)</span><span class="result-value" id="r-loyer-net">&mdash;</span></div>
+          <div class="result-row"><span class="result-label">Loyer mensuel net</span><span class="result-value highlight" id="r-loyer-mens">&mdash;</span></div>
+        </div>
+        <div class="result-card">
+          <h4>Rentabilit&eacute;</h4>
+          <div class="result-row"><span class="result-label">Rendement brut</span><span class="result-value highlight" id="r-rdt-brut2">&mdash;</span></div>
+          <div class="result-row"><span class="result-label">Rendement net (apr&egrave;s charges bailleur)</span><span class="result-value" id="r-rdt-net">&mdash;</span></div>
+          <div class="result-row"><span class="result-label">Charges bailleur annuelles</span><span class="result-value" id="r-charges">&mdash;</span></div>
+        </div>
+        <div class="result-card">
+          <h4>Financement</h4>
+          <div class="result-row"><span class="result-label">Investissement total (prix + notaire)</span><span class="result-value" id="r-invest">&mdash;</span></div>
+          <div class="result-row"><span class="result-label">Apport personnel</span><span class="result-value" id="r-apport">&mdash;</span></div>
+          <div class="result-row"><span class="result-label">Montant emprunt&eacute;</span><span class="result-value" id="r-emprunt">&mdash;</span></div>
+          <div class="result-row"><span class="result-label">Mensualit&eacute; cr&eacute;dit</span><span class="result-value highlight" id="r-mensualite">&mdash;</span></div>
+          <div class="result-row"><span class="result-label">Co&ucirc;t total du cr&eacute;dit</span><span class="result-value" id="r-cout-credit">&mdash;</span></div>
+        </div>
+        <div class="result-card">
+          <h4>Cash-flow mensuel &mdash; D&eacute;tail</h4>
+          <div class="cf-detail" id="cf-detail"></div>
+          <div style="margin-top:10px;">
+            <div class="result-row"><span class="result-label">Cash-flow annuel</span><span class="result-value" id="r-cashflow-an">&mdash;</span></div>
+            <div class="result-row"><span class="result-label">Couverture des sorties</span><span class="result-value" id="r-couverture">&mdash;</span></div>
+            <div style="height:6px;background:#333;border-radius:3px;margin-top:6px;overflow:hidden;"><div id="cov-fill" style="height:100%;width:0%;background:#FF4614;transition:width .3s;"></div></div>
+          </div>
+        </div>
+        <div class="result-card">
+          <h4>Flux de tr&eacute;sorerie pr&eacute;visionnel</h4>
+          <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap;">
+            <span style="font-size:13px;color:#d4d4d4;">Projection&nbsp;:</span>
+            <button class="proj-btn" data-y="10" onclick="setProjDuree(10)">10 ans</button>
+            <button class="proj-btn" data-y="15" onclick="setProjDuree(15)">15 ans</button>
+            <button class="proj-btn active" data-y="20" onclick="setProjDuree(20)">20 ans</button>
+            <button class="proj-btn" data-y="25" onclick="setProjDuree(25)">25 ans</button>
+          </div>
+          <div style="cursor:pointer;display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:8px;" onclick="toggleFlux()">
+            <span id="flux-arrow" style="font-size:18px;color:#FF4614;transition:transform 0.2s;">&#9654;</span>
+            <span style="font-size:14px;font-weight:600;color:#d4d4d4;">D&eacute;tail ann&eacute;e par ann&eacute;e</span>
+          </div>
+          <div id="flux-wrap" style="max-height:400px;overflow-y:auto;display:none;">
+            <div style="overflow-x:auto;">
+              <table style="font-size:12px;width:100%;border-collapse:collapse;">
+                <thead><tr>
+                  <th style="width:36px;background:#000;color:#fff;padding:6px 4px;text-align:left;font-size:11px;">An.</th>
+                  <th style="background:#000;color:#fff;padding:6px 4px;text-align:left;font-size:11px;">Loyer net</th>
+                  <th style="background:#000;color:#fff;padding:6px 4px;text-align:left;font-size:11px;">Cr&eacute;dit</th>
+                  <th style="background:#000;color:#fff;padding:6px 4px;text-align:left;font-size:11px;">Charges</th>
+                  <th style="background:#000;color:#fff;padding:6px 4px;text-align:left;font-size:11px;">CF net</th>
+                  <th style="background:#000;color:#fff;padding:6px 4px;text-align:left;font-size:11px;">Cumul&eacute;</th>
+                </tr></thead>
+                <tbody id="flux-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="result-card">
+          <h4>Bilan &agrave; la revente &mdash; <span id="r-proj-label">20 ans</span></h4>
+          <div class="result-row"><span class="result-label">Capital investi (apport + effort)</span><span class="result-value" id="r-capital-total">&mdash;</span></div>
+          <div class="result-row"><span class="result-label" id="r-vp-label">Valeur patrimoniale (+1,5%/an)</span><span class="result-value" id="r-valeur-pat">&mdash;</span></div>
+          <div class="result-row"><span class="result-label">CRD (capital restant d&ucirc;)</span><span class="result-value" id="r-crd-restant">&mdash;</span></div>
+          <div class="result-row"><span class="result-label">Valeur nette &agrave; la revente</span><span class="result-value" id="r-valeur-nette">&mdash;</span></div>
+          <div class="result-row"><span class="result-label">CF cumul&eacute; net</span><span class="result-value" id="r-cumul-cf">&mdash;</span></div>
+          <div style="border-top:1px solid rgba(255,255,255,0.15);margin:8px 0;"></div>
+          <div class="result-row"><span class="result-label">Gain total net</span><span class="result-value highlight" id="r-gain-total">&mdash;</span></div>
+          <div class="result-row"><span class="result-label">TRI (taux de rendement interne)</span><span class="result-value highlight" id="r-rci">&mdash;</span></div>
+          <div class="result-row"><span class="result-label">Multiplicateur</span><span class="result-value" id="r-multi">&mdash;</span></div>
+        </div>
+      </div><!-- /results -->
+    </div><!-- /sim-main -->
+
+    <div style="display:flex;gap:12px;flex-wrap:wrap;padding:0 0 3rem;">
+      <button style="min-height:44px;padding:12px 24px;background:#000;color:#fff;border:none;cursor:pointer;font-weight:600;font-size:14px;" onclick="resetAll()">R&eacute;initialiser</button>
+      <button style="min-height:44px;padding:12px 24px;background:#FF4614;color:#fff;border:none;cursor:pointer;font-weight:600;font-size:14px;" onclick="generateStudyPDF()">G&eacute;n&eacute;rer mon &eacute;tude PDF</button>
+    </div>
+  </div>
+</section>` : '';
+
+  // ── CSS partagé + mode-spécifique ─────────────────────────────────────────
+  const simCss = dnkMode ? `
+    :root {
+      --sim-or: #FF4614; --sim-ok: #16a34a; --sim-warn: #d97706; --sim-err: #dc2626;
+      --sim-bk: #000; --sim-wh: #fff; --sim-gd: #2C2C2B; --sim-gm: #8A8A8D; --sim-gl: #F0F0F0;
+    }
+    .preset-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+    @media(min-width:640px){ .preset-grid { grid-template-columns:repeat(4,1fr); } }
+    @media(min-width:1024px){ .preset-grid { grid-template-columns:repeat(7,1fr); } }
+    .preset-card { background:#000;color:#fff;padding:12px 10px;text-align:center;cursor:pointer;border:2px solid transparent;transition:border-color .15s;min-height:44px;display:flex;flex-direction:column;justify-content:center; }
+    .preset-card:hover,.preset-card:focus-visible { border-color:#FF4614;outline:none; }
+    .preset-card.active { background:#FF4614;border-color:#FF4614; }
+    .preset-card .pc-name { font-size:13px;font-weight:700;line-height:1.2; }
+    .preset-card .pc-detail { font-size:12px;color:#ccc;font-weight:500;margin-top:4px; }
+    .preset-card.active .pc-detail { color:rgba(255,255,255,.8); }
+    .sim-main { display:grid;grid-template-columns:1fr;gap:20px;padding:20px 0 0; }
+    @media(min-width:768px){ .sim-main { grid-template-columns:1fr 1fr; } }
+    .panel { background:#F0F0F0;padding:20px;margin-bottom:16px; }
+    .panel h3 { font-size:15px;font-weight:700;color:#000;margin-bottom:14px;border-bottom:2px solid #FF4614;padding-bottom:6px; }
+    .form-row { margin-bottom:14px; }
+    .form-row label { display:flex;justify-content:space-between;align-items:baseline;font-size:13px;font-weight:500;color:#2C2C2B;margin-bottom:4px; }
+    .form-row label .val { font-weight:700;color:#FF4614;font-size:15px; }
+    input[type=range] { -webkit-appearance:none;appearance:none;width:100%;height:6px;background:#ddd;outline:none;border-radius:3px;cursor:pointer; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance:none;appearance:none;width:22px;height:22px;background:#FF4614;border-radius:50%;cursor:pointer;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3); }
+    input[type=range]::-moz-range-thumb { width:22px;height:22px;background:#FF4614;border-radius:50%;cursor:pointer;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3); }
+    input[type=number] { width:100%;padding:10px;font-size:16px;font-family:inherit;border:1px solid #ccc;background:#fff;font-weight:600;color:#2C2C2B; }
+    input[type=number]:focus { outline:2px solid #FF4614;border-color:#FF4614; }
+    .results { position:sticky;top:72px; }
+    @media(max-width:767px){ .results { position:static; } }
+    .result-card { background:#000;color:#fff;padding:16px;margin-bottom:10px; }
+    .result-card h4 { font-size:13px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px; }
+    .result-row { display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.08); }
+    .result-row:last-child { border-bottom:none; }
+    .result-label { font-size:13px;color:#d4d4d4;font-weight:500; }
+    .result-value { font-size:16px;font-weight:700;color:#fff; }
+    .result-value.highlight { color:#FF4614;font-size:20px; }
+    .result-value.ok { color:#16a34a; }
+    .result-value.warn { color:#d97706; }
+    .result-value.err { color:#dc2626; }
+    .big-stat { padding:20px;text-align:center;margin-bottom:10px; }
+    .cf-detail { background:rgba(255,255,255,.05);padding:10px;margin-bottom:4px; }
+    .cf-line { display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.08); }
+    .cf-op { font-size:18px;font-weight:700;width:20px;text-align:center; }
+    .cf-lab { flex:1;font-size:13px;color:#d4d4d4; }
+    .cf-val { font-size:14px;font-weight:700; }
+    .cf-total { border-top:2px solid rgba(255,255,255,.2);margin-top:4px;padding-top:8px; }
+    .yr-positive td { color:#16a34a; }
+    .yr-negative td { color:#dc2626; }
+    .yr-pivot { border-top:2px solid #FF4614; }
+    .toggle-row { display:flex;align-items:center;gap:8px;margin-top:6px; }
+    .toggle-who { font-size:12px;font-weight:600;min-width:64px; }
+    .toggle-who.locataire { color:#16a34a; }
+    .toggle-who.bailleur { color:#dc2626; }
+    .toggle-switch { width:44px;height:24px;background:#dc2626;border-radius:12px;position:relative;cursor:pointer;transition:background .2s; }
+    .toggle-switch::after { content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:left .2s; }
+    .toggle-switch.locataire { background:#16a34a; }
+    .toggle-switch.locataire::after { left:22px; }
+    .proj-btn { background:#333;color:#fff;border:none;padding:6px 12px;font-size:12px;cursor:pointer;font-weight:600;transition:background .15s;min-height:32px; }
+    .proj-btn.active { background:#FF4614; }
+    .proj-btn:hover { background:#FF4614; }
+    .cov-bar { height:6px;background:#333;border-radius:3px;margin-top:6px;overflow:hidden; }
+    .cov-fill { height:100%;transition:width .3s; }
+  ` : '';
+
+  // ── HTML complet ──────────────────────────────────────────────────────────
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${seoTitle}</title>
+  <meta name="description" content="${seoDesc}">
+  <link rel="canonical" href="${canonical}">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="${canonical}">
+  <meta property="og:title" content="${seoTitle}">
+  <meta property="og:description" content="${seoDesc}">
+  ${coverImg ? `<meta property="og:image" content="${esc(coverImg)}">` : ''}
+  <meta name="twitter:card" content="summary_large_image">
+  <script type="application/ld+json">${jsonLd}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'DM Sans',sans-serif;background:#fff;color:#111827;font-size:16px;line-height:1.6;}
+    a{color:${accent};text-decoration:none;}
+    img{max-width:100%;display:block;}
+    .container{width:100%;max-width:1280px;margin:0 auto;padding:0 20px;}
+    @media(min-width:640px){.container{padding:0 24px;}}
+    @media(min-width:1024px){.container{padding:0 32px;}}
+    /* Navbar */
+    .nav{position:sticky;top:0;z-index:100;background:#000;display:flex;justify-content:space-between;align-items:center;padding:0 20px;height:56px;}
+    @media(min-width:640px){.nav{padding:0 32px;}}
+    .nav-logo{font-size:18px;font-weight:700;color:#fff;letter-spacing:.05em;}
+    .nav-logo span{color:${accent};}
+    .nav-links{display:flex;gap:4px;align-items:center;}
+    .nav-links a{color:#fff;font-size:13px;font-weight:600;padding:8px 14px;min-height:44px;display:flex;align-items:center;transition:background .15s;}
+    .nav-links a:hover{background:${accent};}
+    .nav-links .cta{background:${accent};}
+    /* Hero */
+    .hero{position:relative;overflow:hidden;}
+    .hero-img{width:100%;height:280px;object-fit:cover;object-position:center 55%;}
+    @media(min-width:640px){.hero-img{height:400px;}}
+    @media(min-width:1024px){.hero-img{height:500px;}}
+    .hero-placeholder{width:100%;height:280px;background:linear-gradient(135deg,#111 0%,#222 100%);display:flex;align-items:center;justify-content:center;}
+    @media(min-width:640px){.hero-placeholder{height:400px;}}
+    .hero-ov{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent 0%,rgba(0,0,0,.85) 100%);padding:24px 20px 16px;}
+    @media(min-width:640px){.hero-ov{padding:32px 32px 20px;}}
+    .hero-ov h1{font-size:clamp(1.5rem,4vw,2.5rem);font-weight:700;color:#fff;line-height:1.15;letter-spacing:-.02em;}
+    .hero-ov .subline{font-size:16px;color:rgba(255,255,255,.85);margin-top:8px;}
+    .hero-ov .badge{display:inline-block;padding:4px 12px;background:${accent};color:#fff;font-size:12px;font-weight:700;border-radius:${dnkMode ? '0' : '4px'};margin-top:10px;}
+    /* Breadcrumb */
+    .breadcrumb{padding:12px 0;font-size:13px;color:#6b7280;display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+    .breadcrumb a{color:#6b7280;}
+    .breadcrumb a:hover{color:${accent};}
+    /* Info grid */
+    .info-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:24px 0;}
+    @media(min-width:640px){.info-grid{grid-template-columns:repeat(4,1fr);}}
+    .info-card{background:#f9fafb;border:1px solid #e5e7eb;padding:14px 16px;border-radius:${dnkMode ? '0' : '8px'};}
+    .info-card .ic-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:4px;}
+    .info-card .ic-val{font-size:15px;font-weight:700;color:#111827;line-height:1.3;}
+    .info-card .ic-val.accent{color:${accent};}
+    /* Sections */
+    section{padding:3rem 0;}
+    .section-title{font-size:clamp(1.5rem,3vw,1.75rem);font-weight:700;color:#000;border-bottom:3px solid ${accent};padding-bottom:8px;margin-bottom:20px;}
+    /* Photos */
+    .photos-grid{display:grid;grid-template-columns:1fr;gap:8px;}
+    @media(min-width:640px){.photos-grid{grid-template-columns:repeat(2,1fr);}}
+    @media(min-width:1024px){.photos-grid{grid-template-columns:repeat(3,1fr);}}
+    /* Lots table */
+    .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    table.lots{width:100%;border-collapse:collapse;font-size:14px;}
+    table.lots th{background:#000;color:#fff;padding:10px 8px;text-align:left;font-size:13px;font-weight:600;}
+    table.lots td{padding:8px;border-bottom:1px solid #e5e7eb;}
+    table.lots tr:nth-child(even) td{background:#f9fafb;}
+    /* Contact form */
+    .form-contact input,.form-contact select,.form-contact textarea{width:100%;padding:12px 14px;font-size:16px;font-family:inherit;border:1px solid #d1d5db;border-radius:${dnkMode ? '0' : '6px'};background:#fff;margin-bottom:12px;color:#111827;}
+    .form-contact input:focus,.form-contact select:focus,.form-contact textarea:focus{outline:2px solid ${accent};border-color:${accent};}
+    .btn-cta{display:inline-flex;align-items:center;justify-content:center;padding:14px 28px;background:${accent};color:#fff;border:none;border-radius:${dnkMode ? '0' : '6px'};font-size:16px;font-weight:600;cursor:pointer;width:100%;min-height:44px;transition:background .15s;}
+    .btn-cta:hover{background:${accentH};}
+    .btn-cta:focus-visible{outline:2px solid ${accent};outline-offset:2px;}
+    /* CTA band */
+    .cta-band{background:${accent};color:#fff;padding:2rem 20px;text-align:center;}
+    .cta-band h2{font-size:clamp(1.25rem,3vw,1.75rem);font-weight:700;margin-bottom:8px;}
+    .cta-band p{font-size:15px;opacity:.9;margin-bottom:20px;}
+    /* Footer */
+    .ftr{background:#000;color:#fff;padding:2rem 20px;}
+    .ftr a{color:rgba(255,255,255,.7);}
+    .ftr a:hover{color:#fff;}
+    ${simCss}
+  </style>
+</head>
+<body>
+  <!-- NAVBAR -->
+  <nav class="nav" role="navigation" aria-label="Navigation principale">
+    <a href="/" class="nav-logo">FREE<span>HOME</span></a>
+    <div class="nav-links">
+      <a href="/#programmes">Programmes</a>
+      <a href="/#contact" class="cta">Contact</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <header class="hero">
+    ${coverImg
+      ? `<img class="hero-img" src="${esc(coverImg)}" alt="${esc(prog.nom)} — ${esc(prog.commune)}" width="1280" height="500">`
+      : `<div class="hero-placeholder"><span style="font-size:3rem;opacity:.3;">🏗</span></div>`
+    }
+    <div class="hero-ov">
+      <div class="container">
+        <h1>${esc(prog.nom)}</h1>
+        <p class="subline">${esc(prog.commune)}${prog.cp ? ' (' + esc(prog.cp) + ')' : ''}${prog.adresse ? ' &mdash; ' + esc(prog.adresse) : ''}</p>
+        ${prog.statut ? `<span class="badge">${esc(prog.statut)}</span>` : ''}
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <!-- BREADCRUMB -->
+      <nav class="breadcrumb" aria-label="Fil d'Ariane">
+        <a href="/">Accueil</a>
+        <span aria-hidden="true">›</span>
+        <a href="/#programmes">Programmes</a>
+        <span aria-hidden="true">›</span>
+        <span>${esc(prog.nom)}</span>
+      </nav>
+
+      <!-- INFO GRID -->
+      <div class="info-grid">
+        ${prog.statut ? `<div class="info-card"><div class="ic-label">Statut</div><div class="ic-val accent">${esc(prog.statut)}</div></div>` : ''}
+        ${prog.livraison ? `<div class="info-card"><div class="ic-label">Livraison</div><div class="ic-val">${esc(prog.livraison_detail || prog.livraison)}</div></div>` : ''}
+        ${(prog.surface_min || prog.surface_max) ? `<div class="info-card"><div class="ic-label">Surfaces</div><div class="ic-val">${prog.surface_min ? prog.surface_min + '\u00A0m\u00B2' : ''}${prog.surface_min && prog.surface_max ? ' &mdash; ' : ''}${prog.surface_max && prog.surface_max !== prog.surface_min ? prog.surface_max + '\u00A0m\u00B2' : ''}</div></div>` : ''}
+        ${prixLabel ? `<div class="info-card"><div class="ic-label">Prix</div><div class="ic-val accent">${prixLabel}</div></div>` : ''}
+        ${prog.reglementation ? `<div class="info-card"><div class="ic-label">R&eacute;glementation</div><div class="ic-val">${esc(prog.reglementation)}</div></div>` : ''}
+        ${prog.pieces ? `<div class="info-card"><div class="ic-label">Typologies</div><div class="ic-val">${esc(prog.pieces)}</div></div>` : ''}
+        ${prog.lots_total ? `<div class="info-card"><div class="ic-label">Nombre de lots</div><div class="ic-val">${prog.lots_total}</div></div>` : ''}
+        ${lotsDisponibles.length > 0 ? `<div class="info-card"><div class="ic-label">Disponibles</div><div class="ic-val accent">${lotsDisponibles.length} lot${lotsDisponibles.length > 1 ? 's' : ''}</div></div>` : ''}
+      </div>
+
+      ${eligHtml ? `<div style="padding:0 0 24px;">${eligHtml}</div>` : ''}
+
+      <!-- DESCRIPTION -->
+      ${prog.desc_longue || prog.desc_courte ? `
+      <section aria-labelledby="desc-title">
+        <h2 class="section-title" id="desc-title">Le programme</h2>
+        <div style="max-width:800px;line-height:1.75;font-size:15px;color:#374151;">
+          ${esc(prog.desc_longue || prog.desc_courte).replace(/\n/g,'<br>')}
+        </div>
+      </section>` : ''}
+
+      <!-- ATOUTS -->
+      ${atoutsHtml ? `
+      <section aria-labelledby="atouts-title">
+        <h2 class="section-title" id="atouts-title">Points forts</h2>
+        <ul style="list-style:none;max-width:800px;">${atoutsHtml}</ul>
+      </section>` : ''}
+
+      <!-- PHOTOS -->
+      ${photosHtml ? `
+      <section aria-labelledby="photos-title">
+        <h2 class="section-title" id="photos-title">Photos</h2>
+        <div class="photos-grid">${photosHtml}</div>
+      </section>` : ''}
+
+      <!-- GRILLE LOTS -->
+      ${lots.length > 0 ? `
+      <section aria-labelledby="lots-title">
+        <h2 class="section-title" id="lots-title">${dnkMode ? 'Grille tarifaire' : 'Lots disponibles'}</h2>
+        <div class="table-wrap">
+          <table class="lots">
+            <thead><tr>
+              <th>Lot</th>
+              <th>Type</th>
+              <th>${dnkMode ? 'Catégorie' : 'Étage'}</th>
+              <th>Surface</th>
+              <th>Prix HT</th>
+              <th>Statut</th>
+            </tr></thead>
+            <tbody>${lotsHtml}</tbody>
+          </table>
+        </div>
+        ${lotsDisponibles.length > 0 ? `<p style="margin-top:12px;font-size:13px;color:#6b7280;">${lotsDisponibles.length} lot${lotsDisponibles.length > 1 ? 's' : ''} disponible${lotsDisponibles.length > 1 ? 's' : ''}${lotsReserves.length > 0 ? ' &mdash; ' + lotsReserves.length + ' r&eacute;serv&eacute;' + (lotsReserves.length > 1 ? 's' : '') : ''}</p>` : ''}
+      </section>` : ''}
+
+      <!-- PRESTATIONS -->
+      ${prestHtml ? `
+      <section aria-labelledby="presta-title">
+        <h2 class="section-title" id="presta-title">Prestations</h2>
+        <ul style="list-style:none;max-width:800px;">${prestHtml}</ul>
+      </section>` : ''}
+
+    </div><!-- /container -->
+
+    <!-- SIMULATEUR DNK -->
+    ${simulateurHtml}
+
+    <!-- CTA CONTACT -->
+    <div class="cta-band">
+      <div class="container">
+        <h2>Int&eacute;ress&eacute; par ce programme&nbsp;?</h2>
+        <p>Notre &eacute;quipe vous rappelle sous 24h</p>
+        <div style="max-width:560px;margin:0 auto;" class="form-contact">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <input type="text" id="f-prenom" placeholder="Pr&eacute;nom" autocomplete="given-name">
+            <input type="text" id="f-nom" placeholder="Nom *" required autocomplete="family-name">
+          </div>
+          <input type="email" id="f-email" placeholder="Email *" required autocomplete="email">
+          <input type="tel" id="f-tel" placeholder="T&eacute;l&eacute;phone" autocomplete="tel">
+          <input type="hidden" id="f-prog" value="${esc(prog.nom)}">
+          <button class="btn-cta" onclick="submitContact()">Demander &agrave; &ecirc;tre rappel&eacute;</button>
+          <p id="f-msg" style="margin-top:8px;font-size:13px;min-height:20px;text-align:center;"></p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="ftr">
+    <div class="container">
+      <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:20px;">
+        <div>
+          <p style="font-size:18px;font-weight:700;margin-bottom:8px;">FREEHOME</p>
+          <p style="font-size:13px;color:rgba(255,255,255,.6);">Maison &amp; Habitat &mdash; Groupe G2O Participation</p>
+          <p style="font-size:13px;color:rgba(255,255,255,.6);margin-top:4px;">7 rue A.M. Amp&egrave;re, 57070 Metz</p>
+          <p style="font-size:13px;color:rgba(255,255,255,.6);">06 30 10 51 78 &mdash; contact@mhfreehome.com</p>
+        </div>
+        <div style="font-size:13px;">
+          <a href="/" style="display:block;margin-bottom:6px;">Accueil</a>
+          <a href="/#programmes" style="display:block;margin-bottom:6px;">Programmes</a>
+          <a href="/mentions-legales" style="display:block;margin-bottom:6px;">Mentions l&eacute;gales</a>
+          <a href="/politique-confidentialite" style="display:block;">Confidentialit&eacute;</a>
+        </div>
+      </div>
+      <p style="margin-top:24px;padding-top:16px;border-top:1px solid rgba(255,255,255,.1);font-size:11px;color:rgba(255,255,255,.4);">
+        &copy; ${new Date().getFullYear()} FREEHOME &mdash; Tous droits r&eacute;serv&eacute;s &mdash; Promoteur immobilier en Moselle &amp; Meurthe-et-Moselle
+      </p>
+    </div>
+  </footer>
+
+  <script>
+  async function submitContact() {
+    const prenom = document.getElementById('f-prenom').value.trim();
+    const nom    = document.getElementById('f-nom').value.trim();
+    const email  = document.getElementById('f-email').value.trim();
+    const tel    = document.getElementById('f-tel').value.trim();
+    const prog   = document.getElementById('f-prog').value;
+    const msg    = document.getElementById('f-msg');
+    if (!nom || !email) { msg.style.color='#dc2626'; msg.textContent='Nom et email requis.'; return; }
+    msg.style.color='#6b7280'; msg.textContent='Envoi en cours\u2026';
+    try {
+      const r = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prenom, nom, email, telephone: tel, programme: prog, source: 'Site web' })
+      });
+      const d = await r.json();
+      if (d.success) {
+        msg.style.color='#16a34a';
+        msg.textContent = 'Message envoy\u00E9 ! Nous vous rappelons sous 24h.';
+        document.getElementById('f-prenom').value='';
+        document.getElementById('f-nom').value='';
+        document.getElementById('f-email').value='';
+        document.getElementById('f-tel').value='';
+      } else {
+        msg.style.color='#dc2626'; msg.textContent='Erreur\u00A0: ' + (d.error||'r\u00E9essayez.');
+      }
+    } catch(e) {
+      msg.style.color='#dc2626'; msg.textContent='Erreur r\u00E9seau, r\u00E9essayez.';
+    }
+  }
+  </script>
+  ${dnkMode ? `
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
+  <script src="/js/simulateur-dnk.js"></script>` : ''}
+</body>
+</html>`;
 }

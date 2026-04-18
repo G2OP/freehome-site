@@ -1,5 +1,19 @@
 # Changelog — FREEHOME Site
 
+## [2.3.0] — 2026-04-18
+
+### Nouvelles fonctionnalités
+- **Pages programme SSR** : route `GET /programme/:slug` dans le Worker — génère une page HTML complète par programme depuis D1, sans déploiement requis. Chaque nouveau programme avec un slug dans l'admin génère automatiquement sa page.
+- **Deux modes visuels** : `simulateur_actif=0` → design résidentiel vert (#16a34a) ; `simulateur_actif=1` → design institutionnel orange (#FF4614) + simulateur investisseur complet.
+- **Simulateur investisseur DNK** extrait en fichier standalone `/js/simulateur-dnk.js` — chargé uniquement sur DYNAMIK PARK (optimisation). Inclut : TRI Newton-Raphson, projection 20 ans, toggles bailleur/locataire, export PDF jsPDF.
+- **SEO pages programme** : `<title>`, `<meta description>`, `<link rel="canonical">`, Open Graph, `<script type="application/ld+json">` RealEstateListing.
+- **Formulaire contact inline** : chaque page programme contient un formulaire de contact pré-rempli avec le nom du programme → POST /api/leads.
+- **Sitemap dynamique mis à jour** : utilise désormais les vrais slugs D1 (`/programme/:slug`) au lieu des slugs générés à la volée.
+
+### Infrastructure
+- **`public/js/` créé** : répertoire de fichiers JS statiques dédiés aux pages SSR.
+- **Migrations D1 0001 + 0002** : colonnes `slug`, `seo_title`, `seo_description`, `simulateur_actif` ajoutées à la table `programmes`; slugs et données SEO seedés pour les 5 programmes actifs.
+
 ## [2.2.3] — 2026-04-18
 
 ### Correctifs
