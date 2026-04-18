@@ -1,5 +1,18 @@
 # Changelog — FREEHOME Site
 
+## [2.3.2] — 2026-04-18
+
+### Nouvelles fonctionnalités
+- **Champs extérieur + parking sur les lots** : 4 nouvelles colonnes D1 (`exterieur_type`, `exterieur_surface`, `parking_nb`, `parking_type`) — migration appliquée via ALTER TABLE. Valeurs extérieur : balcon/terrasse/jardin. Valeurs parking : exterieur/souterrain/garage_individuel.
+- **Admin — formulaire lot enrichi** : 4 nouveaux champs dans la modale ajout/édition lot (sélecteurs + inputs surface et quantité).
+- **Admin — tableau lots** : 2 nouvelles colonnes Ext. et PK visibles dans la liste des lots.
+- **Plaquette SSR** : tableau des lots affiche désormais colonnes Extérieur et Parking avec icônes et surface.
+- **Template Excel mis à jour** : 4 nouvelles colonnes EXTERIEUR_TYPE, EXTERIEUR_SURFACE, PARKING_NB, PARKING_TYPE dans la feuille LOTS et documentées dans NOTICE.
+
+### Infrastructure
+- **Import (`parseWorkbook`)** : reconnaissance des nouvelles colonnes Excel avec noms alternatifs.
+- **`publishToSite`** : les 4 nouveaux champs sont inclus dans le payload de synchronisation D1.
+
 ## [2.3.1] — 2026-04-18
 
 ### Correctifs

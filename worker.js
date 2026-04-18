@@ -85,7 +85,11 @@ export default {
             lots: progLots.map((l) => ({
               num: l.num, etage: l.etage, typo: l.typo,
               surface: l.surface, prix: l.prix, statut: l.statut,
-              plan3d: l.plan3d || ''
+              plan3d: l.plan3d || '',
+              exterieur_type: l.exterieur_type || '',
+              exterieur_surface: l.exterieur_surface || 0,
+              parking_nb: l.parking_nb || 0,
+              parking_type: l.parking_type || ''
             }))
           };
         });
@@ -234,12 +238,13 @@ export default {
                 // Préserver l'acquéreur existant si le payload envoie une valeur vide
                 const acquereur = l.acquereur || acqMap[l.num] || "";
                 await env.DB.prepare(`
-                  INSERT INTO lots (programme_nom,num,etage,typo,surface,prix,statut,acquereur,plan3d,updated_at)
-                  VALUES (?,?,?,?,?,?,?,?,?,datetime('now'))
+                  INSERT INTO lots (programme_nom,num,etage,typo,surface,prix,statut,acquereur,plan3d,exterieur_type,exterieur_surface,parking_nb,parking_type,updated_at)
+                  VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,datetime('now'))
                 `).bind(
                   p.nom, l.num, l.etage||"", l.typo||"",
                   l.surface||0, l.prix||0, l.statut||"Disponible",
-                  acquereur, l.plan3d||0
+                  acquereur, l.plan3d||0,
+                  l.exterieur_type||"", l.exterieur_surface||0, l.parking_nb||0, l.parking_type||""
                 ).run();
                 lotCount++;
               }
@@ -1221,16 +1226,29 @@ function renderProgrammePage(prog, lots) {
     if (s === 'Bloqu\u00E9') return '#6b7280';
     return '#374151';
   };
+  const extLabel = (type, surf) => {
+    if (!type) return '\u2014';
+    const icons = { jardin: '🌿', terrasse: '☀️', balcon: '🪟' };
+    const icon = icons[type] || '◻';
+    return icon + '\u00A0' + type.charAt(0).toUpperCase() + type.slice(1) + (surf > 0 ? '\u00A0' + surf + '\u00A0m\u00B2' : '');
+  };
+  const pkLabel = (nb, type) => {
+    if (!nb || nb === 0) return '\u2014';
+    const typeStr = type === 'souterrain' ? 'SS' : type === 'garage_individuel' ? 'Garage' : type === 'exterieur' ? 'Ext.' : '';
+    return nb + '\u00A0PK' + (typeStr ? '\u00A0' + typeStr : '');
+  };
   const lotsHtml = lots.length > 0 ? lots.map(l =>
     '<tr>' +
     '<td style="font-weight:600;">' + esc(l.num) + '</td>' +
     '<td>' + esc(l.typo || '') + '</td>' +
     '<td>' + (l.etage !== undefined && l.etage !== '' ? esc(String(l.etage)) : '\u2014') + '</td>' +
     '<td>' + (l.surface ? l.surface + '\u00A0m\u00B2' : '\u2014') + '</td>' +
+    '<td style="font-size:12px;">' + extLabel(l.exterieur_type, l.exterieur_surface) + '</td>' +
+    '<td style="font-size:12px;">' + pkLabel(l.parking_nb, l.parking_type) + '</td>' +
     '<td style="font-weight:600;">' + (l.prix ? fmtEur(l.prix) : '\u2014') + '</td>' +
     '<td><span style="display:inline-block;padding:3px 10px;background:' + lotStatusColor(l.statut) + ';color:#fff;border-radius:' + (dnkMode ? '0' : '4px') + ';font-size:12px;font-weight:600;">' + esc(l.statut || '') + '</span></td>' +
     '</tr>'
-  ).join('') : '<tr><td colspan="6" style="text-align:center;color:#666;padding:20px;">Aucun lot renseigné</td></tr>';
+  ).join('') : '<tr><td colspan="8" style="text-align:center;color:#666;padding:20px;">Aucun lot renseigné</td></tr>';
 
   // ── Atouts ──────────────────────────────────────────────────────────────────
   const atoutsHtml = atouts.length > 0
@@ -1796,7 +1814,9 @@ function renderProgrammePage(prog, lots) {
               <th>Type</th>
               <th>${dnkMode ? 'Catégorie' : 'Étage'}</th>
               <th>Surface</th>
-              <th>Prix HT</th>
+              <th>Extérieur</th>
+              <th>Parking</th>
+              <th>Prix${dnkMode ? ' HT' : ' TTC'}</th>
               <th>Statut</th>
             </tr></thead>
             <tbody>${lotsHtml}</tbody>

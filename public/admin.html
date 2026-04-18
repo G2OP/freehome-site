@@ -562,8 +562,8 @@ textarea:focus-visible,
         </select>
       </div>
       <div class="card"><div class="tbl-wrap"><table>
-        <thead><tr><th>Lot</th><th>Programme</th><th>Ét.</th><th>Typo</th><th>Surf.</th><th>Prix TTC</th><th>Statut</th><th>Acquéreur</th><th>Plan 3D</th><th></th></tr></thead>
-        <tbody id="lots-tbody"><tr><td colspan="10" style="text-align:center;padding:2rem;color:var(--text-3)">Chargement depuis D1…</td></tr></tbody>
+        <thead><tr><th>Lot</th><th>Programme</th><th>Ét.</th><th>Typo</th><th>Surf.</th><th>Prix TTC</th><th>Statut</th><th>Acquéreur</th><th>Ext.</th><th>PK</th><th>Plan 3D</th><th></th></tr></thead>
+        <tbody id="lots-tbody"><tr><td colspan="12" style="text-align:center;padding:2rem;color:var(--text-3)">Chargement depuis D1…</td></tr></tbody>
       </table></div></div>
     </div>
 
@@ -1437,6 +1437,24 @@ https://www.mhfreehome.com/wp-content/uploads/rive-azure-3.jpg" rows="8"></texta
           <select id="nl-stat" onchange="toggleAcqFields(this.value)"><option>Disponible</option><option>Réservé</option><option>Vendu</option><option>À louer</option><option>Loué</option><option>Bloqué</option></select>
         </div>
         <div class="fg"><label>URL Plan lot</label><input id="nl-plan" placeholder="https://…"></div>
+        <div class="fg"><label>Extérieur</label>
+          <select id="nl-ext-type">
+            <option value="">Aucun</option>
+            <option value="balcon">Balcon</option>
+            <option value="terrasse">Terrasse</option>
+            <option value="jardin">Jardin</option>
+          </select>
+        </div>
+        <div class="fg"><label>Surface extérieure (m²)</label><input type="number" id="nl-ext-surf" placeholder="0" min="0" step="0.5"></div>
+        <div class="fg"><label>Nb parkings inclus</label><input type="number" id="nl-pk-nb" placeholder="0" min="0"></div>
+        <div class="fg"><label>Type de parking</label>
+          <select id="nl-pk-type">
+            <option value="">—</option>
+            <option value="exterieur">Extérieur</option>
+            <option value="souterrain">Souterrain</option>
+            <option value="garage_individuel">Garage individuel</option>
+          </select>
+        </div>
         <div class="fg full"><label>Acquéreur — Nom</label><input id="nl-acq" placeholder="M. ou Mme Dupont"></div>
       </div>
       <!-- Champs étendus : visibles seulement si statut Réservé ou Vendu -->
@@ -1863,6 +1881,8 @@ function renderLots() {
       </select>
     </td>
     <td style="font-size:.72rem">${l.acq||'—'}</td>
+    <td style="font-size:.7rem">${(()=>{ if(!l.exterieur_type) return '—'; const ic=l.exterieur_type==='balcon'?'🪟':l.exterieur_type==='terrasse'?'☀️':'🌿'; return ic+' '+l.exterieur_type+(l.exterieur_surface>0?' '+l.exterieur_surface+'m²':''); })()}</td>
+    <td style="font-size:.7rem">${(()=>{ if(!l.parking_nb||l.parking_nb<1) return '—'; const t=l.parking_type==='souterrain'?'SS':l.parking_type==='garage_individuel'?'Gar.':l.parking_type==='exterieur'?'Ext.':''; return l.parking_nb+'PK'+(t?' '+t:''); })()}</td>
     <td>${l.plan3d?`<a href="${l.plan3d}" target="_blank" style="color:var(--gold);font-size:.72rem">Voir ↗</a>`:'—'}</td>
     <td style="white-space:nowrap;display:flex;gap:.3rem">
       <button class="btn btn-ghost btn-sm" onclick="editLot(${l.id})" title="Modifier">✏️</button>
@@ -2698,9 +2718,13 @@ function newLot() {
     nlProg.innerHTML = '<option>— Choisir —</option>'+DB.programmes.map(p=>`<option>${p.nom}</option>`).join('');
   }
   // Réinitialiser les champs
-  ['nl-acq','nl-acq-email','nl-acq-tel','nl-acq-date','nl-acq-notes'].forEach(id => {
+  ['nl-num','nl-etage','nl-surf','nl-prix','nl-plan','nl-acq','nl-acq-email','nl-acq-tel','nl-acq-date','nl-acq-notes','nl-ext-surf','nl-pk-nb'].forEach(id => {
     const el = document.getElementById(id); if(el) el.value = '';
   });
+  ['nl-ext-type','nl-pk-type'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value = '';
+  });
+  document.getElementById('nl-stat').value = 'Disponible';
   toggleAcqFields('Disponible');
   openModal('m-add-lot');
 }
@@ -2729,6 +2753,10 @@ function editLot(id) {
   document.getElementById('nl-prix').value  = l.prix;
   document.getElementById('nl-acq').value   = l.acq || '';
   document.getElementById('nl-plan').value  = l.plan3d || '';
+  document.getElementById('nl-ext-type').value  = l.exterieur_type || '';
+  document.getElementById('nl-ext-surf').value  = l.exterieur_surface || '';
+  document.getElementById('nl-pk-nb').value     = l.parking_nb || '';
+  document.getElementById('nl-pk-type').value   = l.parking_type || '';
   const statSel = document.getElementById('nl-stat');
   Array.from(statSel.options).forEach(o => { o.selected = o.value === l.statut; });
   // Charger les infos étendues depuis DB.acquereurs
@@ -2756,9 +2784,13 @@ function saveLot(){
     typo:    document.getElementById('nl-typo').value,
     surface: parseFloat(document.getElementById('nl-surf').value)||0,
     prix:    parseFloat(document.getElementById('nl-prix').value)||0,
-    statut:  document.getElementById('nl-stat').value,
-    acq:     document.getElementById('nl-acq').value,
-    plan3d:  document.getElementById('nl-plan').value || ''
+    statut:          document.getElementById('nl-stat').value,
+    acq:             document.getElementById('nl-acq').value,
+    plan3d:          document.getElementById('nl-plan').value || '',
+    exterieur_type:  document.getElementById('nl-ext-type').value || '',
+    exterieur_surface: parseFloat(document.getElementById('nl-ext-surf').value)||0,
+    parking_nb:      parseInt(document.getElementById('nl-pk-nb').value)||0,
+    parking_type:    document.getElementById('nl-pk-type').value || ''
   };
   if (_editingLotId !== null) {
     // Mode modification
@@ -2899,7 +2931,11 @@ function parseWorkbook(wb, fname) {
         prix: parseFloat(col(row,'PRIX_TTC *','PRIX_TTC','prix_ttc','prix','PRIX','PRIX_HT','prix_ht'))||0,
         statut,
         acq: col(row,'ACQUÉREUR_NOM','ACQUEREUR_NOM','acquereur','ACQUEREUR','acquéreur'),
-        plan3d: !!(col(row,'URL_PLAN_LOT','plan3d','PLAN3D','plan_3d'))
+        plan3d: !!(col(row,'URL_PLAN_LOT','plan3d','PLAN3D','plan_3d')),
+        exterieur_type: col(row,'EXTERIEUR_TYPE','exterieur_type','EXT_TYPE','EXTERIEUR','ext_type') || '',
+        exterieur_surface: parseFloat(col(row,'EXTERIEUR_SURFACE','exterieur_surface','EXT_SURFACE','surf_ext','SURFACE_EXT'))||0,
+        parking_nb: parseInt(col(row,'PARKING_NB','parking_nb','NB_PARKING','nb_parking','PARKING'))||0,
+        parking_type: col(row,'PARKING_TYPE','parking_type','PK_TYPE','pk_type') || ''
       });
       // Validation statut
       if(!['Disponible','Réservé','Vendu','Bloqué'].includes(statut))
@@ -3048,27 +3084,27 @@ function downloadTemplate() {
   // ══════════════════════════════
   const lotsRows = [
     // Ligne 1 : descriptions lisibles
-    ['Nom exact du programme','N° de lot','Étage','Typo (T1/T2/T3…)','Surface m²','Prix TTC €','Statut','URL plan 3D (optionnel)'],
+    ['Nom exact du programme','N° de lot','Étage','Typo (T1/T2/T3…)','Surface m²','Prix TTC €','Statut','Extérieur','Surface ext. m²','Nb parkings','Type parking','URL plan lot (opt.)'],
     // Ligne 2 : noms de colonnes techniques (ceux lus à l'import)
-    ['NOM_PROGRAMME','NUMERO_LOT','ETAGE','TYPOLOGIE','SURFACE_HABITABLE','PRIX_TTC','STATUT','URL_PLAN_LOT'],
+    ['NOM_PROGRAMME','NUMERO_LOT','ETAGE','TYPOLOGIE','SURFACE_HABITABLE','PRIX_TTC','STATUT','EXTERIEUR_TYPE','EXTERIEUR_SURFACE','PARKING_NB','PARKING_TYPE','URL_PLAN_LOT'],
     // Lignes exemple
-    [p1,'LOT101','RDC','T3',80.12,329000,'Disponible',''],
-    [p1,'LOT102','RDC','T1',19.59,88900,'Réservé',''],
-    [p1,'LOT201','1er','T2',56.4,234900,'Vendu',''],
-    [p2,'A101','RDC','T2',55,215000,'Disponible',''],
-    [p2,'A102','1er','T3',72,289000,'Disponible','https://example.com/plan.pdf'],
-    [p2,'A103','2ème','T4',94.5,359000,'Bloqué',''],
+    [p1,'LOT101','RDC','T3',80.12,329000,'Disponible','terrasse',12,1,'souterrain',''],
+    [p1,'LOT102','R+1','T2',54,199900,'Disponible','balcon',8,1,'souterrain',''],
+    [p1,'LOT201','R+2','T3',71,259900,'Réservé','','',0,'',''],
+    [p2,'A101','RDC','T2',55,215000,'Disponible','jardin',35,1,'exterieur',''],
+    [p2,'A102','R+1','T3',72,289000,'Disponible','terrasse',10,2,'souterrain','https://example.com/plan.pdf'],
+    [p2,'A103','R+2','T4',94.5,359000,'Bloqué','balcon',6,1,'garage_individuel',''],
   ];
 
   const wsLots = XLSX.utils.aoa_to_sheet(lotsRows);
 
   // Largeurs de colonnes
   wsLots['!cols'] = [
-    {wch:22},{wch:13},{wch:9},{wch:14},{wch:16},{wch:14},{wch:14},{wch:32}
+    {wch:22},{wch:13},{wch:9},{wch:14},{wch:16},{wch:14},{wch:14},{wch:14},{wch:16},{wch:13},{wch:18},{wch:32}
   ];
   // Figer les 2 premières lignes (en-têtes)
   wsLots['!freeze'] = {xSplit:0, ySplit:2, topLeftCell:'A3', activeCell:'A3', sqref:'A3'};
-  wsLots['!autofilter'] = {ref:'A2:H2'};
+  wsLots['!autofilter'] = {ref:'A2:L2'};
 
   XLSX.utils.book_append_sheet(wb, wsLots, 'LOTS');
 
@@ -3117,6 +3153,10 @@ function downloadTemplate() {
     ['SURFACE_HABITABLE','Surface en m² (nombre décimal)','Ex : 55.5'],
     ['PRIX_TTC','Prix en € TTC (nombre entier)','Ex : 245000'],
     ['STATUT','Valeur exacte parmi la liste','Disponible / Réservé / Vendu / Bloqué'],
+    ['EXTERIEUR_TYPE','Type d\'espace extérieur (optionnel)','balcon / terrasse / jardin (laisser vide si aucun)'],
+    ['EXTERIEUR_SURFACE','Surface de l\'extérieur en m² (0 si aucun)','Ex : 12'],
+    ['PARKING_NB','Nombre de parkings inclus (0 si aucun)','Ex : 1 ou 2'],
+    ['PARKING_TYPE','Type de parking (si PARKING_NB > 0)','exterieur / souterrain / garage_individuel'],
     ['URL_PLAN_LOT','Lien PDF du plan (optionnel)','Ex : https://…/plan.pdf'],
     ['','',''],
     ['FEUILLE PROGRAMMES — Colonnes','',''],
@@ -3225,7 +3265,9 @@ async function publishToSite() {
         lots: lots.map(l => ({
           num: l.num, etage: l.etage, typo: l.typo,
           surface: l.surface, prix: l.prix, statut: l.statut,
-          acquereur: l.acq||'', plan3d: l.plan3d||''
+          acquereur: l.acq||'', plan3d: l.plan3d||'',
+          exterieur_type: l.exterieur_type||'', exterieur_surface: l.exterieur_surface||0,
+          parking_nb: l.parking_nb||0, parking_type: l.parking_type||''
         }))
       };
     }),
@@ -3673,7 +3715,9 @@ async function loadFromD1() {
             DB.lots.push({
               id: nextLotId++, prog: p.nom, num: l.num, etage: l.etage||'',
               typo: l.typo||'', surface: l.surface||0, prix: l.prix||0,
-              statut: l.statut||'Disponible', acq: l.acquereur||'', plan3d: l.plan3d||''
+              statut: l.statut||'Disponible', acq: l.acquereur||'', plan3d: l.plan3d||'',
+              exterieur_type: l.exterieur_type||'', exterieur_surface: l.exterieur_surface||0,
+              parking_nb: l.parking_nb||0, parking_type: l.parking_type||''
             });
           });
         }
