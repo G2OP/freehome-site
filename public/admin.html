@@ -807,7 +807,7 @@ textarea:focus-visible,
           </button>
           <button onclick="downloadTemplate()" class="btn btn-ghost btn-sm">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            Télécharger le template CSV
+            Télécharger le template Excel
           </button>
         </div>
       </div>
@@ -3036,25 +3036,120 @@ function resetImport() {
 }
 
 function downloadTemplate() {
-  const bom = '\uFEFF';
-  const headers = 'programme_nom;num;typo;surface;prix;statut;acquereur;etage';
-  const examples = [
-    'Mon Programme;A101;T2;48;189000;Disponible;;RDC',
-    'Mon Programme;A102;T3;65;245000;Réservé;DUPONT Martin;1er',
-    'Mon Programme;B201;Dépôt;176.85;212220;Bloqué;KRATZ;P4/P5/P6',
-    'Mon Programme;B202;Bureau;95;310000;Disponible;;2ème',
-  ].join('\n');
-  const csv = bom + headers + '\n' + examples;
-  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'FREEHOME_Import_Template.csv';
-  a.style.display = 'none';
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
-  toast('Template CSV téléchargé — ouvrez avec Excel');
+  // ── Noms de programmes réels depuis la base ──
+  const progNames = (DB.programmes||[]).map(p=>p.nom).filter(Boolean);
+  const p1 = progNames[0] || 'Rive Azure';
+  const p2 = progNames[1] || 'Clos Prévert';
+
+  const wb = XLSX.utils.book_new();
+
+  // ══════════════════════════════
+  // Feuille 1 — LOTS
+  // ══════════════════════════════
+  const lotsRows = [
+    // Ligne 1 : descriptions lisibles
+    ['Nom exact du programme','N° de lot','Étage','Typo (T1/T2/T3…)','Surface m²','Prix TTC €','Statut','URL plan 3D (optionnel)'],
+    // Ligne 2 : noms de colonnes techniques (ceux lus à l'import)
+    ['NOM_PROGRAMME','NUMERO_LOT','ETAGE','TYPOLOGIE','SURFACE_HABITABLE','PRIX_TTC','STATUT','URL_PLAN_LOT'],
+    // Lignes exemple
+    [p1,'LOT101','RDC','T3',80.12,329000,'Disponible',''],
+    [p1,'LOT102','RDC','T1',19.59,88900,'Réservé',''],
+    [p1,'LOT201','1er','T2',56.4,234900,'Vendu',''],
+    [p2,'A101','RDC','T2',55,215000,'Disponible',''],
+    [p2,'A102','1er','T3',72,289000,'Disponible','https://example.com/plan.pdf'],
+    [p2,'A103','2ème','T4',94.5,359000,'Bloqué',''],
+  ];
+
+  const wsLots = XLSX.utils.aoa_to_sheet(lotsRows);
+
+  // Largeurs de colonnes
+  wsLots['!cols'] = [
+    {wch:22},{wch:13},{wch:9},{wch:14},{wch:16},{wch:14},{wch:14},{wch:32}
+  ];
+  // Figer les 2 premières lignes (en-têtes)
+  wsLots['!freeze'] = {xSplit:0, ySplit:2, topLeftCell:'A3', activeCell:'A3', sqref:'A3'};
+  wsLots['!autofilter'] = {ref:'A2:H2'};
+
+  XLSX.utils.book_append_sheet(wb, wsLots, 'LOTS');
+
+  // ══════════════════════════════
+  // Feuille 2 — PROGRAMMES
+  // ══════════════════════════════
+  const progRows = [
+    ['Nom du programme','Commune','Code postal','Statut','Date livraison','Nb lots total','Éligibilités','Description courte'],
+    ['NOM_PROGRAMME','COMMUNE','CODE_POSTAL','STATUT','DATE_LIVRAISON','NB_LOTS_TOTAL','ELIGIBILITES','DESCRIPTION_COURTE'],
+    ['Mon Programme','Metz','57000','En commercialisation','T4 2026',20,'Pinel,PTZ','Résidence neuve au cœur de…'],
+  ];
+
+  // Si des programmes existent déjà → les ajouter en exemple
+  (DB.programmes||[]).slice(0,5).forEach(p => {
+    progRows.push([
+      p.nom||'',
+      p.commune||'',
+      p.cp||'',
+      p.statut||'',
+      p.livraison||'',
+      p.lots_total||'',
+      Array.isArray(p.eligibilites)?p.eligibilites.join(','):(p.eligibilites||''),
+      p.desc||p.desc_courte||''
+    ]);
+  });
+
+  const wsProg = XLSX.utils.aoa_to_sheet(progRows);
+  wsProg['!cols'] = [
+    {wch:22},{wch:16},{wch:12},{wch:22},{wch:14},{wch:13},{wch:18},{wch:44}
+  ];
+  wsProg['!freeze'] = {xSplit:0, ySplit:2, topLeftCell:'A3', activeCell:'A3', sqref:'A3'};
+
+  XLSX.utils.book_append_sheet(wb, wsProg, 'PROGRAMMES');
+
+  // ══════════════════════════════
+  // Feuille 3 — NOTICE
+  // ══════════════════════════════
+  const noticeRows = [
+    ['FREEHOME — Guide d\'import Excel','',''],
+    ['','',''],
+    ['FEUILLE LOTS — Colonnes obligatoires','',''],
+    ['NOM_PROGRAMME','Doit correspondre exactement au nom du programme dans la base','Ex : Rive Azure'],
+    ['NUMERO_LOT','Identifiant unique du lot','Ex : LOT101, A12, B-204'],
+    ['ETAGE','Étage du lot','Ex : RDC, 1er, 2ème, R+3'],
+    ['TYPOLOGIE','Type de logement','Ex : T1, T2, T3, T4, Studio, Bureau'],
+    ['SURFACE_HABITABLE','Surface en m² (nombre décimal)','Ex : 55.5'],
+    ['PRIX_TTC','Prix en € TTC (nombre entier)','Ex : 245000'],
+    ['STATUT','Valeur exacte parmi la liste','Disponible / Réservé / Vendu / Bloqué'],
+    ['URL_PLAN_LOT','Lien PDF du plan (optionnel)','Ex : https://…/plan.pdf'],
+    ['','',''],
+    ['FEUILLE PROGRAMMES — Colonnes','',''],
+    ['NOM_PROGRAMME','Nom officiel du programme (unique)','Ex : Rive Azure'],
+    ['COMMUNE','Ville','Ex : Malroy'],
+    ['CODE_POSTAL','Code postal à 5 chiffres','Ex : 57640'],
+    ['STATUT','Statut commercial','En commercialisation / Bientôt disponible / Livré'],
+    ['DATE_LIVRAISON','Trimestre de livraison','Ex : T4 2026'],
+    ['NB_LOTS_TOTAL','Nombre total de lots (entier)','Ex : 45'],
+    ['ELIGIBILITES','Dispositifs fiscaux séparés par virgule','Ex : Pinel,PTZ,TVA réduite'],
+    ['DESCRIPTION_COURTE','Description courte du programme','Texte libre'],
+    ['','',''],
+    ['NOTES','',''],
+    ['→ La feuille PROGRAMMES est optionnelle si les programmes existent déjà dans la base.','',''],
+    ['→ Les statuts de lots doivent être écrits exactement : Disponible, Réservé, Vendu, Bloqué','',''],
+    ['→ Les noms de programmes dans LOTS doivent correspondre exactement à ceux déclarés.','',''],
+  ];
+
+  const wsNotice = XLSX.utils.aoa_to_sheet(noticeRows);
+  wsNotice['!cols'] = [{wch:26},{wch:52},{wch:30}];
+  // Fusion titre
+  wsNotice['!merges'] = [
+    {s:{r:0,c:0},e:{r:0,c:2}},
+    {s:{r:2,c:0},e:{r:2,c:2}},
+    {s:{r:12,c:0},e:{r:12,c:2}},
+    {s:{r:21,c:0},e:{r:21,c:2}},
+  ];
+
+  XLSX.utils.book_append_sheet(wb, wsNotice, 'NOTICE');
+
+  // ── Téléchargement ──
+  XLSX.writeFile(wb, 'FREEHOME_Import_Template.xlsx');
+  toast('✅ Template Excel téléchargé — 3 feuilles : LOTS · PROGRAMMES · NOTICE');
 }
 
 // ══════════════════════════════════════════════════
