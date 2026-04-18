@@ -1265,7 +1265,7 @@ function renderProgrammePage(prog, lots) {
 
   // ── Photos galerie ─────────────────────────────────────────────────────────
   const photosHtml = photos.length > 0
-    ? photos.map(url => '<img src="' + esc(typeof url === 'string' ? url : url.url || '') + '" alt="' + esc(prog.nom) + '" loading="lazy" style="width:100%;height:220px;object-fit:cover;display:block;">')
+    ? photos.map(url => '<img src="' + esc(typeof url === 'string' ? url : url.url || '') + '" alt="' + esc(prog.nom) + '" loading="eager" style="width:100%;height:220px;object-fit:cover;display:block;">')
       .join('')
     : '';
 
@@ -1654,7 +1654,11 @@ function renderProgrammePage(prog, lots) {
       body{font-size:11pt;color:#000;background:#fff;}
       /* Masquer les éléments UI */
       .nav,.breadcrumb,.cta-band,.ftr,.btn-pdf,
-      .simulateur-section,.photos-grid{display:none!important;}
+      .simulateur-section{display:none!important;}
+      /* Photos — affichées en print, grille 2 colonnes */
+      .photos-grid{display:grid!important;grid-template-columns:repeat(2,1fr)!important;gap:6px!important;}
+      .photos-grid img{height:160px!important;width:100%!important;object-fit:cover!important;display:block!important;}
+      section:has(.photos-grid){page-break-inside:avoid;}
       /* Afficher les blocs print */
       .print-header{display:block!important;padding-bottom:14px;border-bottom:3px solid ${accent};margin-bottom:14px;page-break-after:avoid;}
       .print-footer{display:flex!important;margin-top:20px;padding-top:10px;border-top:1px solid #ccc;font-size:9pt;color:#555;justify-content:space-between;align-items:center;gap:12px;}
