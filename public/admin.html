@@ -2849,60 +2849,68 @@ function handleFile(file) {
 function parseWorkbook(wb, fname) {
   importData = {programmes:[], lots:[], errors:[]};
 
-  // ── Feuille PROGRAMMES ──
-  const shProg = wb.Sheets[wb.SheetNames.find(n=>n.includes('PROGRAMMES')||n.includes('Programmes'))];
+  // Helpers — accepte plusieurs variantes de nommage de colonnes
+  const col = (row, ...keys) => { for(const k of keys){ if(row[k]!==undefined && row[k]!=='') return row[k].toString().trim(); } return ''; };
+
+  // ── Feuille PROGRAMMES (optionnelle) ──
+  const shProg = wb.Sheets[wb.SheetNames.find(n=>n.toUpperCase().includes('PROGRAMME'))];
   if(shProg) {
     const rows = XLSX.utils.sheet_to_json(shProg, {defval:''});
     rows.forEach((row,i)=>{
-      const nom = (row['NOM_PROGRAMME *']||row['NOM_PROGRAMME']||'').toString().trim();
+      const nom = col(row,'NOM_PROGRAMME *','NOM_PROGRAMME','nom_programme','programme_nom','NOM');
       if(!nom) return;
-      const statut = (row['STATUT *']||row['STATUT']||'En commercialisation').toString().trim();
+      const statut = col(row,'STATUT *','STATUT','statut') || 'En commercialisation';
       importData.programmes.push({
-        id: Date.now()+i,
-        nom,
-        commune: (row['COMMUNE *']||row['COMMUNE']||'').toString().trim(),
-        cp: (row['CODE_POSTAL']||'').toString().trim(),
+        id: Date.now()+i, nom,
+        commune: col(row,'COMMUNE *','COMMUNE','commune'),
+        cp: col(row,'CODE_POSTAL','cp','CP'),
         statut,
-        livraison: (row['DATE_LIVRAISON']||'').toString().trim(),
-        lots_total: parseInt(row['NB_LOTS_TOTAL'])||0,
-        lots_dispos: parseInt(row['NB_LOTS_TOTAL'])||0,
-        eligibilites: (row['ELIGIBILITES']||'').toString().trim(),
-        plan3d: (row['URL_PLAN3D']||'').toString().trim(),
-        desc: (row['DESCRIPTION_COURTE']||'').toString().trim()
+        livraison: col(row,'DATE_LIVRAISON','livraison','LIVRAISON'),
+        lots_total: parseInt(col(row,'NB_LOTS_TOTAL','lots_total','LOTS_TOTAL'))||0,
+        lots_dispos: parseInt(col(row,'NB_LOTS_TOTAL','lots_total','LOTS_TOTAL'))||0,
+        eligibilites: col(row,'ELIGIBILITES','eligibilites'),
+        plan3d: col(row,'URL_PLAN3D','plan3d'),
+        desc: col(row,'DESCRIPTION_COURTE','desc_courte','description')
       });
-      if(!nom) importData.errors.push({ligne:i+3,champ:'NOM_PROGRAMME',msg:'Nom manquant'});
     });
-  } else {
-    importData.errors.push({ligne:'—',champ:'Feuille PROGRAMMES',msg:'Feuille introuvable dans le fichier'});
   }
+  // Pas de feuille PROGRAMMES → simple avertissement, pas bloquant
 
-  // ── Feuille LOTS ──
-  const shLots = wb.Sheets[wb.SheetNames.find(n=>n.includes('LOTS')||n.includes('Lots'))];
+  // ── Feuille LOTS — cherche par nom, sinon prend la première feuille disponible ──
+  const lotsSheetName = wb.SheetNames.find(n=>n.toUpperCase().includes('LOT'))
+    || wb.SheetNames.find(n=>!n.toUpperCase().includes('PROGRAMME'))
+    || wb.SheetNames[0];
+  const shLots = lotsSheetName ? wb.Sheets[lotsSheetName] : null;
   if(shLots) {
     const rows = XLSX.utils.sheet_to_json(shLots, {defval:''});
     rows.forEach((row,i)=>{
-      const prog = (row['NOM_PROGRAMME *']||row['NOM_PROGRAMME']||'').toString().trim();
-      const num  = (row['NUMERO_LOT *']||row['NUMERO_LOT']||'').toString().trim();
+      // Accepte : NOM_PROGRAMME / programme_nom / NOM / etc.
+      const prog = col(row,'NOM_PROGRAMME *','NOM_PROGRAMME','nom_programme','programme_nom','PROGRAMME','NOM_PROG');
+      // Accepte : NUMERO_LOT / num / LOT / NUMERO / etc.
+      const num  = col(row,'NUMERO_LOT *','NUMERO_LOT','numero_lot','num','LOT','NUMERO','REF');
       if(!prog||!num) return;
-      const statut = (row['STATUT *']||row['STATUT']||'Disponible').toString().trim();
+      const statut = col(row,'STATUT *','STATUT','statut') || 'Disponible';
       importData.lots.push({
         id: Date.now()+1000+i,
         prog, num,
-        etage: (row['ETAGE']||'').toString().trim(),
-        typo: (row['TYPOLOGIE *']||row['TYPOLOGIE']||'T2').toString().trim(),
-        surface: parseFloat(row['SURFACE_HABITABLE'])||0,
-        prix: parseFloat(row['PRIX_TTC *']||row['PRIX_TTC'])||0,
+        etage: col(row,'ETAGE','etage','NIVEAU','niveau'),
+        typo:  col(row,'TYPOLOGIE *','TYPOLOGIE','typo','TYPO','TYPE','type') || 'T2',
+        surface: parseFloat(col(row,'SURFACE_HABITABLE','surface','SURFACE','surf'))||0,
+        prix: parseFloat(col(row,'PRIX_TTC *','PRIX_TTC','prix_ttc','prix','PRIX','PRIX_HT','prix_ht'))||0,
         statut,
-        acq: (row['ACQUÉREUR_NOM']||'').toString().trim(),
-        plan3d: !!(row['URL_PLAN_LOT']||'').toString().trim()
+        acq: col(row,'ACQUÉREUR_NOM','ACQUEREUR_NOM','acquereur','ACQUEREUR','acquéreur'),
+        plan3d: !!(col(row,'URL_PLAN_LOT','plan3d','PLAN3D','plan_3d'))
       });
-      // Validation
+      // Validation statut
       if(!['Disponible','Réservé','Vendu','Bloqué'].includes(statut))
-        importData.errors.push({ligne:i+3,champ:'STATUT',msg:`"${statut}" n'est pas un statut valide pour le lot ${num}`});
+        importData.errors.push({ligne:i+2,champ:'STATUT',msg:`"${statut}" invalide pour le lot ${num} — valeurs acceptées : Disponible, Réservé, Vendu, Bloqué`});
+      // Validation programme connu
       const nomExists = importData.programmes.some(p=>p.nom===prog)||DB.programmes.some(p=>p.nom===prog);
       if(!nomExists)
-        importData.errors.push({ligne:i+3,champ:'NOM_PROGRAMME',msg:`"${prog}" ne correspond à aucun programme connu`});
+        importData.errors.push({ligne:i+2,champ:'NOM_PROGRAMME',msg:`"${prog}" ne correspond à aucun programme connu`});
     });
+  } else {
+    importData.errors.push({ligne:'—',champ:'Feuille LOTS',msg:'Aucune feuille de lots trouvée dans le fichier'});
   }
 
   showPreview(fname);
