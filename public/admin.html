@@ -547,10 +547,16 @@ textarea:focus-visible,
     <div class="page" id="page-lots">
       <div class="page-hdr">
         <div class="page-hdr-l"><h2>Lots &amp; disponibilités</h2><p>Vue détaillée par programme</p></div>
-        <div class="page-hdr-r"><button class="btn btn-primary btn-sm" onclick="newLot()">+ Ajouter un lot</button></div>
+        <div class="page-hdr-r" style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" id="btn-export-lots" onclick="exportLotsExcel()" title="Exporter les lots affichés en Excel pour mise à jour">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export lots Excel
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="newLot()">+ Ajouter un lot</button>
+        </div>
       </div>
       <div class="filter-row">
-        <select id="f-lot-prog" onchange="filterLots()"><option value="">Tous les programmes</option><option>Rive Azure</option><option>Clos Prévert</option><option>La Maison d'Augny</option><option>Le Socle</option><option>Clos Sérénité</option></select>
+        <select id="f-lot-prog" onchange="filterLots();updateExportBtn()"><option value="">Tous les programmes</option><option>Rive Azure</option><option>Clos Prévert</option><option>La Maison d'Augny</option><option>Le Socle</option><option>Clos Sérénité</option></select>
         <select id="f-lot-stat" onchange="filterLots()"><option value="">Tous statuts</option><option>Disponible</option><option>Réservé</option><option>Vendu</option><option>À louer</option><option>Loué</option><option>Bloqué</option></select>
         <select onchange="filterLots()" id="f-lot-typo"><option value="">Toutes typologies</option><optgroup label="Résidentiel"><option>Studio</option><option>T1</option><option>T2</option><option>T3</option><option>T4</option><option>T5</option></optgroup><optgroup label="Commercial / Activité"><option>Bureau</option><option>Plateau</option><option>Dépôt</option><option>Local d'activité</option></optgroup></select>
         <input type="search" id="f-lot-q" placeholder="N° lot…" oninput="filterLots()">
@@ -3190,6 +3196,74 @@ function downloadTemplate() {
   // ── Téléchargement ──
   XLSX.writeFile(wb, 'FREEHOME_Import_Template.xlsx');
   toast('✅ Template Excel téléchargé — 3 feuilles : LOTS · PROGRAMMES · NOTICE');
+}
+
+// ══════════════════════════════════════════════════
+// EXPORT LOTS D'UN PROGRAMME → Excel (mise à jour)
+// ══════════════════════════════════════════════════
+function updateExportBtn() {
+  const prog = document.getElementById('f-lot-prog').value;
+  const btn  = document.getElementById('btn-export-lots');
+  if (!btn) return;
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> `
+    + (prog ? `Export <strong>${prog}</strong>` : 'Export lots Excel');
+}
+
+function exportLotsExcel() {
+  const prog = document.getElementById('f-lot-prog').value;
+  const lots = DB.lots.filter(l => !prog || l.prog === prog);
+  if (!lots.length) { toast('Aucun lot à exporter — sélectionnez un programme', 'err'); return; }
+
+  const rows = [
+    // Ligne 1 : libellés lisibles
+    ['Nom exact du programme','N° de lot','Étage','Typo','Surface m²','Prix TTC €','Statut',
+     'Extérieur','Surface ext. m²','Nb parkings','Type parking','URL plan lot'],
+    // Ligne 2 : noms de colonnes techniques (compatibles réimport)
+    ['NOM_PROGRAMME','NUMERO_LOT','ETAGE','TYPOLOGIE','SURFACE_HABITABLE','PRIX_TTC','STATUT',
+     'EXTERIEUR_TYPE','EXTERIEUR_SURFACE','PARKING_NB','PARKING_TYPE','URL_PLAN_LOT'],
+    // Données
+    ...lots.map(l => [
+      l.prog, l.num, l.etage||'', l.typo||'',
+      l.surface||0, l.prix||0, l.statut||'Disponible',
+      l.exterieur_type||'', l.exterieur_surface||0,
+      l.parking_nb||0, l.parking_type||'',
+      l.plan3d||''
+    ])
+  ];
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [
+    {wch:22},{wch:13},{wch:9},{wch:14},{wch:16},{wch:14},{wch:14},
+    {wch:14},{wch:16},{wch:13},{wch:18},{wch:32}
+  ];
+  ws['!freeze'] = {xSplit:0, ySplit:2, topLeftCell:'A3', activeCell:'A3', sqref:'A3'};
+  ws['!autofilter'] = {ref:'A2:L2'};
+
+  // Onglet NOTICE léger
+  const notice = XLSX.utils.aoa_to_sheet([
+    ['FREEHOME — Export lots pour mise à jour','',''],
+    ['','',''],
+    ['Modifiez les colonnes souhaitées puis réimportez via Admin → Import Excel','',''],
+    ['','',''],
+    ['Colonne','Valeurs acceptées',''],
+    ['EXTERIEUR_TYPE','balcon / terrasse / jardin  (vide = aucun)',''],
+    ['EXTERIEUR_SURFACE','Surface en m² — nombre décimal (0 si aucun)',''],
+    ['PARKING_NB','Nombre de places — entier (0 si aucun)',''],
+    ['PARKING_TYPE','exterieur / souterrain / garage_individuel',''],
+    ['STATUT','Disponible / Réservé / Vendu / Bloqué',''],
+    ['','',''],
+    ['⚠ Ne pas modifier NOM_PROGRAMME ni NUMERO_LOT — clés d\'identification','',''],
+  ]);
+  notice['!cols'] = [{wch:26},{wch:46},{wch:10}];
+  notice['!merges'] = [{s:{r:0,c:0},e:{r:0,c:2}},{s:{r:2,c:0},e:{r:2,c:2}},{s:{r:11,c:0},e:{r:11,c:2}}];
+
+  XLSX.utils.book_append_sheet(wb, ws, 'LOTS');
+  XLSX.utils.book_append_sheet(wb, notice, 'NOTICE');
+
+  const safeName = (prog || 'tous').replace(/[^a-zA-Z0-9À-ÿ _-]/g, '').replace(/\s+/g,'_');
+  XLSX.writeFile(wb, `FREEHOME_${safeName}_lots.xlsx`);
+  toast(`✅ ${lots.length} lot${lots.length>1?'s':''} exporté${lots.length>1?'s':''} — modifiez et réimportez`);
 }
 
 // ══════════════════════════════════════════════════

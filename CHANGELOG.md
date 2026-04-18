@@ -1,5 +1,10 @@
 # Changelog — FREEHOME Site
 
+## [2.3.3] — 2026-04-18
+
+### Nouvelles fonctionnalités
+- **Export lots Excel** : bouton "Export lots Excel" dans l'onglet Lots — exporte les lots du programme sélectionné (ou tous) avec toutes les colonnes dont les 4 nouveaux champs extérieur/parking. Le fichier généré est directement réimportable. Le libellé du bouton se met à jour dynamiquement selon le programme filtré (ex : "Export Le Socle"). Inclut une feuille NOTICE avec les valeurs acceptées pour chaque champ.
+
 ## [2.3.2] — 2026-04-18
 
 ### Nouvelles fonctionnalités
