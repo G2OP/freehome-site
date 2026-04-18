@@ -689,6 +689,46 @@ export default {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // GET /api/settings  — paramètres publics (horaires, contact…)
+    // ─────────────────────────────────────────────────────────────────────────
+    if (path === "/api/settings" && request.method === "GET") {
+      try {
+        const rows = await env.DB.prepare("SELECT key, value FROM settings ORDER BY key").all();
+        const settings = {};
+        (rows.results || []).forEach(r => { settings[r.key] = r.value; });
+        return new Response(JSON.stringify({ success: true, settings }), {
+          headers: { "Content-Type": "application/json", ...corsHeaders }
+        });
+      } catch(e) {
+        return new Response(JSON.stringify({ success: false, error: e.message }), {
+          status: 500, headers: { "Content-Type": "application/json", ...corsHeaders }
+        });
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // POST /api/settings  — mise à jour paramètres (admin authentifié)
+    // ─────────────────────────────────────────────────────────────────────────
+    if (path === "/api/settings" && request.method === "POST") {
+      const authErr = await requireAuth(); if (authErr) return authErr;
+      try {
+        const data = await request.json();
+        for (const [key, value] of Object.entries(data)) {
+          await env.DB.prepare(
+            "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?, ?, datetime('now'))"
+          ).bind(key, String(value)).run();
+        }
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { "Content-Type": "application/json", ...corsHeaders }
+        });
+      } catch(e) {
+        return new Response(JSON.stringify({ success: false, error: e.message }), {
+          status: 500, headers: { "Content-Type": "application/json", ...corsHeaders }
+        });
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // GET /api/knowledge
     // ─────────────────────────────────────────────────────────────────────────
     if (path === "/api/knowledge" && request.method === "GET") {

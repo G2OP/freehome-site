@@ -1157,6 +1157,52 @@ textarea:focus-visible,
             <button class="btn btn-primary btn-sm" style="margin-top:.3rem" onclick="saveCompany()">Enregistrer</button>
           </div>
         </div>
+        <!-- Carte Horaires & Contact IA -->
+        <div class="card">
+          <div class="card-hdr"><span class="card-title">🕐 Horaires & Contact — Conseiller IA</span></div>
+          <div class="card-body">
+            <div style="font-size:.75rem;color:var(--text-3);margin-bottom:1rem;padding:.6rem .8rem;background:rgba(28,69,60,.06);border-radius:6px;border:1px solid rgba(28,69,60,.15)">
+              Ces données sont injectées en temps réel dans le Conseiller IA. Il peut ainsi répondre "nous sommes ouverts en ce moment" ou "nous rouvrons lundi à 9h".
+            </div>
+            <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin:.8rem 0 .4rem">Contact</div>
+            <div class="form-grid">
+              <div class="fg"><label>Nom de l'agence</label><input id="set-agence-nom" placeholder="FREEHOME — Maison & Habitat"></div>
+              <div class="fg"><label>Adresse</label><input id="set-contact-adresse" placeholder="7 rue A.M. Ampère, 57070 Metz"></div>
+              <div class="fg"><label>Téléphone</label><input id="set-contact-tel" type="tel" placeholder="06 30 10 51 78"></div>
+              <div class="fg"><label>Email</label><input id="set-contact-email" type="email" placeholder="contact@mhfreehome.com"></div>
+            </div>
+            <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin:.8rem 0 .4rem">Horaires d'ouverture</div>
+            <div class="form-grid">
+              <div class="fg">
+                <label>Lundi – Vendredi — Ouverture</label>
+                <input id="set-sem-open" type="time" value="09:00">
+              </div>
+              <div class="fg">
+                <label>Lundi – Vendredi — Fermeture</label>
+                <input id="set-sem-close" type="time" value="18:00">
+              </div>
+              <div class="fg">
+                <label>Samedi — Ouverture <span style="font-weight:400;color:var(--text-3)">(laisser vide si fermé)</span></label>
+                <input id="set-sam-open" type="time" value="09:00">
+              </div>
+              <div class="fg">
+                <label>Samedi — Fermeture</label>
+                <input id="set-sam-close" type="time" value="12:00">
+              </div>
+              <div class="fg full">
+                <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer">
+                  <input type="checkbox" id="set-sam-ferme" style="width:16px;height:16px;accent-color:var(--forest)">
+                  Fermé le samedi (désactive les horaires samedi ci-dessus)
+                </label>
+              </div>
+            </div>
+            <div style="font-size:.72rem;color:var(--text-3);margin:.4rem 0 .8rem">
+              Dimanche et jours fériés : toujours fermé.
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="saveHoraires()">Enregistrer les horaires</button>
+          </div>
+        </div>
+
         <!-- Carte SEO -->
         <div class="card">
           <div class="card-hdr"><span class="card-title">🔍 Référencement (SEO)</span></div>
@@ -1676,6 +1722,7 @@ function renderPage(id) {
   else if(id==='leads') renderLeads();
   else if(id==='acquereurs') renderAcquereurs();
   else if(id==='users') renderUsers();
+  else if(id==='settings') renderSettings();
 }
 
 // ══════════════════════════════════════════════════
@@ -3704,6 +3751,70 @@ async function saveSocials() {
     toast('✓ Réseaux sociaux sauvegardés — footer mis à jour');
   } catch(e) {
     toast('Erreur sauvegarde réseaux sociaux : ' + e.message, 'err');
+  }
+}
+
+// ══════════════════════════════════════════════════
+// SETTINGS — Horaires & Contact IA
+// ══════════════════════════════════════════════════
+let _settingsLoaded = false;
+
+async function renderSettings() {
+  if (_settingsLoaded) return; // déjà chargé
+  try {
+    const r = await fetch('/api/settings?t=' + Date.now());
+    const d = await r.json();
+    if (!d.success) return;
+    const s = d.settings || {};
+    const set = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.value = val; };
+    // Contact
+    set('set-agence-nom',       s.agence_nom       || 'FREEHOME — Maison & Habitat');
+    set('set-contact-adresse',  s.contact_adresse  || '7 rue A.M. Ampère, 57070 Metz');
+    set('set-contact-tel',      s.contact_tel      || '06 30 10 51 78');
+    set('set-contact-email',    s.contact_email    || 'contact@mhfreehome.com');
+    // Horaires semaine
+    set('set-sem-open',  s.horaires_semaine_open  || '09:00');
+    set('set-sem-close', s.horaires_semaine_close || '18:00');
+    // Horaires samedi
+    const samFerme = s.horaires_dimanche === 'ferme' && !s.horaires_samedi_open;
+    // On utilise une clé dédiée pour samedi fermé
+    const samClosed = s.horaires_samedi_ferme === '1';
+    const cbSam = document.getElementById('set-sam-ferme');
+    if (cbSam) cbSam.checked = samClosed;
+    set('set-sam-open',  s.horaires_samedi_open  || '09:00');
+    set('set-sam-close', s.horaires_samedi_close || '12:00');
+    // Syncer aussi les champs "Société" existants si présents
+    set('company-name',  s.company_name  || s.agence_nom  || '');
+    set('company-tel',   s.company_tel   || s.contact_tel || '');
+    set('company-email', s.company_email || s.contact_email || '');
+    _settingsLoaded = true;
+  } catch(e) { /* silencieux */ }
+}
+
+async function saveHoraires() {
+  const samFerme = document.getElementById('set-sam-ferme')?.checked ? '1' : '0';
+  const payload = {
+    agence_nom:              document.getElementById('set-agence-nom')?.value.trim()      || '',
+    contact_adresse:         document.getElementById('set-contact-adresse')?.value.trim() || '',
+    contact_tel:             document.getElementById('set-contact-tel')?.value.trim()     || '',
+    contact_email:           document.getElementById('set-contact-email')?.value.trim()   || '',
+    horaires_semaine_open:   document.getElementById('set-sem-open')?.value  || '09:00',
+    horaires_semaine_close:  document.getElementById('set-sem-close')?.value || '18:00',
+    horaires_samedi_open:    samFerme === '1' ? '' : (document.getElementById('set-sam-open')?.value  || '09:00'),
+    horaires_samedi_close:   samFerme === '1' ? '' : (document.getElementById('set-sam-close')?.value || '12:00'),
+    horaires_samedi_ferme:   samFerme,
+    horaires_dimanche:       'ferme',
+  };
+  try {
+    const resp = await fetch('/api/settings', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const result = await resp.json();
+    if (!result.success) throw new Error(result.error);
+    toast('✓ Horaires & contact sauvegardés — Conseiller IA mis à jour immédiatement');
+  } catch(e) {
+    toast('Erreur : ' + e.message, 'err');
   }
 }
 

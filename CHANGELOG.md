@@ -1,5 +1,13 @@
 # Changelog — FREEHOME Site
 
+## [2.3.5] — 2026-04-18
+
+### Nouvelles fonctionnalités
+- **Admin → Paramètres → Horaires & Contact IA** : nouvelle carte dans la page Paramètres pour configurer les horaires d'ouverture (lun-ven + samedi, avec case "Fermé le samedi") et les coordonnées (nom agence, adresse, téléphone, email). Sauvegarde directement en D1 via `POST /api/settings`.
+- **Worker** : `GET /api/settings` (public) et `POST /api/settings` (auth) — lecture/écriture de la table `settings` D1.
+- **Site public** : `loadSettings()` charge les horaires au démarrage avant d'ouvrir le chat — plus aucune valeur hardcodée dans index.html. Calcul `bureauOuvert` 100% dynamique depuis D1.
+- **Table D1 `settings`** : créée avec 9 clés seedées par défaut (horaires, contact, agence_nom).
+
 ## [2.3.4] — 2026-04-18
 
 ### Nouvelles fonctionnalités

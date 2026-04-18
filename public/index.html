@@ -3306,6 +3306,27 @@ let isTyping = false;
 let messageCount = 0;
 const MAX_MESSAGES = 8; // Limite d'échanges par session
 
+// Paramètres agence chargés au démarrage (horaires, contact…)
+let AGENCE_SETTINGS = {
+  horaires_semaine_open:  '09:00',
+  horaires_semaine_close: '18:00',
+  horaires_samedi_open:   '09:00',
+  horaires_samedi_close:  '12:00',
+  horaires_dimanche:      'ferme',
+  contact_tel:            '06 30 10 51 78',
+  contact_email:          'contact@mhfreehome.com',
+  contact_adresse:        '7 rue A.M. Ampère, 57070 Metz',
+  agence_nom:             'FREEHOME — Maison & Habitat'
+};
+async function loadSettings() {
+  try {
+    const r = await fetch('/api/settings?t=' + Date.now());
+    if (!r.ok) return;
+    const d = await r.json();
+    if (d.success && d.settings) Object.assign(AGENCE_SETTINGS, d.settings);
+  } catch(e) { /* silencieux — defaults utilisés */ }
+}
+
 // Base de connaissance technique chargée au démarrage
 let KNOWLEDGE_BASE_TEXT = '';
 async function loadKnowledgeBase() {
@@ -3336,26 +3357,32 @@ function buildSystemPrompt() {
     weekday:'long', day:'numeric', month:'long', year:'numeric',
     hour:'2-digit', minute:'2-digit', timeZone:'Europe/Paris'
   });
-  // Calcul ouverture bureau (heure Paris)
+  // Calcul ouverture bureau depuis AGENCE_SETTINGS (D1)
   const parisFmt = new Intl.DateTimeFormat('fr-FR', {
     weekday:'long', hour:'numeric', minute:'numeric',
     hour12:false, timeZone:'Europe/Paris'
   });
   const parts = Object.fromEntries(parisFmt.formatToParts(_d).map(p=>[p.type,p.value]));
-  const dow = parts.weekday; // "lundi", "mardi" …
-  const hParis = parseInt(parts.hour);
-  const mParis = parseInt(parts.minute);
-  const minOfDay = hParis * 60 + mParis;
-  const isWeekday = !['samedi','dimanche'].includes(dow);
-  const isSaturday = dow === 'samedi';
-  // Horaires : lundi-vendredi 9h-18h, samedi 9h-12h
-  const bureauOuvert = (isWeekday && minOfDay >= 9*60 && minOfDay < 18*60)
-    || (isSaturday && minOfDay >= 9*60 && minOfDay < 12*60);
-  const statutBureau = bureauOuvert
-    ? "OUVERT en ce moment"
-    : (dow === 'dimanche' ? "FERMÉ (dimanche)"
-      : isSaturday && minOfDay >= 12*60 ? "FERMÉ (samedi après-midi)"
-      : minOfDay < 9*60 ? "FERMÉ (avant 9h)" : "FERMÉ (après 18h)");
+  const dow      = parts.weekday;
+  const minOfDay = parseInt(parts.hour) * 60 + parseInt(parts.minute);
+  const toMin    = s => { const [h,m] = (s||'00:00').split(':').map(Number); return h*60+(m||0); };
+  const isWeekday   = !['samedi','dimanche'].includes(dow);
+  const isSaturday  = dow === 'samedi';
+  const isDimanche  = dow === 'dimanche';
+  const semOp  = toMin(AGENCE_SETTINGS.horaires_semaine_open);
+  const semCl  = toMin(AGENCE_SETTINGS.horaires_semaine_close);
+  const samOp  = toMin(AGENCE_SETTINGS.horaires_samedi_open);
+  const samCl  = toMin(AGENCE_SETTINGS.horaires_samedi_close);
+  const dimFerme = AGENCE_SETTINGS.horaires_dimanche === 'ferme';
+  const bureauOuvert = (isWeekday && minOfDay >= semOp && minOfDay < semCl)
+    || (isSaturday && minOfDay >= samOp && minOfDay < samCl);
+  const prochOuv = isWeekday && minOfDay < semOp ? `aujourd'hui à ${AGENCE_SETTINGS.horaires_semaine_open}`
+    : isWeekday && minOfDay >= semCl ? `lundi à ${AGENCE_SETTINGS.horaires_semaine_open}`
+    : isSaturday && minOfDay < samOp ? `ce samedi à ${AGENCE_SETTINGS.horaires_samedi_open}`
+    : isSaturday ? `lundi à ${AGENCE_SETTINGS.horaires_semaine_open}`
+    : `lundi à ${AGENCE_SETTINGS.horaires_semaine_open}`;
+  const statutBureau = bureauOuvert ? "OUVERT en ce moment"
+    : `FERMÉ — prochaine ouverture : ${prochOuv}`;
 
   // Sérialise les lots de chaque programme
   const progsCtx = PROGRAMMES.map(p => {
@@ -3398,8 +3425,8 @@ ${lotsStr}`;
     "",
     "Date et heure exactes (Paris) : " + now,
     "Statut bureau au moment de cette conversation : " + statutBureau,
-    "HORAIRES FREEHOME : Lundi-Vendredi 9h00-18h00 | Samedi 9h00-12h00 | Dimanche et jours feries : ferme.",
-    "Contact direct : 06 30 10 51 78 — contact@mhfreehome.com",
+    `HORAIRES ${AGENCE_SETTINGS.agence_nom} : Lundi-Vendredi ${AGENCE_SETTINGS.horaires_semaine_open}-${AGENCE_SETTINGS.horaires_semaine_close} | Samedi ${AGENCE_SETTINGS.horaires_samedi_open}-${AGENCE_SETTINGS.horaires_samedi_close} | Dimanche et jours feries : ferme.`,
+    `Contact direct : ${AGENCE_SETTINGS.contact_tel} — ${AGENCE_SETTINGS.contact_email}`,
     "REGLE : si on te demande si les bureaux sont ouverts, si on peut appeler, si quelqu un est disponible — reponds en te basant sur le statut bureau ci-dessus. Si ferme, indique quand c est a nouveau ouvert et propose le formulaire de contact.",
     "",
     "DONNEES TEMPS REEL DE NOS PROGRAMMES:",
@@ -4246,6 +4273,7 @@ function observeFadeIns() {
 ════════════════════════════════════ */
 renderProgs();
 loadCMSData();
+loadSettings();      // Charge horaires + contact depuis D1
 loadKnowledgeBase(); // Charge la base technique D1 pour l'IA
 renderFAQ();
 observeFadeIns();
