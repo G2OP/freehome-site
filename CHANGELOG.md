@@ -1,5 +1,10 @@
 # Changelog — FREEHOME Site
 
+## [2.3.7] — 2026-05-14
+
+### Correctifs
+- **Prix lots Réservé/Vendu masqués côté IA** : `buildSystemPrompt()` n'injecte plus le prix des lots non-Disponibles dans le contexte PIA — seuls les lots `Disponible` exposent leur prix catalogue. Règle explicite ajoutée dans le system prompt : PIA ne communique jamais le prix d'un lot réservé ou vendu (information commerciale confidentielle entre FREEHOME et l'acquéreur).
+
 ## [2.3.6] — 2026-05-13
 
 ### Nouvelles fonctionnalités
