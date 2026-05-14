@@ -1,5 +1,12 @@
 # Changelog — FREEHOME Site
 
+## [2.3.6] — 2026-05-13
+
+### Nouvelles fonctionnalités
+- **Conseillère PIA** : l'assistant IA se nomme désormais **PIA** (Personal Immobilier Advisor) — en-tête chat, avatars, system prompt. Plus aucune mention "IA Claude" côté public.
+- **Message d'accueil dynamique** : généré en JS à chaque ouverture — salutation Bonjour/Bonsoir selon l'heure, statut bureau temps réel (✅ ouvert + tél. / 🕐 fermé + prochaine ouverture) depuis settings D1.
+- **Fix import Excel double en-tête** : `parseWorkbook()` détecte automatiquement les fichiers export (2 lignes d'en-tête) et saute la ligne lisible pour utiliser les clés techniques.
+
 ## [2.3.5] — 2026-04-18
 
 ### Nouvelles fonctionnalités

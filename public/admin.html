@@ -2011,7 +2011,7 @@ function saveFicheAcquereur() {
   // Sync API
   fetch('/api/acquereurs/' + id, {
     method: 'PUT',
-    headers: {'Content-Type':'application/json', 'X-Admin-Token': getAdminToken()},
+    headers: {'Content-Type':'application/json'},
     body: JSON.stringify({
       nom: a.nom, prenom: a.prenom, email: a.email, telephone: a.telephone,
       statut: a.statut, date_reservation: a.date_reservation,
@@ -2825,7 +2825,7 @@ function editLot(id) {
   openModal('m-add-lot');
 }
 
-function getAdminToken() { return sessionStorage.getItem('fh_admin_token') || ''; }
+// getAdminToken supprimé v2.3.8 — auth via cookie HttpOnly uniquement
 
 function saveLot(){
   const num = document.getElementById('nl-num').value.trim();
@@ -2871,7 +2871,7 @@ function saveLot(){
     else DB.acquereurs.push(acqRecord);
     fetch('/api/acquereurs', {
       method: 'POST',
-      headers: {'Content-Type':'application/json', 'X-Admin-Token': getAdminToken()},
+      headers: {'Content-Type':'application/json'},
       body: JSON.stringify(acqRecord)
     }).catch(e => console.warn('Acquéreur non persisté:', e));
   }
@@ -2940,7 +2940,10 @@ function parseWorkbook(wb, fname) {
   // ── Feuille PROGRAMMES (optionnelle) ──
   const shProg = wb.Sheets[wb.SheetNames.find(n=>n.toUpperCase().includes('PROGRAMME'))];
   if(shProg) {
-    const rows = XLSX.utils.sheet_to_json(shProg, {defval:''});
+    const raw1p = XLSX.utils.sheet_to_json(shProg, {defval:'', header:1});
+    const firstRowP = (raw1p[0]||[]).map(h=>String(h).trim().toUpperCase());
+    const hasTechHeaderP = firstRowP.includes('NOM_PROGRAMME');
+    const rows = XLSX.utils.sheet_to_json(shProg, {defval:'', range: hasTechHeaderP ? 0 : 1});
     rows.forEach((row,i)=>{
       const nom = col(row,'NOM_PROGRAMME *','NOM_PROGRAMME','nom_programme','programme_nom','NOM');
       if(!nom) return;
@@ -2967,7 +2970,11 @@ function parseWorkbook(wb, fname) {
     || wb.SheetNames[0];
   const shLots = lotsSheetName ? wb.Sheets[lotsSheetName] : null;
   if(shLots) {
-    const rows = XLSX.utils.sheet_to_json(shLots, {defval:''});
+    // Détecter si la ligne 1 est lisible (export double en-tête) → utiliser range:1 pour sauter
+    const raw1 = XLSX.utils.sheet_to_json(shLots, {defval:'', header:1});
+    const firstRow = (raw1[0]||[]).map(h=>String(h).trim().toUpperCase());
+    const hasTechHeader = firstRow.includes('NOM_PROGRAMME') || firstRow.includes('NUMERO_LOT');
+    const rows = XLSX.utils.sheet_to_json(shLots, {defval:'', range: hasTechHeader ? 0 : 1});
     rows.forEach((row,i)=>{
       // Accepte : NOM_PROGRAMME / programme_nom / NOM / etc.
       const prog = col(row,'NOM_PROGRAMME *','NOM_PROGRAMME','nom_programme','programme_nom','PROGRAMME','NOM_PROG');
@@ -4286,196 +4293,7 @@ window.nav = function(id) {
   </div>
 </div>
 
-<!-- ═══ ÉCRAN DE LOGIN ADMIN ═══ -->
-<style>
-#admin-login-screen{
-  position:fixed;inset:0;z-index:99999;
-  background:linear-gradient(160deg,#F8F7F4 0%,#F2EFE8 60%,#EDE9E0 100%);
-  display:flex;align-items:center;justify-content:center;
-  font-family:'DM Sans',sans-serif;
-}
-#admin-login-screen.hidden{
-  opacity:0;pointer-events:none;transition:opacity .4s ease;
-}
-.login-box{
-  width:min(400px,90vw);
-  background:#fff;
-  border:1px solid rgba(201,169,110,.35);
-  border-radius:16px;
-  padding:2.5rem 2rem;
-  box-shadow:0 4px 40px rgba(201,169,110,.15), 0 20px 60px rgba(0,0,0,.08);
-  text-align:center;
-}
-.login-logo{
-  font-family:'DM Sans',sans-serif;
-  font-size:1.6rem;font-weight:300;letter-spacing:.18em;
-  color:#1C453C;margin-bottom:.25rem;
-}
-.login-logo small{
-  display:block;font-size:.58rem;letter-spacing:.28em;
-  text-transform:uppercase;color:#8a6d2f;margin-top:2px;
-}
-.login-sep{
-  width:40px;height:1px;background:rgba(201,169,110,.4);
-  margin:1.2rem auto 1.5rem;
-}
-.login-title{
-  font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;
-  color:#8A8A7E;margin-bottom:1.8rem;
-}
-.login-field{
-  position:relative;margin-bottom:1rem;
-}
-.login-field input{
-  width:100%;padding:.75rem 1rem .75rem 2.6rem;
-  background:#F8F7F4;
-  border:1px solid rgba(201,169,110,.3);
-  border-radius:10px;
-  color:#1A1A18;font-size:.9rem;outline:none;
-  box-sizing:border-box;
-  font-family:'DM Sans',sans-serif;
-  transition:border-color .2s, box-shadow .2s;
-}
-.login-field input::placeholder{color:#8A8A7E}
-.login-field input:focus{
-  border-color:rgba(201,169,110,.6);
-  box-shadow:0 0 0 3px rgba(201,169,110,.1);
-}
-.login-field-icon{
-  position:absolute;left:.85rem;top:50%;transform:translateY(-50%);
-  color:#8a6d2f;font-size:1rem;pointer-events:none;
-}
-.login-btn{
-  width:100%;padding:.8rem;margin-top:.25rem;
-  background:linear-gradient(135deg,#1C453C 0%,#2A6355 100%);
-  border:none;border-radius:10px;
-  color:#fff;font-size:.9rem;font-weight:700;
-  cursor:pointer;transition:all .25s;
-  letter-spacing:.04em;
-  box-shadow:0 2px 16px rgba(28,69,60,.2);
-}
-.login-btn:hover{
-  background:linear-gradient(135deg,#153429 0%,#1C453C 100%);
-  box-shadow:0 4px 24px rgba(28,69,60,.3);
-  transform:translateY(-1px);
-}
-.login-error{
-  color:#C0392B;font-size:.78rem;margin-top:.6rem;
-  min-height:1.2rem;transition:opacity .2s;
-}
-.login-error.hidden{opacity:0}
-.login-back{
-  display:block;margin-top:1.5rem;
-  font-size:.72rem;color:#8A8A7E;
-  text-decoration:none;transition:color .2s;
-  letter-spacing:.04em;
-}
-.login-back:hover{color:#4A4A44}
-</style>
-
-<div id="admin-login-screen" style="display: none;">
-  <div class="login-box">
-    <div class="login-logo">
-      FREEHOME
-      <small>Administration</small>
-    </div>
-    <div class="login-sep"></div>
-    <div class="login-title">Accès réservé — Espace de gestion</div>
-    <div class="login-field">
-      <span class="login-field-icon">🔑</span>
-      <input type="password" id="login-pwd" placeholder="Mot de passe…" autocomplete="current-password" onkeydown="if(event.key==='Enter') doLogin()">
-    </div>
-    <button class="login-btn" onclick="doLogin()">Accéder au CMS →</button>
-    <div class="login-error hidden" id="login-error">Mot de passe incorrect</div>
-    <a href="/" class="login-back">← Retour au site</a>
-  </div>
-</div>
-
-<script>
-(function(){
-  var DEFAULT_PWD = 'freehome2025';
-  var SESSION_KEY = 'fh_admin_auth';
-  var _activePwd = DEFAULT_PWD; // sera éventuellement remplacé par la valeur D1
-
-  // Charger le mot de passe depuis D1 (async, non bloquant)
-  fetch('/api/settings?t=' + Date.now())
-    .then(function(r){ return r.json(); })
-    .then(function(data){
-      if(data.success && data.settings && data.settings.admin_password){
-        _activePwd = data.settings.admin_password;
-      }
-    })
-    .catch(function(){ /* D1 indisponible → mot de passe par défaut */ });
-
-  // Si déjà authentifié dans cette session, on cache l'écran directement
-  if(sessionStorage.getItem(SESSION_KEY) === '1'){
-    var screen = document.getElementById('admin-login-screen');
-    if(screen) screen.style.display = 'none';
-  }
-
-  window.doLogin = function(){
-    var pwd = document.getElementById('login-pwd').value;
-    var errEl = document.getElementById('login-error');
-    if(pwd === _activePwd){
-      sessionStorage.setItem(SESSION_KEY,'1');
-      var screen = document.getElementById('admin-login-screen');
-      screen.classList.add('hidden');
-      setTimeout(function(){ screen.style.display = 'none'; }, 420);
-    } else {
-      errEl.classList.remove('hidden');
-      errEl.textContent = 'Mot de passe incorrect';
-      document.getElementById('login-pwd').value = '';
-      document.getElementById('login-pwd').focus();
-      setTimeout(function(){ errEl.classList.add('hidden'); }, 3000);
-    }
-  };
-
-  // ── Changement de mot de passe depuis la page Paramètres ──
-  window.changePassword = async function(){
-    var current  = document.getElementById('pwd-current').value;
-    var newPwd   = document.getElementById('pwd-new').value;
-    var confirm  = document.getElementById('pwd-confirm').value;
-    var msgEl    = document.getElementById('pwd-msg');
-
-    function showMsg(txt, color){
-      msgEl.textContent = txt;
-      msgEl.style.color = color;
-      msgEl.style.display = 'block';
-      setTimeout(function(){ msgEl.style.display = 'none'; }, 4000);
-    }
-
-    if(current !== _activePwd){
-      return showMsg('❌ Mot de passe actuel incorrect.', 'var(--red)');
-    }
-    if(newPwd.length < 8){
-      return showMsg('❌ Le nouveau mot de passe doit faire au moins 8 caractères.', 'var(--red)');
-    }
-    if(newPwd !== confirm){
-      return showMsg('❌ Les deux mots de passe ne correspondent pas.', 'var(--red)');
-    }
-    try {
-      var resp = await fetch('/api/settings', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ admin_password: newPwd })
-      });
-      var result = await resp.json();
-      if(result.success){
-        _activePwd = newPwd; // mise à jour en mémoire immédiate
-        sessionStorage.setItem(SESSION_KEY,'1'); // session toujours valide
-        document.getElementById('pwd-current').value = '';
-        document.getElementById('pwd-new').value = '';
-        document.getElementById('pwd-confirm').value = '';
-        showMsg('✅ Mot de passe mis à jour avec succès.', 'var(--green)');
-      } else {
-        showMsg('❌ Erreur : ' + (result.error||'inconnue'), 'var(--red)');
-      }
-    } catch(e){
-      showMsg('❌ Erreur réseau. Réessayez.', 'var(--red)');
-    }
-  };
-})();
-</script>
+<!-- Login legacy supprimé (v2.3.8) — authentification via /api/auth/login + cookie HttpOnly uniquement -->
 
 <script>
 // ══════════════════════════════════════════════════

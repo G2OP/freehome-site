@@ -9,13 +9,29 @@ export default {
       "https://freehome-site.mhfreehome.workers.dev"
     ];
     const origin = request.headers.get("Origin") || "";
-    const corsOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+    const isAllowedOrigin = !origin || allowedOrigins.includes(origin);
+    const corsOrigin = origin && isAllowedOrigin ? origin : allowedOrigins[0];
+    // Headers de sécurité HTTP défensifs
+    const securityHeaders = {
+      "X-Content-Type-Options": "nosniff",
+      "X-Frame-Options": "DENY",
+      "Referrer-Policy": "strict-origin-when-cross-origin",
+      "Permissions-Policy": "camera=(), microphone=(), geolocation=()"
+    };
     const corsHeaders = {
       "Access-Control-Allow-Origin": corsOrigin,
       "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
-      "Access-Control-Allow-Credentials": "true"
+      "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Internal-Key",
+      "Access-Control-Allow-Credentials": "true",
+      "Vary": "Origin",
+      ...securityHeaders
     };
+    // Rejeter explicitement les origines non autorisées
+    if (origin && !isAllowedOrigin) {
+      return new Response(JSON.stringify({ error: "Origine non autorisée" }), {
+        status: 403, headers: { "Content-Type": "application/json", ...securityHeaders }
+      });
+    }
     if (request.method === "OPTIONS") {
       return new Response(null, { headers: corsHeaders });
     }
@@ -294,7 +310,12 @@ export default {
     // ─────────────────────────────────────────────────────────────────────────
     if (path === "/api/chatbot-token" && request.method === "GET") {
       try {
-        const secret = env.PROXY_SHARED_SECRET || 'fh-proxy-default-2026';
+        const secret = env.PROXY_SHARED_SECRET;
+        if (!secret) {
+          return new Response(JSON.stringify({ success: false, error: 'Configuration proxy manquante' }), {
+            status: 500, headers: { "Content-Type": "application/json", ...corsHeaders }
+          });
+        }
         // Fenêtre de 15 min : floor(timestamp / 900000)
         const window15 = Math.floor(Date.now() / 900000);
         const raw = `${window15}:${secret}`;
@@ -648,58 +669,43 @@ export default {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // GET /api/settings
-    // ─────────────────────────────────────────────────────────────────────────
-    if (path === "/api/settings" && request.method === "GET") {
-      // NOTE : route publique volontaire — index.html l'appelle pour afficher tel/email/tagline
-      try {
-        const rows = await env.DB.prepare("SELECT key, value FROM settings").all();
-        const settings = {};
-        rows.results.forEach(r => { settings[r.key] = r.value; });
-        return new Response(JSON.stringify({ success: true, settings }), {
-          headers: { "Content-Type": "application/json", ...corsHeaders }
-        });
-      } catch (e) {
-        return new Response(JSON.stringify({ success: false, error: e.message }), {
-          status: 500, headers: { "Content-Type": "application/json", ...corsHeaders }
-        });
-      }
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // POST /api/settings
-    // ─────────────────────────────────────────────────────────────────────────
-    if (path === "/api/settings" && request.method === "POST") {
-      const authErr = await requireAdmin(); if (authErr) return authErr;
-      try {
-        const data = await request.json();
-        for (const [key, value] of Object.entries(data)) {
-          await env.DB.prepare(
-            "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?, ?, datetime('now'))"
-          ).bind(key, String(value)).run();
-        }
-        return new Response(JSON.stringify({ success: true, updated: Object.keys(data).length }), {
-          headers: { "Content-Type": "application/json", ...corsHeaders }
-        });
-      } catch (e) {
-        return new Response(JSON.stringify({ success: false, error: e.message }), {
-          status: 500, headers: { "Content-Type": "application/json", ...corsHeaders }
-        });
-      }
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // GET /api/settings  — paramètres publics (horaires, contact…)
+    // GET /api/settings  — paramètres publics filtrés (liste blanche) + tous si admin
     // ─────────────────────────────────────────────────────────────────────────
     if (path === "/api/settings" && request.method === "GET") {
       try {
+        const session = await getSession();
+        // Clés visibles sans authentification
+        const publicKeys = new Set([
+          "horaires_semaine_open","horaires_semaine_close",
+          "horaires_samedi_open","horaires_samedi_close","horaires_dimanche",
+          "contact_tel","contact_email","contact_adresse","agence_nom",
+          "company_name","company_tel","company_email","contact_zone","contact_horaires",
+          "footer_brand_desc","footer_copyright",
+          "hero_eyebrow","hero_title","hero_tagline","hero_description",
+          "hero_badge_1","hero_badge_2","hero_badge_3",
+          "hero_btn_primary_text","hero_btn_secondary_text",
+          "stat_1_val","stat_1_label","stat_2_val","stat_2_label",
+          "stat_3_val","stat_3_label","stat_4_val","stat_4_label",
+          "prog_section_label","prog_section_title",
+          "simul_section_label","simul_section_title","simul_section_subtitle",
+          "faq_section_label","faq_section_title","faq_cta_heading","faq_cta_desc",
+          "contact_section_label","contact_section_title","contact_section_desc",
+          "livres_section_label","livres_section_title",
+          "soc_facebook","soc_instagram","soc_linkedin","soc_youtube",
+          "seo_title","seo_desc","seo_image","seo_ga","seo_gsc"
+        ]);
+        for (let i = 0; i < 10; i++) { publicKeys.add(`faq_q_${i}`); publicKeys.add(`faq_a_${i}`); }
         const rows = await env.DB.prepare("SELECT key, value FROM settings ORDER BY key").all();
         const settings = {};
-        (rows.results || []).forEach(r => { settings[r.key] = r.value; });
-        return new Response(JSON.stringify({ success: true, settings }), {
-          headers: { "Content-Type": "application/json", ...corsHeaders }
+        (rows.results || []).forEach(r => {
+          if (session || publicKeys.has(r.key) || r.key.startsWith("page_")) {
+            settings[r.key] = r.value;
+          }
         });
-      } catch(e) {
+        return new Response(JSON.stringify({ success: true, settings }), {
+          headers: { "Content-Type": "application/json", ...corsHeaders, "Cache-Control": "no-store" }
+        });
+      } catch (e) {
         return new Response(JSON.stringify({ success: false, error: e.message }), {
           status: 500, headers: { "Content-Type": "application/json", ...corsHeaders }
         });
@@ -710,7 +716,7 @@ export default {
     // POST /api/settings  — mise à jour paramètres (admin authentifié)
     // ─────────────────────────────────────────────────────────────────────────
     if (path === "/api/settings" && request.method === "POST") {
-      const authErr = await requireAuth(); if (authErr) return authErr;
+      const authErr = await requireAdmin(); if (authErr) return authErr;
       try {
         const data = await request.json();
         for (const [key, value] of Object.entries(data)) {
@@ -732,12 +738,11 @@ export default {
     // GET /api/knowledge
     // ─────────────────────────────────────────────────────────────────────────
     if (path === "/api/knowledge" && request.method === "GET") {
-      // Autoriser le proxy IA interne ou les utilisateurs authentifiés
-      const referer = request.headers.get('Referer') || '';
+      // Session valide OU X-Internal-Key configurée — Referer non fiable, ignoré
       const xInternalKey = request.headers.get('X-Internal-Key') || '';
-      const internalKeyValid = xInternalKey === (env.INTERNAL_KEY || 'fh-internal-2026');
+      const internalKeyValid = Boolean(env.INTERNAL_KEY) && xInternalKey === env.INTERNAL_KEY;
       const session = await getSession();
-      if (!session && !internalKeyValid && !referer.includes('mhfreehome')) {
+      if (!session && !internalKeyValid) {
         return new Response(JSON.stringify({ error: 'Non autorisé' }), {
           status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
