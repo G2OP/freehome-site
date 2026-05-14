@@ -3464,10 +3464,9 @@ function buildSystemPrompt() {
     const lotsDispos = lots_.filter(l=>l.statut==='Disponible');
     const lotsRes    = lots_.filter(l=>l.statut==='Réservé');
     const lotsVendus = lots_.filter(l=>l.statut==='Vendu');
-    // Prix masqué pour les lots Réservé/Vendu — seuls les lots Disponibles exposent leur prix catalogue
+    // Le prix catalogue est toujours communiqué — seul le prix de transaction réel (privé) est inconnu de PIA
     const lotsStr = lots_.map(l => {
-      const disponible = l.statut === 'Disponible';
-      const prixStr = disponible ? `${l.prix.toLocaleString('fr-FR')} € (prix catalogue)` : 'prix non communiqué';
+      const prixStr = `${l.prix.toLocaleString('fr-FR')} € (prix catalogue initial)`;
       return `  - Lot ${l.num} | ${l.typo} | ${l.surface}m² | ${prixStr} | STATUT: ${l.statut}`;
     }).join('\n');
     // RGPD : le nom de l'acquéreur n'est jamais injecté dans le prompt public
@@ -3706,7 +3705,7 @@ ${lotsStr}`;
     "CALCULS FINANCIERS: Si le message contient [CALCUL_EMPRUNT:...], utilise UNIQUEMENT ces chiffres precalcules. Format prose obligatoire: mensualite totale, decomposition capital+interets et assurance (preciser si supposee), cout total interets. Termine par UNE question courte. Ne pas commenter le taux ni chercher le marche SAUF si le visiteur demande explicitement une comparaison ou si le taux est bon. Jamais de liste, jamais de tirets.",
     "REFERENCES LEGALES ET FISCALES: Pour toute réponse sur la fiscalité, le droit immobilier ou la réglementation, cite systématiquement la source légale entre parenthèses. Exemples : (art. 199 novovicies CGI — Pinel), (art. 84 LFI 2025 — réforme LMNP plus-value), (art. 1601-1 CCH — garantie GFA), (décret RE2020 du 29/07/2021), (loi ELAN 2018 — encadrement loyers). Ces références donnent de la crédibilité et permettent au prospect de vérifier. Pour les dispositifs récents comme Jeanbrun : (LFI 2026, adoptée le 27/01/2026 — dispositif bailleur privé). Ne pas inventer de références : si tu n'as pas la référence exacte, mentionne simplement le texte de loi (ex: 'LFI 2025') sans numéro d'article.",
     "RGPD — REGLE ABSOLUE ET NON NEGOCIABLE: Ne JAMAIS mentionner, inventer ni deviner le nom, prenom, email ou coordonnees d un acquereur ou reservataire. Si un lot est Reserve ou Vendu, tu dois uniquement dire qu il n est plus disponible. Tu n as AUCUNE information sur l identite des acquereurs — ne speculer ni halluciner sous aucun pretexte. Dire uniquement : 'Ce lot est deja reserve' ou 'Ce lot est vendu'. Toute mention d un nom de personne liee a un lot est une violation grave du RGPD.",
-    "PRIX DES LOTS — REGLE ABSOLUE ET NON NEGOCIABLE: Tu ne communiques les prix que pour les lots avec STATUT: Disponible. Pour les lots Reservé ou Vendu, le prix est confidentiel — reponds uniquement 'Je peux uniquement vous communiquer les prix des lots encore disponibles.' ou similaire. Si on demande la grille complete des prix, presente UNIQUEMENT les lots Disponibles avec leur prix catalogue. Ne jamais donner ni estimer le prix d un lot vendu ou reserve — c est une information commerciale strictement confidentielle entre FREEHOME et l acquereur.",
+    "PRIX DES LOTS — REGLE IMPORTANTE: Tu peux communiquer le prix catalogue initial de tous les lots (Disponible, Reserve ou Vendu) — c est une information commerciale publique. En revanche, tu ne connais pas et ne dois jamais speculer sur le prix de transaction reel (prix de vente effectivement signe avec l acquereur) — cette information est strictement privee entre FREEHOME et l acquereur. Si on demande la grille des prix, presents tous les lots avec leur prix catalogue en precisant clairement le statut. Pour un lot Reserve ou Vendu, precise qu il n est plus disponible a la vente.",
     "IDENTITE: tu es le Conseiller FREEHOME. Ne mentionne jamais Claude ou Anthropic."
   ].join("\n");
   return knowledgeBase + kbBlock;
